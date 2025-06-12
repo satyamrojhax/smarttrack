@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
@@ -33,36 +32,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
+    // Check if user exists in registered users
+    const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+    const existingUser = registeredUsers.find((u: any) => u.email === email && u.password === password);
+    
+    if (!existingUser) {
+      throw new Error('Invalid credentials. Please register first or check your login details.');
+    }
+    
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    const mockUser: User = {
-      id: '1',
-      name: 'Student User',
-      email,
-      class: 'Class 10',
-      board: 'CBSE'
+    const userToLogin: User = {
+      id: existingUser.id,
+      name: existingUser.name,
+      email: existingUser.email,
+      class: existingUser.class,
+      board: existingUser.board
     };
     
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
+    setUser(userToLogin);
+    localStorage.setItem('user', JSON.stringify(userToLogin));
     return true;
   };
 
   const register = async (name: string, email: string, password: string, className: string, board: string): Promise<boolean> => {
+    // Check if user already exists
+    const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+    const existingUser = registeredUsers.find((u: any) => u.email === email);
+    
+    if (existingUser) {
+      throw new Error('User already exists with this email. Please login instead.');
+    }
+    
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    const newUser: User = {
+    const newUser: User & { password: string } = {
       id: Date.now().toString(),
       name,
       email,
       class: className,
-      board
+      board,
+      password
     };
     
-    setUser(newUser);
-    localStorage.setItem('user', JSON.stringify(newUser));
+    // Save to registered users
+    const updatedUsers = [...registeredUsers, newUser];
+    localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
+    
+    // Set current user (without password)
+    const { password: _, ...userWithoutPassword } = newUser;
+    setUser(userWithoutPassword);
+    localStorage.setItem('user', JSON.stringify(userWithoutPassword));
     return true;
   };
 
@@ -71,6 +93,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedUser = { ...user, ...userData };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // Also update in registered users
+      const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+      const updatedUsers = registeredUsers.map((u: any) => 
+        u.id === user.id ? { ...u, ...userData } : u
+      );
+      localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
     }
   };
 

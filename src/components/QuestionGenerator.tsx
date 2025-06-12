@@ -49,18 +49,9 @@ export const QuestionGenerator = () => {
     return text
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
-      .replace(/###\s*(.*?)(\n|$)/g, '\n🔹 $1\n')
-      .replace(/##\s*(.*?)(\n|$)/g, '\n📌 $1\n')
+      .replace(/#{1,6}\s*/g, '')
       .replace(/\n\s*\n/g, '\n\n')
-      .replace(/^\s+|\s+$/g, '')
-      .replace(/Question\s*(\d+):/gi, '🎯 Question $1:')
-      .replace(/Answer:|Solution:/gi, '💡 Here\'s the solution:')
-      .replace(/Explanation:/gi, '📝 Let me explain:')
-      .replace(/Key Points?:/gi, '🔑 Important points to remember:')
-      .replace(/Tips?:/gi, '💭 Pro tip:')
-      .replace(/Steps?:/gi, '👣 Step-by-step approach:')
-      .replace(/Note:/gi, '📌 Note:')
-      .replace(/Remember:/gi, '🧠 Remember:');
+      .replace(/^\s+|\s+$/g, '');
   };
 
   const generateQuestions = async () => {
@@ -79,17 +70,33 @@ export const QuestionGenerator = () => {
       const subjectName = selectedSubjectData?.name || '';
       const chapterName = availableChapters.find(ch => ch.id === selectedChapter)?.name || '';
       
-      const prompt = `Hey! I need you to create 5 awesome practice questions for Class 10 CBSE ${subjectName}, specifically from the chapter "${chapterName}". 
+      const prompt = `Create 5 high-quality practice questions for Class 10 CBSE ${subjectName}, chapter "${chapterName}".
 
-Here's what I'm looking for:
+Requirements:
 - Question types: ${questionTypes.join(', ')}
 - Difficulty: ${difficulty} level
-- Make them exam-oriented and comprehensive
-- For MCQs, include 4 clear options (a, b, c, d) and mark the correct answer
-- Test different concepts from the chapter
-- Write in a friendly, engaging tone like you're a helpful tutor
+- Make them exam-oriented and based on latest CBSE pattern
 
-Please format each question clearly with proper numbering and make sure they're the kind that would actually help students prepare for their board exams. Thanks!`;
+For MCQ questions, provide exactly 4 options labeled as:
+a) [option 1]
+b) [option 2] 
+c) [option 3]
+d) [option 4]
+
+Then clearly state: "Correct Answer: [letter]"
+
+For other question types, write clear, direct questions that test understanding.
+
+Format each question as:
+Question 1: [question text]
+[If MCQ, include options and correct answer]
+
+Question 2: [question text]
+[If MCQ, include options and correct answer]
+
+And so on...
+
+Write in a friendly, encouraging tone like a helpful tutor. Focus on clarity and exam relevance.`;
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
         method: 'POST',
@@ -111,26 +118,35 @@ Please format each question clearly with proper numbering and make sure they're 
 
       const data = await response.json();
       const generatedText = data.candidates[0].content.parts[0].text;
-      
       const formattedText = formatAIResponse(generatedText);
-      const questionBlocks = formattedText.split(/🎯\s*Question\s*\d+:/i).filter(q => q.trim());
+      
+      // Parse questions more carefully
+      const questionBlocks = formattedText.split(/Question\s*\d+:/i).filter(q => q.trim());
       
       const questions = questionBlocks.map((block, index) => {
-        const isHavingMCQ = questionTypes.includes('MCQ');
         let options: string[] | undefined;
         let correctAnswer: number | undefined;
+        let questionText = block.trim();
         
-        if (isHavingMCQ) {
-          const optionMatches = block.match(/[a-d]\)\s*([^\n]+)/gi);
-          if (optionMatches && optionMatches.length === 4) {
-            options = optionMatches.map(opt => opt.replace(/[a-d]\)\s*/, '').trim());
-            correctAnswer = Math.floor(Math.random() * 4); // Random for demo
-          }
+        // Check if it's an MCQ
+        const optionMatches = block.match(/[a-d]\)\s*([^\n]+)/gi);
+        const correctAnswerMatch = block.match(/Correct Answer:\s*([a-d])/i);
+        
+        if (optionMatches && optionMatches.length === 4 && correctAnswerMatch) {
+          options = optionMatches.map(opt => opt.replace(/[a-d]\)\s*/, '').trim());
+          const correctLetter = correctAnswerMatch[1].toLowerCase();
+          correctAnswer = correctLetter.charCodeAt(0) - 97; // Convert a-d to 0-3
+          
+          // Remove options and correct answer from question text
+          questionText = questionText
+            .replace(/[a-d]\)\s*[^\n]+/gi, '')
+            .replace(/Correct Answer:\s*[a-d]/i, '')
+            .trim();
         }
         
         return {
           id: `${Date.now()}-${index}`,
-          question: block.trim(),
+          question: questionText,
           type: questionTypes[index % questionTypes.length],
           difficulty,
           subject: subjectName,
@@ -144,15 +160,15 @@ Please format each question clearly with proper numbering and make sure they're 
       setGeneratedQuestions(questions);
       
       toast({
-        title: "Questions Generated! 🎉",
-        description: `Created ${questions.length} engaging practice questions for you`,
+        title: "Questions Generated Successfully! 🎉",
+        description: `Created ${questions.length} practice questions tailored for you`,
       });
 
     } catch (error) {
       console.error('Error generating questions:', error);
       toast({
-        title: "Oops! Something went wrong",
-        description: "Couldn't generate questions right now. Please try again in a moment.",
+        title: "Generation Failed",
+        description: "Unable to create questions right now. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -164,17 +180,19 @@ Please format each question clearly with proper numbering and make sure they're 
     setGeneratingSolution(question.id);
     
     try {
-      const prompt = `Hi! I need a detailed, student-friendly solution for this Class 10 CBSE ${question.subject} question from "${question.chapter}":
+      const prompt = `Provide a detailed, student-friendly solution for this Class 10 CBSE ${question.subject} question from "${question.chapter}":
 
 ${question.question}
 
+${question.options ? `Options:\na) ${question.options[0]}\nb) ${question.options[1]}\nc) ${question.options[2]}\nd) ${question.options[3]}` : ''}
+
 Please provide:
 1. The correct answer (if applicable)
-2. A clear, step-by-step explanation
-3. The key concepts involved
-4. Helpful tips for similar questions
+2. Clear step-by-step explanation
+3. Key concepts involved
+4. Study tips for similar questions
 
-Write it like you're explaining to a student who wants to really understand the concept, not just memorize the answer. Keep it conversational and encouraging!`;
+Write in a friendly, encouraging tone as if you're a helpful tutor explaining to a student who wants to truly understand the concept.`;
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
         method: 'POST',
@@ -209,13 +227,13 @@ Write it like you're explaining to a student who wants to really understand the 
 
       toast({
         title: "Solution Ready! ✨",
-        description: "I've prepared a detailed explanation for you",
+        description: "Detailed explanation generated successfully",
       });
 
     } catch (error) {
       console.error('Error generating solution:', error);
       toast({
-        title: "Couldn't generate solution",
+        title: "Solution Generation Failed",
         description: "Please try again in a moment.",
         variant: "destructive"
       });
@@ -257,7 +275,7 @@ Write it like you're explaining to a student who wants to really understand the 
 
   const exportQuestions = () => {
     const questionsText = generatedQuestions.map((q, index) => 
-      `Question ${index + 1}:\n${q.question}\n${q.answer ? `\nSolution:\n${q.answer}` : ''}\n${'='.repeat(50)}\n\n`
+      `Question ${index + 1}:\n${q.question}\n${q.options ? q.options.map((opt, i) => `${String.fromCharCode(97 + i)}) ${opt}`).join('\n') : ''}\n${q.answer ? `\nSolution:\n${q.answer}` : ''}\n${'='.repeat(50)}\n\n`
     ).join('');
     
     const blob = new Blob([questionsText], { type: 'text/plain' });
@@ -270,7 +288,7 @@ Write it like you're explaining to a student who wants to really understand the 
     
     toast({
       title: "Downloaded! 📥",
-      description: "Questions saved to your device",
+      description: "Questions exported successfully",
     });
   };
 
@@ -278,8 +296,8 @@ Write it like you're explaining to a student who wants to really understand the 
     const mcqQuestions = generatedQuestions.filter(q => q.options && q.correctAnswer !== undefined);
     if (mcqQuestions.length === 0) {
       toast({
-        title: "No MCQ Questions",
-        description: "Generate some MCQ questions first to start the quiz!",
+        title: "No MCQ Questions Available",
+        description: "Please generate MCQ questions first to start the quiz mode!",
         variant: "destructive"
       });
       return;
@@ -295,7 +313,7 @@ Write it like you're explaining to a student who wants to really understand the 
         question: q.question,
         options: q.options!,
         correctAnswer: q.correctAnswer!,
-        explanation: q.answer || "Great job! Keep practicing to master this concept.",
+        explanation: q.answer || "Great attempt! The key to mastering this topic is regular practice and understanding the underlying concepts.",
         subject: q.subject,
         chapter: q.chapter
       }));
@@ -313,19 +331,19 @@ Write it like you're explaining to a student who wants to really understand the 
   return (
     <div className="space-y-6 hardware-acceleration">
       <div className="text-center space-y-2 animate-fade-in">
-        <h2 className="text-2xl font-bold flex items-center justify-center space-x-2">
-          <Sparkles className="w-6 h-6 text-primary" />
-          <span>AI Question Generator</span>
+        <h2 className="text-3xl font-bold flex items-center justify-center space-x-2">
+          <Sparkles className="w-8 h-8 text-primary" />
+          <span>Smart Question Generator</span>
         </h2>
-        <p className="text-muted-foreground">Generate personalized practice questions with smart AI solutions</p>
+        <p className="text-muted-foreground text-lg">Generate personalized CBSE practice questions with AI-powered solutions</p>
       </div>
 
       {/* Generator Form */}
       <Card className="glass-card smooth-transition">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Brain className="w-5 h-5" />
-            <span>Create Your Practice Questions</span>
+            <Brain className="w-6 h-6" />
+            <span>Create Your Practice Set</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -374,21 +392,21 @@ Write it like you're explaining to a student who wants to really understand the 
                 <SelectValue placeholder="How challenging should it be?" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="easy">🟢 Easy - Building confidence</SelectItem>
-                <SelectItem value="medium">🟡 Medium - Balanced practice</SelectItem>
-                <SelectItem value="hard">🔴 Hard - Challenge yourself</SelectItem>
+                <SelectItem value="easy">🟢 Easy - Foundation building</SelectItem>
+                <SelectItem value="medium">🟡 Medium - Exam preparation</SelectItem>
+                <SelectItem value="hard">🔴 Hard - Advanced practice</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Question Types (Select multiple)</label>
+            <label className="text-sm font-medium">Question Types</label>
             <div className="flex flex-wrap gap-2">
-              {['MCQ', 'Short Answer', 'Long Answer', 'HOTS'].map((type) => (
+              {['MCQ', 'Short Answer', 'Long Answer', 'Application Based'].map((type) => (
                 <Badge
                   key={type}
                   variant={questionTypes.includes(type) ? "default" : "outline"}
-                  className="cursor-pointer px-3 py-1 smooth-transition hover:scale-105"
+                  className="cursor-pointer px-4 py-2 smooth-transition hover:scale-105"
                   onClick={() => handleQuestionTypeToggle(type)}
                 >
                   {type}
@@ -405,12 +423,12 @@ Write it like you're explaining to a student who wants to really understand the 
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Creating amazing questions for you...
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Generating practice questions...
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles className="w-5 h-5 mr-2" />
                 Generate Practice Questions
               </>
             )}
@@ -425,13 +443,13 @@ Write it like you're explaining to a student who wants to really understand the 
             <div className="flex justify-between items-center">
               <CardTitle className="flex items-center space-x-2">
                 <span>🎯 Your Practice Questions</span>
-                <Badge variant="secondary">{generatedQuestions.length} questions</Badge>
+                <Badge variant="secondary" className="text-lg">{generatedQuestions.length} questions</Badge>
               </CardTitle>
               <div className="flex space-x-2">
                 {generatedQuestions.some(q => q.options) && (
-                  <Button variant="outline" size="sm" onClick={startQuiz}>
+                  <Button variant="outline" size="sm" onClick={startQuiz} className="bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0 hover:opacity-90">
                     <Play className="w-4 h-4 mr-2" />
-                    Start Quiz
+                    Start Quiz Mode
                   </Button>
                 )}
                 <Button variant="outline" size="sm" onClick={exportQuestions}>
@@ -443,9 +461,9 @@ Write it like you're explaining to a student who wants to really understand the 
           </CardHeader>
           <CardContent className="space-y-6">
             {generatedQuestions.map((question, index) => (
-              <div key={question.id} className="border rounded-lg p-4 space-y-3 hardware-acceleration hover:shadow-md smooth-transition">
+              <div key={question.id} className="border rounded-lg p-6 space-y-4 hardware-acceleration hover:shadow-lg smooth-transition bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/10 dark:to-purple-900/10">
                 <div className="flex justify-between items-start">
-                  <h4 className="font-medium text-lg">Question {index + 1}</h4>
+                  <h4 className="font-semibold text-xl text-primary">Question {index + 1}</h4>
                   <div className="flex space-x-2">
                     <Button
                       variant="ghost"
@@ -474,17 +492,28 @@ Write it like you're explaining to a student who wants to really understand the 
                   </div>
                 </div>
                 
-                <div className="prose prose-sm max-w-none">
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed bg-secondary/20 p-3 rounded">
+                <div className="prose prose-lg max-w-none">
+                  <div className="text-lg leading-relaxed bg-white/80 dark:bg-gray-800/80 p-4 rounded-lg border">
                     {question.question}
                   </div>
+                  
+                  {question.options && (
+                    <div className="mt-4 space-y-2">
+                      {question.options.map((option, optIndex) => (
+                        <div key={optIndex} className="flex items-center space-x-3 p-3 bg-secondary/30 rounded-lg">
+                          <span className="font-bold text-primary">{String.fromCharCode(97 + optIndex)})</span>
+                          <span>{option}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex justify-between items-center">
                   <div className="flex space-x-2">
-                    <Badge variant="outline">{question.type}</Badge>
-                    <Badge variant="outline" className="capitalize">{question.difficulty}</Badge>
-                    {question.options && <Badge variant="secondary">MCQ</Badge>}
+                    <Badge variant="outline" className="text-sm">{question.type}</Badge>
+                    <Badge variant="outline" className="capitalize text-sm">{question.difficulty}</Badge>
+                    {question.options && <Badge className="bg-gradient-to-r from-purple-500 to-blue-500 text-white">MCQ</Badge>}
                   </div>
                   
                   <div className="flex space-x-2">
@@ -518,7 +547,7 @@ Write it like you're explaining to a student who wants to really understand the 
                         {generatingSolution === question.id ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Thinking...
+                            Generating...
                           </>
                         ) : (
                           <>
@@ -533,13 +562,13 @@ Write it like you're explaining to a student who wants to really understand the 
 
                 {/* Solution Display */}
                 {question.answer && visibleSolutions.has(question.id) && (
-                  <div className="mt-4 p-4 bg-primary/5 border border-primary/20 rounded-lg animate-fade-in">
-                    <h5 className="font-medium mb-3 text-primary flex items-center">
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Detailed Solution
+                  <div className="mt-6 p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-lg animate-fade-in">
+                    <h5 className="font-semibold mb-4 text-primary flex items-center text-lg">
+                      <Sparkles className="w-5 h-5 mr-2" />
+                      Detailed Solution & Explanation
                     </h5>
-                    <div className="prose prose-sm max-w-none">
-                      <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                    <div className="prose prose-lg max-w-none">
+                      <div className="whitespace-pre-wrap leading-relaxed">
                         {question.answer}
                       </div>
                     </div>
