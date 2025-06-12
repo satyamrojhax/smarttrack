@@ -36,6 +36,15 @@ div[style*="position: absolute"][style*="bottom"] {
   display: none !important;
 }
 
+/* Additional edit button hiding */
+button[class*="edit"],
+a[class*="edit"],
+[data-edit],
+*[title*="edit"],
+*[aria-label*="edit"] {
+  display: none !important;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
 
 @layer base {
@@ -129,11 +138,38 @@ div[style*="position: absolute"][style*="bottom"] {
     /* Improve scrolling performance */
     overflow-x: hidden;
     scroll-behavior: smooth;
+    /* Better font rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Better performance */
+    will-change: scroll-position;
   }
 
   /* Optimize scrolling */
   html {
     scroll-behavior: smooth;
+    /* Better scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Better scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
   }
 }
 
@@ -147,18 +183,54 @@ div[style*="position: absolute"][style*="bottom"] {
     /* Add hardware acceleration for better performance */
     transform: translateZ(0);
     will-change: transform;
+    /* Better shadow performance */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 
   /* Optimize animations for better performance */
   .smooth-transition {
-    transition: all 0.2s ease-out;
-    will-change: transform, opacity;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity, box-shadow;
+  }
+
+  /* Enhanced hover effects */
+  .hover-lift {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Better loading states */
+  .loading-shimmer {
+    background: linear-gradient(90deg, 
+      hsl(var(--muted)) 25%, 
+      hsl(var(--muted-foreground) / 0.1) 50%, 
+      hsl(var(--muted)) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
   }
 }
 
 @layer utilities {
   .animate-fade-in {
     animation: fade-in 0.5s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.3s ease-out;
   }
 
   /* Scrolling optimizations */
@@ -170,6 +242,27 @@ div[style*="position: absolute"][style*="bottom"] {
   .hardware-acceleration {
     transform: translateZ(0);
     will-change: transform;
+    /* Better compositing */
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Better focus states */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+
+  /* Performance optimized classes */
+  .gpu-accelerated {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+
+  .scroll-container {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -181,5 +274,60 @@ div[style*="position: absolute"][style*="bottom"] {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Better touch interactions */
+@media (hover: hover) {
+  .hover\:scale-105:hover {
+    transform: scale(1.05);
+  }
+}
+
+/* Optimize for mobile */
+@media (max-width: 768px) {
+  .glass-card {
+    backdrop-filter: blur(10px);
+  }
+  
+  .smooth-transition {
+    transition-duration: 0.15s;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .smooth-transition,
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-scale-in {
+    animation: none;
+    transition: none;
+  }
+  
+  html {
+    scroll-behavior: auto;
   }
 }

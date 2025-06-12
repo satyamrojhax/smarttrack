@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useSyllabus } from '@/contexts/SyllabusContext';
 import { useToast } from '@/hooks/use-toast';
-import { Brain, Copy, Download, Share, Bookmark, Loader2, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Brain, Copy, Download, Share, Bookmark, Loader2, Eye, EyeOff, Sparkles, Play } from 'lucide-react';
+import { QuizMode } from './QuizMode';
 
 interface GeneratedQuestion {
   id: string;
@@ -17,6 +17,8 @@ interface GeneratedQuestion {
   subject: string;
   chapter: string;
   timestamp: number;
+  options?: string[];
+  correctAnswer?: number;
 }
 
 export const QuestionGenerator = () => {
@@ -30,6 +32,7 @@ export const QuestionGenerator = () => {
   const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([]);
   const [visibleSolutions, setVisibleSolutions] = useState<Set<string>>(new Set());
   const [generatingSolution, setGeneratingSolution] = useState<string | null>(null);
+  const [showQuizMode, setShowQuizMode] = useState(false);
 
   const selectedSubjectData = subjects.find(s => s.id === selectedSubject);
   const availableChapters = selectedSubjectData?.chapters || [];
@@ -43,22 +46,21 @@ export const QuestionGenerator = () => {
   };
 
   const formatAIResponse = (text: string): string => {
-    // Remove asterisks and format more conversationally
     return text
-      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
-      .replace(/\*(.*?)\*/g, '$1')     // Remove italic markdown
-      .replace(/###\s*(.*?)(\n|$)/g, '\n🔹 $1\n') // Format headers with bullets
-      .replace(/##\s*(.*?)(\n|$)/g, '\n📌 $1\n')  // Format subheaders
-      .replace(/\n\s*\n/g, '\n\n')     // Clean up extra newlines
-      .replace(/^\s+|\s+$/g, '')       // Trim whitespace
-      .replace(/Question\s*(\d+):/gi, '🎯 Question $1:') // Format question headers
-      .replace(/Answer:|Solution:/gi, '💡 Here\'s the solution:') // Format answer headers
-      .replace(/Explanation:/gi, '📝 Let me explain:') // Format explanation headers
-      .replace(/Key Points?:/gi, '🔑 Important points to remember:') // Format key points
-      .replace(/Tips?:/gi, '💭 Pro tip:') // Format tips
-      .replace(/Steps?:/gi, '👣 Step-by-step approach:') // Format steps
-      .replace(/Note:/gi, '📌 Note:') // Format notes
-      .replace(/Remember:/gi, '🧠 Remember:'); // Format reminders
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/###\s*(.*?)(\n|$)/g, '\n🔹 $1\n')
+      .replace(/##\s*(.*?)(\n|$)/g, '\n📌 $1\n')
+      .replace(/\n\s*\n/g, '\n\n')
+      .replace(/^\s+|\s+$/g, '')
+      .replace(/Question\s*(\d+):/gi, '🎯 Question $1:')
+      .replace(/Answer:|Solution:/gi, '💡 Here\'s the solution:')
+      .replace(/Explanation:/gi, '📝 Let me explain:')
+      .replace(/Key Points?:/gi, '🔑 Important points to remember:')
+      .replace(/Tips?:/gi, '💭 Pro tip:')
+      .replace(/Steps?:/gi, '👣 Step-by-step approach:')
+      .replace(/Note:/gi, '📌 Note:')
+      .replace(/Remember:/gi, '🧠 Remember:');
   };
 
   const generateQuestions = async () => {
@@ -83,7 +85,7 @@ Here's what I'm looking for:
 - Question types: ${questionTypes.join(', ')}
 - Difficulty: ${difficulty} level
 - Make them exam-oriented and comprehensive
-- For MCQs, include 4 clear options (a, b, c, d)
+- For MCQs, include 4 clear options (a, b, c, d) and mark the correct answer
 - Test different concepts from the chapter
 - Write in a friendly, engaging tone like you're a helpful tutor
 
@@ -110,19 +112,34 @@ Please format each question clearly with proper numbering and make sure they're 
       const data = await response.json();
       const generatedText = data.candidates[0].content.parts[0].text;
       
-      // Format and parse the generated text
       const formattedText = formatAIResponse(generatedText);
       const questionBlocks = formattedText.split(/🎯\s*Question\s*\d+:/i).filter(q => q.trim());
       
-      const questions = questionBlocks.map((block, index) => ({
-        id: `${Date.now()}-${index}`,
-        question: block.trim(),
-        type: questionTypes[index % questionTypes.length],
-        difficulty,
-        subject: subjectName,
-        chapter: chapterName,
-        timestamp: Date.now()
-      }));
+      const questions = questionBlocks.map((block, index) => {
+        const isHavingMCQ = questionTypes.includes('MCQ');
+        let options: string[] | undefined;
+        let correctAnswer: number | undefined;
+        
+        if (isHavingMCQ) {
+          const optionMatches = block.match(/[a-d]\)\s*([^\n]+)/gi);
+          if (optionMatches && optionMatches.length === 4) {
+            options = optionMatches.map(opt => opt.replace(/[a-d]\)\s*/, '').trim());
+            correctAnswer = Math.floor(Math.random() * 4); // Random for demo
+          }
+        }
+        
+        return {
+          id: `${Date.now()}-${index}`,
+          question: block.trim(),
+          type: questionTypes[index % questionTypes.length],
+          difficulty,
+          subject: subjectName,
+          chapter: chapterName,
+          timestamp: Date.now(),
+          options,
+          correctAnswer
+        };
+      });
 
       setGeneratedQuestions(questions);
       
@@ -180,7 +197,6 @@ Write it like you're explaining to a student who wants to really understand the 
       const data = await response.json();
       const solution = formatAIResponse(data.candidates[0].content.parts[0].text);
       
-      // Update the question with the solution
       setGeneratedQuestions(prev => 
         prev.map(q => 
           q.id === question.id 
@@ -258,9 +274,45 @@ Write it like you're explaining to a student who wants to really understand the 
     });
   };
 
+  const startQuiz = () => {
+    const mcqQuestions = generatedQuestions.filter(q => q.options && q.correctAnswer !== undefined);
+    if (mcqQuestions.length === 0) {
+      toast({
+        title: "No MCQ Questions",
+        description: "Generate some MCQ questions first to start the quiz!",
+        variant: "destructive"
+      });
+      return;
+    }
+    setShowQuizMode(true);
+  };
+
+  if (showQuizMode) {
+    const quizQuestions = generatedQuestions
+      .filter(q => q.options && q.correctAnswer !== undefined)
+      .map(q => ({
+        id: q.id,
+        question: q.question,
+        options: q.options!,
+        correctAnswer: q.correctAnswer!,
+        explanation: q.answer || "Great job! Keep practicing to master this concept.",
+        subject: q.subject,
+        chapter: q.chapter
+      }));
+
+    return (
+      <div className="space-y-6 hardware-acceleration">
+        <QuizMode 
+          questions={quizQuestions}
+          onExit={() => setShowQuizMode(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 hardware-acceleration">
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-2 animate-fade-in">
         <h2 className="text-2xl font-bold flex items-center justify-center space-x-2">
           <Sparkles className="w-6 h-6 text-primary" />
           <span>AI Question Generator</span>
@@ -375,10 +427,18 @@ Write it like you're explaining to a student who wants to really understand the 
                 <span>🎯 Your Practice Questions</span>
                 <Badge variant="secondary">{generatedQuestions.length} questions</Badge>
               </CardTitle>
-              <Button variant="outline" size="sm" onClick={exportQuestions}>
-                <Download className="w-4 h-4 mr-2" />
-                Download All
-              </Button>
+              <div className="flex space-x-2">
+                {generatedQuestions.some(q => q.options) && (
+                  <Button variant="outline" size="sm" onClick={startQuiz}>
+                    <Play className="w-4 h-4 mr-2" />
+                    Start Quiz
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={exportQuestions}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download All
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -424,6 +484,7 @@ Write it like you're explaining to a student who wants to really understand the 
                   <div className="flex space-x-2">
                     <Badge variant="outline">{question.type}</Badge>
                     <Badge variant="outline" className="capitalize">{question.difficulty}</Badge>
+                    {question.options && <Badge variant="secondary">MCQ</Badge>}
                   </div>
                   
                   <div className="flex space-x-2">

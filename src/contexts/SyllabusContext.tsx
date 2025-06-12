@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface Chapter {
@@ -32,7 +31,6 @@ const syllabusData: Subject[] = [
       { id: 'trigonometry', name: 'Introduction to Trigonometry', completed: false },
       { id: 'heights-distances', name: 'Some Applications of Trigonometry', completed: false },
       { id: 'circles', name: 'Circles', completed: false },
-      { id: 'constructions', name: 'Constructions', completed: false },
       { id: 'areas-volumes', name: 'Areas Related to Circles', completed: false },
       { id: 'surface-areas', name: 'Surface Areas and Volumes', completed: false },
       { id: 'statistics', name: 'Statistics', completed: false },
@@ -50,19 +48,17 @@ const syllabusData: Subject[] = [
       { id: 'human-eye', name: 'The Human Eye and Colourful World', completed: false },
       { id: 'electricity', name: 'Electricity', completed: false },
       { id: 'magnetic-effects', name: 'Magnetic Effects of Electric Current', completed: false },
-      { id: 'sources-energy', name: 'Sources of Energy', completed: false },
       // Chemistry
       { id: 'acids-bases', name: 'Acids, Bases and Salts', completed: false },
       { id: 'metals-nonmetals', name: 'Metals and Non-metals', completed: false },
       { id: 'carbon-compounds', name: 'Carbon and its Compounds', completed: false },
-      { id: 'periodic-classification', name: 'Periodic Classification of Elements', completed: false },
+      { id: 'chemical-reactions', name: 'Chemical Reactions and Equations', completed: false },
       // Biology
       { id: 'life-processes', name: 'Life Processes', completed: false },
       { id: 'control-coordination', name: 'Control and Coordination', completed: false },
       { id: 'reproduction', name: 'How do Organisms Reproduce?', completed: false },
       { id: 'heredity-evolution', name: 'Heredity and Evolution', completed: false },
-      { id: 'natural-resources', name: 'Our Environment', completed: false },
-      { id: 'natural-resource-mgmt', name: 'Management of Natural Resources', completed: false }
+      { id: 'natural-resources', name: 'Our Environment', completed: false }
     ]
   },
   {

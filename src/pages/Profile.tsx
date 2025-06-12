@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { User, Settings, BookOpen, Award, Brain, Info, LogOut, RotateCcw, Sun, Moon } from 'lucide-react';
 
 const Profile: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const { subjects, getOverallProgress, resetProgress } = useSyllabus();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
@@ -33,9 +34,11 @@ const Profile: React.FC = () => {
   );
 
   const handleSaveProfile = () => {
-    // In a real app, this would update the user in the backend
+    if (updateUser) {
+      updateUser(editedUser);
+    }
     toast({
-      title: "Profile Updated",
+      title: "Profile Updated! ✅",
       description: "Your profile has been successfully updated",
     });
     setIsEditing(false);
@@ -45,7 +48,7 @@ const Profile: React.FC = () => {
     if (window.confirm('Are you sure you want to reset all syllabus progress? This action cannot be undone.')) {
       resetProgress();
       toast({
-        title: "Progress Reset",
+        title: "Progress Reset ↻",
         description: "All syllabus progress has been reset",
       });
     }
@@ -55,7 +58,7 @@ const Profile: React.FC = () => {
     if (window.confirm('Are you sure you want to logout?')) {
       logout();
       toast({
-        title: "Logged Out",
+        title: "Logged Out 👋",
         description: "You have been successfully logged out",
       });
     }
@@ -71,9 +74,9 @@ const Profile: React.FC = () => {
   const progressBadge = getProgressBadge(overallProgress);
 
   return (
-    <div className="max-w-4xl mx-auto p-4 lg:ml-64 space-y-6">
+    <div className="max-w-4xl mx-auto p-4 lg:ml-64 space-y-6 scroll-smooth">
       {/* Header */}
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-2 animate-fade-in">
         <h1 className="text-3xl font-bold gradient-text flex items-center justify-center space-x-2">
           <User className="w-8 h-8" />
           <span>Profile</span>
@@ -83,7 +86,7 @@ const Profile: React.FC = () => {
         </p>
       </div>
 
-      <Card className="glass-card">
+      <Card className="glass-card smooth-transition">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -98,6 +101,7 @@ const Profile: React.FC = () => {
             <Button
               variant="outline"
               onClick={() => setIsEditing(!isEditing)}
+              className="smooth-transition"
             >
               {isEditing ? 'Cancel' : 'Edit'}
             </Button>
@@ -105,13 +109,14 @@ const Profile: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           {isEditing ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <Input
                   id="name"
                   value={editedUser.name}
                   onChange={(e) => setEditedUser(prev => ({ ...prev, name: e.target.value }))}
+                  className="smooth-transition"
                 />
               </div>
               <div className="space-y-2">
@@ -121,6 +126,7 @@ const Profile: React.FC = () => {
                   type="email"
                   value={editedUser.email}
                   onChange={(e) => setEditedUser(prev => ({ ...prev, email: e.target.value }))}
+                  className="smooth-transition"
                 />
               </div>
               <div className="space-y-2">
@@ -147,7 +153,7 @@ const Profile: React.FC = () => {
                 </Select>
               </div>
               <div className="md:col-span-2">
-                <Button onClick={handleSaveProfile} className="w-full">
+                <Button onClick={handleSaveProfile} className="w-full smooth-transition">
                   Save Changes
                 </Button>
               </div>
@@ -180,7 +186,7 @@ const Profile: React.FC = () => {
       </Card>
 
       {/* Study Progress */}
-      <Card className="glass-card">
+      <Card className="glass-card smooth-transition">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <BookOpen className="w-5 h-5" />
@@ -223,7 +229,7 @@ const Profile: React.FC = () => {
                   <span className="text-sm font-medium w-20">{subject.name}</span>
                   <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
-                      className={`h-2 rounded-full bg-gradient-to-r ${subject.color}`}
+                      className={`h-2 rounded-full bg-gradient-to-r ${subject.color} smooth-transition`}
                       style={{ width: `${subjectProgress}%` }}
                     />
                   </div>
@@ -238,7 +244,7 @@ const Profile: React.FC = () => {
       </Card>
 
       {/* Settings */}
-      <Card className="glass-card">
+      <Card className="glass-card smooth-transition">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Settings className="w-5 h-5" />
@@ -249,7 +255,7 @@ const Profile: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="flex items-center justify-between p-4 border rounded-lg smooth-transition hover:shadow-md">
             <div className="flex items-center space-x-3">
               {theme === 'light' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               <div>
@@ -259,12 +265,12 @@ const Profile: React.FC = () => {
                 </p>
               </div>
             </div>
-            <Button variant="outline" onClick={toggleTheme}>
+            <Button variant="outline" onClick={toggleTheme} className="smooth-transition">
               {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
             </Button>
           </div>
 
-          <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="flex items-center justify-between p-4 border rounded-lg smooth-transition hover:shadow-md">
             <div className="flex items-center space-x-3">
               <RotateCcw className="w-5 h-5" />
               <div>
@@ -277,13 +283,13 @@ const Profile: React.FC = () => {
             <Button 
               variant="outline" 
               onClick={handleResetProgress}
-              className="text-red-600 hover:text-red-700"
+              className="text-red-600 hover:text-red-700 smooth-transition"
             >
               Reset
             </Button>
           </div>
 
-          <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="flex items-center justify-between p-4 border rounded-lg smooth-transition hover:shadow-md">
             <div className="flex items-center space-x-3">
               <LogOut className="w-5 h-5" />
               <div>
@@ -296,7 +302,7 @@ const Profile: React.FC = () => {
             <Button 
               variant="outline" 
               onClick={handleLogout}
-              className="text-red-600 hover:text-red-700"
+              className="text-red-600 hover:text-red-700 smooth-transition"
             >
               Logout
             </Button>
@@ -305,7 +311,7 @@ const Profile: React.FC = () => {
       </Card>
 
       {/* About & Credits */}
-      <Card className="glass-card">
+      <Card className="glass-card smooth-transition">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Info className="w-5 h-5" />
