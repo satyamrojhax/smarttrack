@@ -1,12 +1,12 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import { useSyllabus } from '@/contexts/SyllabusContext';
 import { useToast } from '@/hooks/use-toast';
-import { Brain, Copy, Download, Share, Bookmark, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Brain, Copy, Download, Share, Bookmark, Loader2, Eye, EyeOff, Sparkles } from 'lucide-react';
 
 interface GeneratedQuestion {
   id: string;
@@ -42,6 +42,25 @@ export const QuestionGenerator = () => {
     );
   };
 
+  const formatAIResponse = (text: string): string => {
+    // Remove asterisks and format more conversationally
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
+      .replace(/\*(.*?)\*/g, '$1')     // Remove italic markdown
+      .replace(/###\s*(.*?)(\n|$)/g, '\n🔹 $1\n') // Format headers with bullets
+      .replace(/##\s*(.*?)(\n|$)/g, '\n📌 $1\n')  // Format subheaders
+      .replace(/\n\s*\n/g, '\n\n')     // Clean up extra newlines
+      .replace(/^\s+|\s+$/g, '')       // Trim whitespace
+      .replace(/Question\s*(\d+):/gi, '🎯 Question $1:') // Format question headers
+      .replace(/Answer:|Solution:/gi, '💡 Here\'s the solution:') // Format answer headers
+      .replace(/Explanation:/gi, '📝 Let me explain:') // Format explanation headers
+      .replace(/Key Points?:/gi, '🔑 Important points to remember:') // Format key points
+      .replace(/Tips?:/gi, '💭 Pro tip:') // Format tips
+      .replace(/Steps?:/gi, '👣 Step-by-step approach:') // Format steps
+      .replace(/Note:/gi, '📌 Note:') // Format notes
+      .replace(/Remember:/gi, '🧠 Remember:'); // Format reminders
+  };
+
   const generateQuestions = async () => {
     if (!selectedSubject || !selectedChapter || !difficulty || questionTypes.length === 0) {
       toast({
@@ -58,24 +77,17 @@ export const QuestionGenerator = () => {
       const subjectName = selectedSubjectData?.name || '';
       const chapterName = availableChapters.find(ch => ch.id === selectedChapter)?.name || '';
       
-      const prompt = `Generate 5 well-structured questions for Class 10 CBSE ${subjectName}, chapter '${chapterName}'. 
+      const prompt = `Hey! I need you to create 5 awesome practice questions for Class 10 CBSE ${subjectName}, specifically from the chapter "${chapterName}". 
 
-Requirements:
-- Include ${questionTypes.join(', ')} type questions
-- Difficulty level: ${difficulty}
-- Format each question clearly with proper numbering
-- For MCQ questions, provide 4 options (a, b, c, d)
-- Make questions comprehensive and exam-oriented
-- Ensure questions test different concepts within the chapter
+Here's what I'm looking for:
+- Question types: ${questionTypes.join(', ')}
+- Difficulty: ${difficulty} level
+- Make them exam-oriented and comprehensive
+- For MCQs, include 4 clear options (a, b, c, d)
+- Test different concepts from the chapter
+- Write in a friendly, engaging tone like you're a helpful tutor
 
-Format:
-Question 1: [Question text]
-[Options if MCQ]
-
-Question 2: [Question text]
-[Options if MCQ]
-
-Continue this pattern for all 5 questions.`;
+Please format each question clearly with proper numbering and make sure they're the kind that would actually help students prepare for their board exams. Thanks!`;
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
         method: 'POST',
@@ -98,8 +110,9 @@ Continue this pattern for all 5 questions.`;
       const data = await response.json();
       const generatedText = data.candidates[0].content.parts[0].text;
       
-      // Parse the generated text into individual questions with better formatting
-      const questionBlocks = generatedText.split(/Question\s*\d+:/i).filter(q => q.trim());
+      // Format and parse the generated text
+      const formattedText = formatAIResponse(generatedText);
+      const questionBlocks = formattedText.split(/🎯\s*Question\s*\d+:/i).filter(q => q.trim());
       
       const questions = questionBlocks.map((block, index) => ({
         id: `${Date.now()}-${index}`,
@@ -114,15 +127,15 @@ Continue this pattern for all 5 questions.`;
       setGeneratedQuestions(questions);
       
       toast({
-        title: "Questions Generated!",
-        description: `Generated ${questions.length} high-quality questions`,
+        title: "Questions Generated! 🎉",
+        description: `Created ${questions.length} engaging practice questions for you`,
       });
 
     } catch (error) {
       console.error('Error generating questions:', error);
       toast({
-        title: "Generation Failed",
-        description: "Failed to generate questions. Please try again.",
+        title: "Oops! Something went wrong",
+        description: "Couldn't generate questions right now. Please try again in a moment.",
         variant: "destructive"
       });
     } finally {
@@ -134,17 +147,17 @@ Continue this pattern for all 5 questions.`;
     setGeneratingSolution(question.id);
     
     try {
-      const prompt = `Provide a detailed solution for this Class 10 CBSE ${question.subject} question from chapter '${question.chapter}':
+      const prompt = `Hi! I need a detailed, student-friendly solution for this Class 10 CBSE ${question.subject} question from "${question.chapter}":
 
 ${question.question}
 
 Please provide:
-1. The correct answer
-2. Step-by-step explanation
-3. Key concepts involved
-4. Tips for similar questions
+1. The correct answer (if applicable)
+2. A clear, step-by-step explanation
+3. The key concepts involved
+4. Helpful tips for similar questions
 
-Make the solution clear and educational.`;
+Write it like you're explaining to a student who wants to really understand the concept, not just memorize the answer. Keep it conversational and encouraging!`;
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
         method: 'POST',
@@ -165,7 +178,7 @@ Make the solution clear and educational.`;
       }
 
       const data = await response.json();
-      const solution = data.candidates[0].content.parts[0].text;
+      const solution = formatAIResponse(data.candidates[0].content.parts[0].text);
       
       // Update the question with the solution
       setGeneratedQuestions(prev => 
@@ -179,15 +192,15 @@ Make the solution clear and educational.`;
       setVisibleSolutions(prev => new Set([...prev, question.id]));
 
       toast({
-        title: "Solution Generated!",
-        description: "Detailed solution is now available",
+        title: "Solution Ready! ✨",
+        description: "I've prepared a detailed explanation for you",
       });
 
     } catch (error) {
       console.error('Error generating solution:', error);
       toast({
-        title: "Solution Failed",
-        description: "Failed to generate solution. Please try again.",
+        title: "Couldn't generate solution",
+        description: "Please try again in a moment.",
         variant: "destructive"
       });
     } finally {
@@ -210,7 +223,7 @@ Make the solution clear and educational.`;
   const copyQuestion = (question: string) => {
     navigator.clipboard.writeText(question);
     toast({
-      title: "Copied!",
+      title: "Copied! 📋",
       description: "Question copied to clipboard",
     });
   };
@@ -221,39 +234,47 @@ Make the solution clear and educational.`;
     localStorage.setItem('bookmarkedQuestions', JSON.stringify(updatedQuestions));
     
     toast({
-      title: "Bookmarked!",
-      description: "Question saved to bookmarks",
+      title: "Bookmarked! 🔖",
+      description: "Question saved to your bookmarks",
     });
   };
 
   const exportQuestions = () => {
     const questionsText = generatedQuestions.map((q, index) => 
-      `Question ${index + 1}:\n${q.question}\n${q.answer ? `\nSolution:\n${q.answer}` : ''}\n\n`
+      `Question ${index + 1}:\n${q.question}\n${q.answer ? `\nSolution:\n${q.answer}` : ''}\n${'='.repeat(50)}\n\n`
     ).join('');
     
     const blob = new Blob([questionsText], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `questions-${selectedSubject}-${Date.now()}.txt`;
+    a.download = `practice-questions-${selectedSubject}-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Downloaded! 📥",
+      description: "Questions saved to your device",
+    });
   };
 
   return (
     <div className="space-y-6 hardware-acceleration">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold flex items-center justify-center space-x-2">
-          <Brain className="w-6 h-6 text-primary" />
+          <Sparkles className="w-6 h-6 text-primary" />
           <span>AI Question Generator</span>
         </h2>
-        <p className="text-muted-foreground">Generate practice questions with AI-powered solutions</p>
+        <p className="text-muted-foreground">Generate personalized practice questions with smart AI solutions</p>
       </div>
 
       {/* Generator Form */}
       <Card className="glass-card smooth-transition">
         <CardHeader>
-          <CardTitle>Generate Questions</CardTitle>
+          <CardTitle className="flex items-center space-x-2">
+            <Brain className="w-5 h-5" />
+            <span>Create Your Practice Questions</span>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -261,7 +282,7 @@ Make the solution clear and educational.`;
               <label className="text-sm font-medium">Subject</label>
               <Select value={selectedSubject} onValueChange={setSelectedSubject}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select subject" />
+                  <SelectValue placeholder="Choose your subject" />
                 </SelectTrigger>
                 <SelectContent>
                   {subjects.map((subject) => (
@@ -298,24 +319,24 @@ Make the solution clear and educational.`;
             <label className="text-sm font-medium">Difficulty Level</label>
             <Select value={difficulty} onValueChange={setDifficulty}>
               <SelectTrigger>
-                <SelectValue placeholder="Select difficulty" />
+                <SelectValue placeholder="How challenging should it be?" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="easy">Easy</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="hard">Hard</SelectItem>
+                <SelectItem value="easy">🟢 Easy - Building confidence</SelectItem>
+                <SelectItem value="medium">🟡 Medium - Balanced practice</SelectItem>
+                <SelectItem value="hard">🔴 Hard - Challenge yourself</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Question Types</label>
+            <label className="text-sm font-medium">Question Types (Select multiple)</label>
             <div className="flex flex-wrap gap-2">
               {['MCQ', 'Short Answer', 'Long Answer', 'HOTS'].map((type) => (
                 <Badge
                   key={type}
                   variant={questionTypes.includes(type) ? "default" : "outline"}
-                  className="cursor-pointer px-3 py-1 smooth-transition"
+                  className="cursor-pointer px-3 py-1 smooth-transition hover:scale-105"
                   onClick={() => handleQuestionTypeToggle(type)}
                 >
                   {type}
@@ -328,16 +349,17 @@ Make the solution clear and educational.`;
             onClick={generateQuestions} 
             disabled={isLoading}
             className="w-full smooth-transition"
+            size="lg"
           >
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generating Questions...
+                Creating amazing questions for you...
               </>
             ) : (
               <>
-                <Brain className="w-4 h-4 mr-2" />
-                Generate Questions
+                <Sparkles className="w-4 h-4 mr-2" />
+                Generate Practice Questions
               </>
             )}
           </Button>
@@ -349,23 +371,27 @@ Make the solution clear and educational.`;
         <Card className="glass-card smooth-transition">
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>Generated Questions</CardTitle>
+              <CardTitle className="flex items-center space-x-2">
+                <span>🎯 Your Practice Questions</span>
+                <Badge variant="secondary">{generatedQuestions.length} questions</Badge>
+              </CardTitle>
               <Button variant="outline" size="sm" onClick={exportQuestions}>
                 <Download className="w-4 h-4 mr-2" />
-                Export
+                Download All
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             {generatedQuestions.map((question, index) => (
-              <div key={question.id} className="border rounded-lg p-4 space-y-3 hardware-acceleration">
+              <div key={question.id} className="border rounded-lg p-4 space-y-3 hardware-acceleration hover:shadow-md smooth-transition">
                 <div className="flex justify-between items-start">
-                  <h4 className="font-medium">Question {index + 1}</h4>
+                  <h4 className="font-medium text-lg">Question {index + 1}</h4>
                   <div className="flex space-x-2">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => copyQuestion(question.question)}
+                      title="Copy question"
                     >
                       <Copy className="w-4 h-4" />
                     </Button>
@@ -373,6 +399,7 @@ Make the solution clear and educational.`;
                       variant="ghost"
                       size="sm"
                       onClick={() => saveQuestion(question)}
+                      title="Save to bookmarks"
                     >
                       <Bookmark className="w-4 h-4" />
                     </Button>
@@ -380,6 +407,7 @@ Make the solution clear and educational.`;
                       variant="ghost"
                       size="sm"
                       onClick={() => navigator.share?.({ text: question.question })}
+                      title="Share question"
                     >
                       <Share className="w-4 h-4" />
                     </Button>
@@ -387,13 +415,15 @@ Make the solution clear and educational.`;
                 </div>
                 
                 <div className="prose prose-sm max-w-none">
-                  <pre className="whitespace-pre-wrap text-sm font-medium">{question.question}</pre>
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed bg-secondary/20 p-3 rounded">
+                    {question.question}
+                  </div>
                 </div>
                 
                 <div className="flex justify-between items-center">
                   <div className="flex space-x-2">
                     <Badge variant="outline">{question.type}</Badge>
-                    <Badge variant="outline">{question.difficulty}</Badge>
+                    <Badge variant="outline" className="capitalize">{question.difficulty}</Badge>
                   </div>
                   
                   <div className="flex space-x-2">
@@ -427,11 +457,11 @@ Make the solution clear and educational.`;
                         {generatingSolution === question.id ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Generating...
+                            Thinking...
                           </>
                         ) : (
                           <>
-                            <Brain className="w-4 h-4 mr-2" />
+                            <Sparkles className="w-4 h-4 mr-2" />
                             Get Solution
                           </>
                         )}
@@ -442,10 +472,15 @@ Make the solution clear and educational.`;
 
                 {/* Solution Display */}
                 {question.answer && visibleSolutions.has(question.id) && (
-                  <div className="mt-4 p-4 bg-secondary/50 rounded-lg animate-fade-in">
-                    <h5 className="font-medium mb-2 text-primary">Solution:</h5>
+                  <div className="mt-4 p-4 bg-primary/5 border border-primary/20 rounded-lg animate-fade-in">
+                    <h5 className="font-medium mb-3 text-primary flex items-center">
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Detailed Solution
+                    </h5>
                     <div className="prose prose-sm max-w-none">
-                      <pre className="whitespace-pre-wrap text-sm">{question.answer}</pre>
+                      <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {question.answer}
+                      </div>
                     </div>
                   </div>
                 )}

@@ -3,14 +3,36 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Hide Lovable badge/watermark */
-iframe[src*="lovable"] {
+/* Enhanced hiding of Lovable badge/watermark */
+iframe[src*="lovable"],
+iframe[src*="gptengineer"] {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .lovable-badge,
 [data-lovable],
-[class*="lovable"] {
+[class*="lovable"],
+[class*="gptengineer"],
+.gptengineer-badge,
+*[class*="edit-in-lovable"],
+*[class*="edit-with-lovable"],
+*[href*="lovable.dev"],
+*[href*="gptengineer"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Additional watermark hiding */
+div[style*="position: fixed"][style*="bottom"],
+div[style*="position: absolute"][style*="bottom"] {
   display: none !important;
 }
 
