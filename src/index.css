@@ -3,6 +3,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide Lovable badge/watermark */
+iframe[src*="lovable"] {
+  display: none !important;
+}
+
+.lovable-badge,
+[data-lovable],
+[class*="lovable"] {
+  display: none !important;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
 
 @layer base {
@@ -93,6 +104,14 @@
 
   body {
     @apply bg-background text-foreground;
+    /* Improve scrolling performance */
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+
+  /* Optimize scrolling */
+  html {
+    scroll-behavior: smooth;
   }
 }
 
@@ -103,12 +122,32 @@
 
   .glass-card {
     @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-white/20 dark:border-gray-700/50;
+    /* Add hardware acceleration for better performance */
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Optimize animations for better performance */
+  .smooth-transition {
+    transition: all 0.2s ease-out;
+    will-change: transform, opacity;
   }
 }
 
 @layer utilities {
   .animate-fade-in {
     animation: fade-in 0.5s ease-out;
+  }
+
+  /* Scrolling optimizations */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .hardware-acceleration {
+    transform: translateZ(0);
+    will-change: transform;
   }
 }
 

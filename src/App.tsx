@@ -13,6 +13,10 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
+import SyllabusPage from "./pages/SyllabusPage";
+import QuestionsPage from "./pages/QuestionsPage";
+import PredictorPage from "./pages/PredictorPage";
+import BookmarksPage from "./pages/BookmarksPage";
 import MainLayout from "./components/MainLayout";
 
 const queryClient = new QueryClient();
@@ -54,6 +58,10 @@ const AppContent = () => {
       <MainLayout>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/syllabus" element={<SyllabusPage />} />
+          <Route path="/questions" element={<QuestionsPage />} />
+          <Route path="/predictor" element={<PredictorPage />} />
+          <Route path="/bookmarks" element={<BookmarksPage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
