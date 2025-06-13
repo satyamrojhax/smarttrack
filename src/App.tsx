@@ -17,6 +17,7 @@ import SyllabusPage from "./pages/SyllabusPage";
 import QuestionsPage from "./pages/QuestionsPage";
 import PredictorPage from "./pages/PredictorPage";
 import BookmarksPage from "./pages/BookmarksPage";
+import DoubtsPage from "./pages/DoubtsPage";
 import MainLayout from "./components/MainLayout";
 
 const queryClient = new QueryClient();
@@ -62,6 +63,7 @@ const AppContent = () => {
           <Route path="/questions" element={<QuestionsPage />} />
           <Route path="/predictor" element={<PredictorPage />} />
           <Route path="/bookmarks" element={<BookmarksPage />} />
+          <Route path="/doubts" element={<DoubtsPage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
