@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 
 interface Chapter {
@@ -10,6 +11,7 @@ interface Subject {
   id: string;
   name: string;
   icon: string;
+  color: string;
   chapters: Chapter[];
 }
 
@@ -17,6 +19,7 @@ interface SyllabusContextProps {
   subjects: Subject[];
   toggleChapterCompletion: (subjectId: string, chapterId: string) => void;
   getSubjectProgress: (subjectId: string) => number;
+  getOverallProgress: () => number;
   resetProgress: () => void;
 }
 
@@ -31,6 +34,7 @@ const initialSubjects: Subject[] = [
     id: 'mathematics',
     name: 'Mathematics',
     icon: '📊',
+    color: 'from-blue-400 to-blue-600',
     chapters: [
       { id: 'real-numbers', name: 'Real Numbers', completed: false },
       { id: 'polynomials', name: 'Polynomials', completed: false },
@@ -52,6 +56,7 @@ const initialSubjects: Subject[] = [
     id: 'science',
     name: 'Science',
     icon: '🔬',
+    color: 'from-green-400 to-green-600',
     chapters: [
       { id: 'light-reflection', name: 'Light - Reflection and Refraction', completed: false },
       { id: 'human-eye', name: 'Human Eye and Colourful World', completed: false },
@@ -72,6 +77,7 @@ const initialSubjects: Subject[] = [
     id: 'social-science',
     name: 'Social Science',
     icon: '🌍',
+    color: 'from-orange-400 to-orange-600',
     chapters: [
       { id: 'nationalism-europe', name: 'The Rise of Nationalism in Europe', completed: false },
       { id: 'nationalism-india', name: 'Nationalism in India', completed: false },
@@ -104,6 +110,7 @@ const initialSubjects: Subject[] = [
     id: 'english-first-flight',
     name: 'English - First Flight',
     icon: '📖',
+    color: 'from-purple-400 to-purple-600',
     chapters: [
       { id: 'letter-to-god', name: 'A Letter to God', completed: false },
       { id: 'nelson-mandela', name: 'Nelson Mandela: Long Walk to Freedom', completed: false },
@@ -122,6 +129,7 @@ const initialSubjects: Subject[] = [
     id: 'english-footprints',
     name: 'English - Footprints Without Feet',
     icon: '👣',
+    color: 'from-pink-400 to-pink-600',
     chapters: [
       { id: 'triumph-surgery', name: 'A Triumph of Surgery', completed: false },
       { id: 'thief-story', name: 'The Thief\'s Story', completed: false },
@@ -139,6 +147,7 @@ const initialSubjects: Subject[] = [
     id: 'hindi',
     name: 'Hindi',
     icon: '🇮🇳',
+    color: 'from-yellow-400 to-yellow-600',
     chapters: [
       { id: 'surdas-ke-pad', name: 'सूरदास के पद', completed: false },
       { id: 'ram-lakshman-parshuram', name: 'राम-लक्ष्मण-परशुराम संवाद', completed: false },
@@ -189,12 +198,29 @@ export const SyllabusProvider: React.FC<SyllabusProviderProps> = ({ children }) 
     return Math.round((completedChapters / subject.chapters.length) * 100);
   };
 
+  const getOverallProgress = (): number => {
+    const totalChapters = subjects.reduce((total, subject) => total + subject.chapters.length, 0);
+    const completedChapters = subjects.reduce(
+      (total, subject) => total + subject.chapters.filter(chapter => chapter.completed).length,
+      0
+    );
+    
+    if (totalChapters === 0) return 0;
+    return Math.round((completedChapters / totalChapters) * 100);
+  };
+
   const resetProgress = () => {
     setSubjects(initialSubjects);
   };
 
   return (
-    <SyllabusContext.Provider value={{ subjects, toggleChapterCompletion, getSubjectProgress, resetProgress }}>
+    <SyllabusContext.Provider value={{ 
+      subjects, 
+      toggleChapterCompletion, 
+      getSubjectProgress, 
+      getOverallProgress,
+      resetProgress 
+    }}>
       {children}
     </SyllabusContext.Provider>
   );
