@@ -74,65 +74,67 @@ const Profile: React.FC = () => {
   const progressBadge = getProgressBadge(overallProgress);
 
   return (
-    <div className="max-w-4xl mx-auto p-4 lg:ml-64 space-y-6 scroll-smooth">
+    <div className="max-w-4xl mx-auto p-2 sm:p-4 lg:ml-64 space-y-4 sm:space-y-6 scroll-smooth">
       {/* Header */}
       <div className="text-center space-y-2 animate-fade-in">
-        <h1 className="text-3xl font-bold gradient-text flex items-center justify-center space-x-2">
-          <User className="w-8 h-8" />
+        <h1 className="text-2xl sm:text-3xl font-bold gradient-text flex items-center justify-center space-x-2">
+          <User className="w-6 h-6 sm:w-8 sm:h-8" />
           <span>Profile</span>
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-sm sm:text-base">
           Manage your account and track your learning progress
         </p>
       </div>
 
+      {/* Profile Information Card */}
       <Card className="glass-card smooth-transition">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <CardTitle className="flex items-center space-x-2">
-                <User className="w-5 h-5" />
+              <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+                <User className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Profile Information</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm sm:text-base">
                 Your personal details and academic information
               </CardDescription>
             </div>
             <Button
               variant="outline"
               onClick={() => setIsEditing(!isEditing)}
-              className="smooth-transition"
+              className="smooth-transition text-sm sm:text-base"
+              size="sm"
             >
               {isEditing ? 'Cancel' : 'Edit'}
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 sm:space-y-6">
           {isEditing ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name" className="text-sm">Full Name</Label>
                 <Input
                   id="name"
                   value={editedUser.name}
                   onChange={(e) => setEditedUser(prev => ({ ...prev, name: e.target.value }))}
-                  className="smooth-transition"
+                  className="smooth-transition text-sm sm:text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-sm">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={editedUser.email}
                   onChange={(e) => setEditedUser(prev => ({ ...prev, email: e.target.value }))}
-                  className="smooth-transition"
+                  className="smooth-transition text-sm sm:text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="class">Class</Label>
+                <Label htmlFor="class" className="text-sm">Class</Label>
                 <Select value={editedUser.class} onValueChange={(value) => setEditedUser(prev => ({ ...prev, class: value }))}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -141,43 +143,42 @@ const Profile: React.FC = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="board">Board</Label>
+                <Label htmlFor="board" className="text-sm">Board</Label>
                 <Select value={editedUser.board} onValueChange={(value) => setEditedUser(prev => ({ ...prev, board: value }))}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="CBSE">CBSE</SelectItem>
-                    <SelectItem value="ICSE">ICSE</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="md:col-span-2">
-                <Button onClick={handleSaveProfile} className="w-full smooth-transition">
+              <div className="sm:col-span-2">
+                <Button onClick={handleSaveProfile} className="w-full smooth-transition text-sm sm:text-base">
                   Save Changes
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <Label className="text-sm text-muted-foreground">Name</Label>
-                  <p className="text-lg font-medium">{user?.name}</p>
+                  <Label className="text-xs sm:text-sm text-muted-foreground">Name</Label>
+                  <p className="text-base sm:text-lg font-medium">{user?.name}</p>
                 </div>
                 <div>
-                  <Label className="text-sm text-muted-foreground">Email</Label>
-                  <p className="text-lg font-medium">{user?.email}</p>
+                  <Label className="text-xs sm:text-sm text-muted-foreground">Email</Label>
+                  <p className="text-base sm:text-lg font-medium break-all">{user?.email}</p>
                 </div>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <Label className="text-sm text-muted-foreground">Class</Label>
-                  <p className="text-lg font-medium">{user?.class}</p>
+                  <Label className="text-xs sm:text-sm text-muted-foreground">Class</Label>
+                  <p className="text-base sm:text-lg font-medium">{user?.class}</p>
                 </div>
                 <div>
-                  <Label className="text-sm text-muted-foreground">Board</Label>
-                  <p className="text-lg font-medium">{user?.board}</p>
+                  <Label className="text-xs sm:text-sm text-muted-foreground">Board</Label>
+                  <p className="text-base sm:text-lg font-medium">{user?.board}</p>
                 </div>
               </div>
             </div>
@@ -185,55 +186,55 @@ const Profile: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Study Progress */}
+      {/* Study Progress Card */}
       <Card className="glass-card smooth-transition">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <BookOpen className="w-5 h-5" />
+          <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>Study Progress</span>
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm sm:text-base">
             Your overall learning progress and achievements
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
             <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-blue-600">{overallProgress}%</div>
-              <p className="text-sm text-muted-foreground">Overall Progress</p>
-              <Badge variant={progressBadge.variant} className={progressBadge.color}>
+              <div className="text-2xl sm:text-3xl font-bold text-blue-600">{overallProgress}%</div>
+              <p className="text-xs sm:text-sm text-muted-foreground">Overall Progress</p>
+              <Badge variant={progressBadge.variant} className={`${progressBadge.color} text-xs`}>
                 {progressBadge.text}
               </Badge>
             </div>
             <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-green-600">{completedChapters}</div>
-              <p className="text-sm text-muted-foreground">Chapters Completed</p>
-              <Badge variant="outline">{totalChapters} Total</Badge>
+              <div className="text-2xl sm:text-3xl font-bold text-green-600">{completedChapters}</div>
+              <p className="text-xs sm:text-sm text-muted-foreground">Chapters Completed</p>
+              <Badge variant="outline" className="text-xs">{totalChapters} Total</Badge>
             </div>
             <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-purple-600">{subjects.length}</div>
-              <p className="text-sm text-muted-foreground">Subjects</p>
-              <Badge variant="secondary">CBSE Curriculum</Badge>
+              <div className="text-2xl sm:text-3xl font-bold text-purple-600">{subjects.length}</div>
+              <p className="text-xs sm:text-sm text-muted-foreground">Subjects</p>
+              <Badge variant="secondary" className="text-xs">CBSE Curriculum</Badge>
             </div>
           </div>
 
-          <div className="mt-6 space-y-3">
-            <h4 className="font-medium">Subject-wise Progress</h4>
+          <div className="space-y-3">
+            <h4 className="font-medium text-sm sm:text-base">Subject-wise Progress</h4>
             {subjects.map((subject) => {
               const subjectCompleted = subject.chapters.filter(chapter => chapter.completed).length;
               const subjectProgress = (subjectCompleted / subject.chapters.length) * 100;
               
               return (
-                <div key={subject.id} className="flex items-center space-x-3">
-                  <span className="text-lg">{subject.icon}</span>
-                  <span className="text-sm font-medium w-20">{subject.name}</span>
+                <div key={subject.id} className="flex items-center space-x-2 sm:space-x-3">
+                  <span className="text-sm sm:text-lg">{subject.icon}</span>
+                  <span className="text-xs sm:text-sm font-medium w-16 sm:w-20 truncate">{subject.name}</span>
                   <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
                       className={`h-2 rounded-full bg-gradient-to-r ${subject.color} smooth-transition`}
                       style={{ width: `${subjectProgress}%` }}
                     />
                   </div>
-                  <span className="text-sm text-muted-foreground w-12">
+                  <span className="text-xs sm:text-sm text-muted-foreground w-8 sm:w-12">
                     {Math.round(subjectProgress)}%
                   </span>
                 </div>
@@ -243,39 +244,39 @@ const Profile: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Settings */}
+      {/* Settings Card */}
       <Card className="glass-card smooth-transition">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Settings className="w-5 h-5" />
+          <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+            <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>Settings</span>
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm sm:text-base">
             Customize your app experience and manage your data
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-lg smooth-transition hover:shadow-md">
-            <div className="flex items-center space-x-3">
-              {theme === 'light' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        <CardContent className="space-y-3 sm:space-y-4">
+          <div className="flex items-center justify-between p-3 sm:p-4 border rounded-lg smooth-transition hover:shadow-md">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              {theme === 'light' ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
               <div>
-                <p className="font-medium">Theme</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-medium text-sm sm:text-base">Theme</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Switch between light and dark mode
                 </p>
               </div>
             </div>
-            <Button variant="outline" onClick={toggleTheme} className="smooth-transition">
+            <Button variant="outline" onClick={toggleTheme} className="smooth-transition text-xs sm:text-sm" size="sm">
               {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
             </Button>
           </div>
 
-          <div className="flex items-center justify-between p-4 border rounded-lg smooth-transition hover:shadow-md">
-            <div className="flex items-center space-x-3">
-              <RotateCcw className="w-5 h-5" />
+          <div className="flex items-center justify-between p-3 sm:p-4 border rounded-lg smooth-transition hover:shadow-md">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
               <div>
-                <p className="font-medium">Reset Progress</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-medium text-sm sm:text-base">Reset Progress</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Clear all syllabus completion data
                 </p>
               </div>
@@ -283,18 +284,19 @@ const Profile: React.FC = () => {
             <Button 
               variant="outline" 
               onClick={handleResetProgress}
-              className="text-red-600 hover:text-red-700 smooth-transition"
+              className="text-red-600 hover:text-red-700 smooth-transition text-xs sm:text-sm"
+              size="sm"
             >
               Reset
             </Button>
           </div>
 
-          <div className="flex items-center justify-between p-4 border rounded-lg smooth-transition hover:shadow-md">
-            <div className="flex items-center space-x-3">
-              <LogOut className="w-5 h-5" />
+          <div className="flex items-center justify-between p-3 sm:p-4 border rounded-lg smooth-transition hover:shadow-md">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
               <div>
-                <p className="font-medium">Logout</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-medium text-sm sm:text-base">Logout</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Sign out of your account
                 </p>
               </div>
@@ -302,7 +304,8 @@ const Profile: React.FC = () => {
             <Button 
               variant="outline" 
               onClick={handleLogout}
-              className="text-red-600 hover:text-red-700 smooth-transition"
+              className="text-red-600 hover:text-red-700 smooth-transition text-xs sm:text-sm"
+              size="sm"
             >
               Logout
             </Button>
@@ -310,32 +313,32 @@ const Profile: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* About & Credits */}
+      {/* About & Credits Card */}
       <Card className="glass-card smooth-transition">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Info className="w-5 h-5" />
+          <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+            <Info className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>About Axiom Smart Track</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-center space-y-3">
-            <div className="p-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
-              <Brain className="w-8 h-8 text-white" />
+            <div className="p-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full w-12 h-12 sm:w-16 sm:h-16 mx-auto flex items-center justify-center">
+              <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
-            <h3 className="text-xl font-bold gradient-text">Axiom Smart Track - AI Study Assistant</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-lg sm:text-xl font-bold gradient-text">Axiom Smart Track - AI Study Assistant</h3>
+            <p className="text-muted-foreground text-sm sm:text-base">
               Powered by Axioms Product for intelligent question generation and study recommendations
             </p>
           </div>
 
-          <div className="border-t pt-4 space-y-2 text-center text-sm text-muted-foreground">
+          <div className="border-t pt-4 space-y-2 text-center text-xs sm:text-sm text-muted-foreground">
             <p className="font-medium">Designed & Developed by Satyam Rojha</p>
             <div className="space-y-1">
               <p>📧 axiomsproduct@gmail.com</p>
               <p>📞 +91 8092710478</p>
             </div>
-            <p className="text-xs">© 2024 Axiom Smart Track. All rights reserved.</p>
+            <p className="text-xs">© 2025 Axiom Smart Track. All rights reserved.</p>
           </div>
         </CardContent>
       </Card>

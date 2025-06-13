@@ -338,6 +338,18 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
           <span>Smart Question Generator</span>
         </h2>
         <p className="text-muted-foreground text-sm sm:text-lg px-2">Generate personalized CBSE practice questions with AI-powered solutions</p>
+        
+        {/* Ask Doubt Button */}
+        <div className="pt-2">
+          <Button 
+            variant="outline" 
+            className="bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0 hover:opacity-90"
+            onClick={() => window.location.href = '/doubts'}
+          >
+            <Brain className="w-4 h-4 mr-2" />
+            Ask Doubt - ChatGPT Style
+          </Button>
+        </div>
       </div>
 
       {/* Generator Form */}
