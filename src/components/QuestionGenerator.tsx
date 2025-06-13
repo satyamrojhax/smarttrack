@@ -28,6 +28,7 @@ export const QuestionGenerator = () => {
   const [selectedChapter, setSelectedChapter] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [questionTypes, setQuestionTypes] = useState<string[]>([]);
+  const [questionCount, setQuestionCount] = useState('5');
   const [isLoading, setIsLoading] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([]);
   const [visibleSolutions, setVisibleSolutions] = useState<Set<string>>(new Set());
@@ -70,12 +71,13 @@ export const QuestionGenerator = () => {
       const subjectName = selectedSubjectData?.name || '';
       const chapterName = availableChapters.find(ch => ch.id === selectedChapter)?.name || '';
       
-      const prompt = `Create 5 high-quality practice questions for Class 10 CBSE ${subjectName}, chapter "${chapterName}".
+      const prompt = `Create ${questionCount} high-quality practice questions for Class 10 CBSE ${subjectName}, chapter "${chapterName}".
 
 Requirements:
 - Question types: ${questionTypes.join(', ')}
 - Difficulty: ${difficulty} level
 - Make them exam-oriented and based on latest CBSE pattern
+- DO NOT include any context or introduction as the first question
 
 For MCQ questions, provide exactly 4 options labeled as:
 a) [option 1]
@@ -319,7 +321,7 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
       }));
 
     return (
-      <div className="space-y-6 hardware-acceleration">
+      <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
         <QuizMode 
           questions={quizQuestions}
           onExit={() => setShowQuizMode(false)}
@@ -329,20 +331,20 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
   }
 
   return (
-    <div className="space-y-6 hardware-acceleration">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
       <div className="text-center space-y-2 animate-fade-in">
-        <h2 className="text-3xl font-bold flex items-center justify-center space-x-2">
-          <Sparkles className="w-8 h-8 text-primary" />
+        <h2 className="text-2xl sm:text-3xl font-bold flex items-center justify-center space-x-2">
+          <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
           <span>Smart Question Generator</span>
         </h2>
-        <p className="text-muted-foreground text-lg">Generate personalized CBSE practice questions with AI-powered solutions</p>
+        <p className="text-muted-foreground text-sm sm:text-lg px-2">Generate personalized CBSE practice questions with AI-powered solutions</p>
       </div>
 
       {/* Generator Form */}
       <Card className="glass-card smooth-transition">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Brain className="w-6 h-6" />
+          <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+            <Brain className="w-5 h-5 sm:w-6 sm:h-6" />
             <span>Create Your Practice Set</span>
           </CardTitle>
         </CardHeader>
@@ -385,18 +387,36 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Difficulty Level</label>
-            <Select value={difficulty} onValueChange={setDifficulty}>
-              <SelectTrigger>
-                <SelectValue placeholder="How challenging should it be?" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="easy">🟢 Easy - Foundation building</SelectItem>
-                <SelectItem value="medium">🟡 Medium - Exam preparation</SelectItem>
-                <SelectItem value="hard">🔴 Hard - Advanced practice</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Difficulty Level</label>
+              <Select value={difficulty} onValueChange={setDifficulty}>
+                <SelectTrigger>
+                  <SelectValue placeholder="How challenging should it be?" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="easy">🟢 Easy - Foundation building</SelectItem>
+                  <SelectItem value="medium">🟡 Medium - Exam preparation</SelectItem>
+                  <SelectItem value="hard">🔴 Hard - Advanced practice</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Number of Questions</label>
+              <Select value={questionCount} onValueChange={setQuestionCount}>
+                <SelectTrigger>
+                  <SelectValue placeholder="How many questions?" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="3">3 Questions</SelectItem>
+                  <SelectItem value="5">5 Questions</SelectItem>
+                  <SelectItem value="10">10 Questions</SelectItem>
+                  <SelectItem value="15">15 Questions</SelectItem>
+                  <SelectItem value="20">20 Questions</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -406,7 +426,7 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
                 <Badge
                   key={type}
                   variant={questionTypes.includes(type) ? "default" : "outline"}
-                  className="cursor-pointer px-4 py-2 smooth-transition hover:scale-105"
+                  className="cursor-pointer px-3 py-2 text-xs sm:text-sm smooth-transition hover:scale-105"
                   onClick={() => handleQuestionTypeToggle(type)}
                 >
                   {type}
@@ -423,13 +443,13 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Generating practice questions...
+                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
+                <span className="text-sm sm:text-base">Generating practice questions...</span>
               </>
             ) : (
               <>
-                <Sparkles className="w-5 h-5 mr-2" />
-                Generate Practice Questions
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                <span className="text-sm sm:text-base">Generate Practice Questions</span>
               </>
             )}
           </Button>
@@ -440,30 +460,30 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
       {generatedQuestions.length > 0 && (
         <Card className="glass-card smooth-transition">
           <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle className="flex items-center space-x-2">
-                <span>🎯 Your Practice Questions</span>
-                <Badge variant="secondary" className="text-lg">{generatedQuestions.length} questions</Badge>
-              </CardTitle>
-              <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-lg sm:text-xl">🎯 Your Practice Questions</span>
+                <Badge variant="secondary" className="text-sm sm:text-lg">{generatedQuestions.length} questions</Badge>
+              </div>
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 {generatedQuestions.some(q => q.options) && (
-                  <Button variant="outline" size="sm" onClick={startQuiz} className="bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0 hover:opacity-90">
-                    <Play className="w-4 h-4 mr-2" />
+                  <Button variant="outline" size="sm" onClick={startQuiz} className="bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0 hover:opacity-90 text-xs sm:text-sm">
+                    <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                     Start Quiz Mode
                   </Button>
                 )}
-                <Button variant="outline" size="sm" onClick={exportQuestions}>
-                  <Download className="w-4 h-4 mr-2" />
+                <Button variant="outline" size="sm" onClick={exportQuestions} className="text-xs sm:text-sm">
+                  <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                   Download All
                 </Button>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6">
             {generatedQuestions.map((question, index) => (
-              <div key={question.id} className="border rounded-lg p-6 space-y-4 hardware-acceleration hover:shadow-lg smooth-transition bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/10 dark:to-purple-900/10">
-                <div className="flex justify-between items-start">
-                  <h4 className="font-semibold text-xl text-primary">Question {index + 1}</h4>
+              <div key={question.id} className="border rounded-lg p-4 sm:p-6 space-y-4 smooth-transition bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/10 dark:to-purple-900/10">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                  <h4 className="font-semibold text-lg sm:text-xl text-primary">Question {index + 1}</h4>
                   <div className="flex space-x-2">
                     <Button
                       variant="ghost"
@@ -471,7 +491,7 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
                       onClick={() => copyQuestion(question.question)}
                       title="Copy question"
                     >
-                      <Copy className="w-4 h-4" />
+                      <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
                     </Button>
                     <Button
                       variant="ghost"
@@ -479,7 +499,7 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
                       onClick={() => saveQuestion(question)}
                       title="Save to bookmarks"
                     >
-                      <Bookmark className="w-4 h-4" />
+                      <Bookmark className="w-3 h-3 sm:w-4 sm:h-4" />
                     </Button>
                     <Button
                       variant="ghost"
@@ -487,33 +507,33 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
                       onClick={() => navigator.share?.({ text: question.question })}
                       title="Share question"
                     >
-                      <Share className="w-4 h-4" />
+                      <Share className="w-3 h-3 sm:w-4 sm:h-4" />
                     </Button>
                   </div>
                 </div>
                 
-                <div className="prose prose-lg max-w-none">
-                  <div className="text-lg leading-relaxed bg-white/80 dark:bg-gray-800/80 p-4 rounded-lg border">
+                <div className="prose prose-sm sm:prose-lg max-w-none">
+                  <div className="text-base sm:text-lg leading-relaxed bg-white/80 dark:bg-gray-800/80 p-3 sm:p-4 rounded-lg border">
                     {question.question}
                   </div>
                   
                   {question.options && (
                     <div className="mt-4 space-y-2">
                       {question.options.map((option, optIndex) => (
-                        <div key={optIndex} className="flex items-center space-x-3 p-3 bg-secondary/30 rounded-lg">
-                          <span className="font-bold text-primary">{String.fromCharCode(97 + optIndex)})</span>
-                          <span>{option}</span>
+                        <div key={optIndex} className="flex items-center space-x-3 p-2 sm:p-3 bg-secondary/30 rounded-lg">
+                          <span className="font-bold text-primary text-sm sm:text-base">{String.fromCharCode(97 + optIndex)})</span>
+                          <span className="text-sm sm:text-base">{option}</span>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
                 
-                <div className="flex justify-between items-center">
-                  <div className="flex space-x-2">
-                    <Badge variant="outline" className="text-sm">{question.type}</Badge>
-                    <Badge variant="outline" className="capitalize text-sm">{question.difficulty}</Badge>
-                    {question.options && <Badge className="bg-gradient-to-r from-purple-500 to-blue-500 text-white">MCQ</Badge>}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className="text-xs">{question.type}</Badge>
+                    <Badge variant="outline" className="capitalize text-xs">{question.difficulty}</Badge>
+                    {question.options && <Badge className="bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs">MCQ</Badge>}
                   </div>
                   
                   <div className="flex space-x-2">
@@ -522,16 +542,16 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
                         variant="outline"
                         size="sm"
                         onClick={() => toggleSolutionVisibility(question.id)}
-                        className="smooth-transition"
+                        className="smooth-transition text-xs sm:text-sm"
                       >
                         {visibleSolutions.has(question.id) ? (
                           <>
-                            <EyeOff className="w-4 h-4 mr-2" />
+                            <EyeOff className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                             Hide Solution
                           </>
                         ) : (
                           <>
-                            <Eye className="w-4 h-4 mr-2" />
+                            <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                             Show Solution
                           </>
                         )}
@@ -542,16 +562,16 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
                         size="sm"
                         onClick={() => generateSolution(question)}
                         disabled={generatingSolution === question.id}
-                        className="smooth-transition"
+                        className="smooth-transition text-xs sm:text-sm"
                       >
                         {generatingSolution === question.id ? (
                           <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-spin" />
                             Generating...
                           </>
                         ) : (
                           <>
-                            <Sparkles className="w-4 h-4 mr-2" />
+                            <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                             Get Solution
                           </>
                         )}
@@ -562,13 +582,13 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
 
                 {/* Solution Display */}
                 {question.answer && visibleSolutions.has(question.id) && (
-                  <div className="mt-6 p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-lg animate-fade-in">
-                    <h5 className="font-semibold mb-4 text-primary flex items-center text-lg">
-                      <Sparkles className="w-5 h-5 mr-2" />
+                  <div className="mt-4 sm:mt-6 p-4 sm:p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-lg animate-fade-in">
+                    <h5 className="font-semibold mb-4 text-primary flex items-center text-base sm:text-lg">
+                      <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                       Detailed Solution & Explanation
                     </h5>
-                    <div className="prose prose-lg max-w-none">
-                      <div className="whitespace-pre-wrap leading-relaxed">
+                    <div className="prose prose-sm sm:prose-lg max-w-none">
+                      <div className="whitespace-pre-wrap leading-relaxed text-sm sm:text-base">
                         {question.answer}
                       </div>
                     </div>
