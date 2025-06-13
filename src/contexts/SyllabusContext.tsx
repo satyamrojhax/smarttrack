@@ -14,11 +14,16 @@ interface Subject {
   icon: string;
   chapters: Chapter[];
   progress: number;
+  color: string;
 }
 
 interface SyllabusContextType {
   subjects: Subject[];
   updateChapterProgress: (subjectId: string, chapterId: string, completed: boolean) => void;
+  toggleChapterCompletion: (subjectId: string, chapterId: string) => void;
+  getSubjectProgress: (subjectId: string) => number;
+  getOverallProgress: () => number;
+  resetProgress: () => void;
 }
 
 const SyllabusContext = createContext<SyllabusContextType | undefined>(undefined);
@@ -29,6 +34,7 @@ const initialSubjects: Subject[] = [
     name: 'Mathematics',
     icon: '📐',
     progress: 0,
+    color: 'from-blue-400 to-blue-600',
     chapters: [
       {
         id: 'real-numbers',
@@ -109,6 +115,7 @@ const initialSubjects: Subject[] = [
     name: 'Science',
     icon: '🔬',
     progress: 0,
+    color: 'from-green-400 to-green-600',
     chapters: [
       {
         id: 'chemical-reactions-equations',
@@ -195,6 +202,7 @@ const initialSubjects: Subject[] = [
     name: 'English - First Flight',
     icon: '📚',
     progress: 0,
+    color: 'from-purple-400 to-purple-600',
     chapters: [
       {
         id: 'letter-to-god',
@@ -257,6 +265,7 @@ const initialSubjects: Subject[] = [
     name: 'English - Footprints without Feet',
     icon: '👣',
     progress: 0,
+    color: 'from-indigo-400 to-indigo-600',
     chapters: [
       {
         id: 'triumph-surgery',
@@ -325,6 +334,7 @@ const initialSubjects: Subject[] = [
     name: 'Social Science',
     icon: '🌍',
     progress: 0,
+    color: 'from-orange-400 to-orange-600',
     chapters: [
       {
         id: 'rise-of-nationalism',
@@ -459,6 +469,7 @@ const initialSubjects: Subject[] = [
     name: 'Hindi',
     icon: '🇮🇳',
     progress: 0,
+    color: 'from-red-400 to-red-600',
     chapters: [
       {
         id: 'surdas-ke-pad',
@@ -545,8 +556,61 @@ export const SyllabusProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     );
   };
 
+  const toggleChapterCompletion = (subjectId: string, chapterId: string) => {
+    setSubjects(prevSubjects =>
+      prevSubjects.map(subject => {
+        if (subject.id === subjectId) {
+          const updatedChapters = subject.chapters.map(chapter =>
+            chapter.id === chapterId ? { ...chapter, completed: !chapter.completed } : chapter
+          );
+          
+          const completedCount = updatedChapters.filter(ch => ch.completed).length;
+          const progress = Math.round((completedCount / updatedChapters.length) * 100);
+          
+          return { ...subject, chapters: updatedChapters, progress };
+        }
+        return subject;
+      })
+    );
+  };
+
+  const getSubjectProgress = (subjectId: string): number => {
+    const subject = subjects.find(s => s.id === subjectId);
+    if (!subject) return 0;
+    
+    const completedCount = subject.chapters.filter(ch => ch.completed).length;
+    return Math.round((completedCount / subject.chapters.length) * 100);
+  };
+
+  const getOverallProgress = (): number => {
+    const totalChapters = subjects.reduce((total, subject) => total + subject.chapters.length, 0);
+    const completedChapters = subjects.reduce(
+      (total, subject) => total + subject.chapters.filter(chapter => chapter.completed).length,
+      0
+    );
+    
+    return totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
+  };
+
+  const resetProgress = () => {
+    setSubjects(prevSubjects =>
+      prevSubjects.map(subject => ({
+        ...subject,
+        progress: 0,
+        chapters: subject.chapters.map(chapter => ({ ...chapter, completed: false }))
+      }))
+    );
+  };
+
   return (
-    <SyllabusContext.Provider value={{ subjects, updateChapterProgress }}>
+    <SyllabusContext.Provider value={{ 
+      subjects, 
+      updateChapterProgress, 
+      toggleChapterCompletion,
+      getSubjectProgress,
+      getOverallProgress,
+      resetProgress
+    }}>
       {children}
     </SyllabusContext.Provider>
   );
