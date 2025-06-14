@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSyllabus } from '@/contexts/SyllabusContext';
 import { useToast } from '@/hooks/use-toast';
 import { Send, Bot, User, Loader2, BookOpen, Brain } from 'lucide-react';
+import { saveDoubtToDatabase, saveDoubtResponseToDatabase } from '@/services/doubtService';
 
 interface Message {
   id: string;
@@ -29,6 +30,7 @@ export const DoubtAssistant = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [currentDoubtId, setCurrentDoubtId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -71,6 +73,21 @@ export const DoubtAssistant = () => {
     setIsLoading(true);
 
     try {
+      // Save doubt to database if it's the first message
+      if (!currentDoubtId && messages.length === 1) {
+        try {
+          const doubt = await saveDoubtToDatabase(
+            currentInput.length > 50 ? currentInput.substring(0, 50) + '...' : currentInput,
+            currentInput
+          );
+          setCurrentDoubtId(doubt.id);
+          console.log('Doubt saved to database:', doubt.id);
+        } catch (error) {
+          console.error('Error saving doubt to database:', error);
+          // Continue with AI response even if saving fails
+        }
+      }
+
       const prompt = `You are an AI tutor for Class 10 CBSE students. Give SHORT, DIRECT answers only.
 
 Student's question: "${currentInput}"
@@ -88,7 +105,7 @@ IMPORTANT RULES:
 Answer briefly:`;
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
         method: 'POST',
@@ -128,6 +145,19 @@ Answer briefly:`;
 
       setMessages(prev => [...prev, assistantMessage]);
 
+      // Save responses to database
+      if (currentDoubtId) {
+        try {
+          await Promise.all([
+            saveDoubtResponseToDatabase(currentDoubtId, currentInput, false), // User message
+            saveDoubtResponseToDatabase(currentDoubtId, aiResponse, true)     // AI response
+          ]);
+          console.log('Responses saved to database');
+        } catch (error) {
+          console.error('Error saving responses to database:', error);
+        }
+      }
+
     } catch (error) {
       console.error('Error sending message:', error);
       
@@ -157,7 +187,7 @@ Answer briefly:`;
     } finally {
       setIsLoading(false);
     }
-  }, [inputMessage, isLoading, formatAIResponse, toast]);
+  }, [inputMessage, isLoading, formatAIResponse, toast, currentDoubtId, messages.length]);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
