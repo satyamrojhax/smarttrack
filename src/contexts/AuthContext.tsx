@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 
 interface User {
@@ -10,7 +11,7 @@ interface User {
 
 interface AuthContextProps {
   user: User | null;
-  login: (userData: { email: string; password: string }) => void;
+  login: (userData: { email: string; password: string }) => Promise<boolean>;
   signup: (userData: { name: string; email: string; password: string; class: string; board: string }) => void;
   logout: () => void;
   updateUser: (updatedUser: { name: string; email: string; class: string; board: string }) => void;
@@ -19,7 +20,7 @@ interface AuthContextProps {
 
 const AuthContext = createContext<AuthContextProps>({
   user: null,
-  login: () => {},
+  login: async () => false,
   signup: () => {},
   logout: () => {},
   updateUser: () => {},
@@ -38,19 +39,22 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     setIsLoading(false);
   }, []);
 
-  const login = (userData: { email: string; password: string }) => {
-    // For demonstration purposes, we're not validating the password
-    // In a real application, you'd validate the email and password against a database
-    const mockUser: User = {
-      id: Date.now().toString(),
-      name: 'Test User',
-      email: userData.email,
-      class: 'Class 10',
-      board: 'CBSE',
-    };
+  const login = async (userData: { email: string; password: string }): Promise<boolean> => {
+    // Check if user exists in registered users
+    const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+    const existingUser = registeredUsers.find((u: any) => 
+      u.email === userData.email && u.password === userData.password
+    );
     
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
+    if (!existingUser) {
+      return false; // User not found or wrong credentials
+    }
+    
+    // Create user object without password
+    const { password, ...userWithoutPassword } = existingUser;
+    setUser(userWithoutPassword);
+    localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+    return true;
   };
 
   const signup = (userData: { 
@@ -60,15 +64,20 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     class: string; 
     board: string; 
   }) => {
-    // Remove ICSE validation since we're removing it
     const newUser: User = {
       id: Date.now().toString(),
       name: userData.name,
       email: userData.email,
       class: userData.class,
-      board: userData.board, // Only CBSE will be available
+      board: userData.board,
     };
     
+    // Store user in registered users list
+    const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+    registeredUsers.push({ ...newUser, password: userData.password });
+    localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+    
+    // Set current user
     setUser(newUser);
     localStorage.setItem('user', JSON.stringify(newUser));
   };

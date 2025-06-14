@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,11 +34,19 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
 
     try {
       if (isLogin) {
-        login({ email: formData.email, password: formData.password });
-        toast({
-          title: "Welcome back!",
-          description: "Successfully logged in to Axiom Smart Track",
-        });
+        const success = await login({ email: formData.email, password: formData.password });
+        if (success) {
+          toast({
+            title: "Welcome back!",
+            description: "Successfully logged in to Axiom Smart Track",
+          });
+        } else {
+          toast({
+            title: "Login Failed",
+            description: "Invalid email or password. Please sign up if you don't have an account.",
+            variant: "destructive"
+          });
+        }
       } else {
         if (!formData.name || !formData.className || !formData.board) {
           toast({
@@ -84,20 +93,20 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex flex-col">
-      {/* Enhanced Header with centered logo */}
-      <div className="flex items-center justify-between p-6 text-white">
+      {/* Header with centered logo */}
+      <div className="flex items-center justify-center p-6 text-white relative">
         {onBack && (
-          <button onClick={onBack} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+          <button onClick={onBack} className="absolute left-6 p-2 hover:bg-white/10 rounded-full transition-colors">
             <ChevronLeft className="w-6 h-6" />
           </button>
         )}
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-center justify-center">
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3 mr-3">
             <Brain className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-xl font-bold">Axiom Smart Track</h1>
         </div>
-        <div className="w-10 h-10 flex items-center justify-center">
+        <div className="absolute right-6">
           {!isLogin && (
             <button 
               onClick={() => setIsLogin(true)}
