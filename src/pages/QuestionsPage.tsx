@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { QuestionGenerator } from '@/components/QuestionGenerator';
+import QuestionGenerator from '@/components/QuestionGenerator';
 
 const QuestionsPage: React.FC = () => {
   return (
