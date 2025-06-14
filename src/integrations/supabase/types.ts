@@ -321,35 +321,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_bookmarks: {
-        Row: {
-          created_at: string | null
-          id: string
-          question_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          question_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          question_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_bookmarks_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "questions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_progress: {
         Row: {
           chapter_id: string | null

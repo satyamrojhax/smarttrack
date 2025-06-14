@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useSyllabus } from '@/contexts/SyllabusContext';
 import { useToast } from '@/hooks/use-toast';
-import { Brain, Copy, Download, Share, Bookmark, Loader2, Eye, EyeOff, Sparkles, Play } from 'lucide-react';
+import { Brain, Copy, Download, Share, Loader2, Eye, EyeOff, Sparkles, Play } from 'lucide-react';
 import { QuizMode } from './QuizMode';
 
 interface GeneratedQuestion {
@@ -182,19 +182,18 @@ Write in a friendly, encouraging tone like a helpful tutor. Focus on clarity and
     setGeneratingSolution(question.id);
     
     try {
-      const prompt = `Provide a detailed, student-friendly solution for this Class 10 CBSE ${question.subject} question from "${question.chapter}":
+      const prompt = `Provide a SHORT and CONCISE solution for this Class 10 CBSE ${question.subject} question from "${question.chapter}":
 
 ${question.question}
 
 ${question.options ? `Options:\na) ${question.options[0]}\nb) ${question.options[1]}\nc) ${question.options[2]}\nd) ${question.options[3]}` : ''}
 
-Please provide:
-1. The correct answer (if applicable)
-2. Clear step-by-step explanation
-3. Key concepts involved
-4. Study tips for similar questions
+IMPORTANT: Give ONLY a brief, direct answer. Keep it under 100 words. Include:
+1. The correct answer (if MCQ)
+2. ONE key explanation line
+3. Main concept involved
 
-Write in a friendly, encouraging tone as if you're a helpful tutor explaining to a student who wants to truly understand the concept.`;
+Be concise and to the point. No lengthy explanations.`;
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
         method: 'POST',
@@ -229,7 +228,7 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
 
       toast({
         title: "Solution Ready! ✨",
-        description: "Detailed explanation generated successfully",
+        description: "Brief explanation generated successfully",
       });
 
     } catch (error) {
@@ -261,17 +260,6 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
     toast({
       title: "Copied! 📋",
       description: "Question copied to clipboard",
-    });
-  };
-
-  const saveQuestion = (question: GeneratedQuestion) => {
-    const savedQuestions = JSON.parse(localStorage.getItem('bookmarkedQuestions') || '[]');
-    const updatedQuestions = [...savedQuestions, question];
-    localStorage.setItem('bookmarkedQuestions', JSON.stringify(updatedQuestions));
-    
-    toast({
-      title: "Bookmarked! 🔖",
-      description: "Question saved to your bookmarks",
     });
   };
 
@@ -508,14 +496,6 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => saveQuestion(question)}
-                      title="Save to bookmarks"
-                    >
-                      <Bookmark className="w-3 h-3 sm:w-4 sm:h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
                       onClick={() => navigator.share?.({ text: question.question })}
                       title="Share question"
                     >
@@ -597,7 +577,7 @@ Write in a friendly, encouraging tone as if you're a helpful tutor explaining to
                   <div className="mt-4 sm:mt-6 p-4 sm:p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-lg animate-fade-in">
                     <h5 className="font-semibold mb-4 text-primary flex items-center text-base sm:text-lg">
                       <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      Detailed Solution & Explanation
+                      Quick Solution
                     </h5>
                     <div className="prose prose-sm sm:prose-lg max-w-none">
                       <div className="whitespace-pre-wrap leading-relaxed text-sm sm:text-base">
