@@ -14,7 +14,7 @@ interface Note {
   id: string;
   title: string;
   content: string;
-  note_type: 'note' | 'flashcard';
+  note_type: string; // Changed from 'note' | 'flashcard' to string
   flashcard_answer?: string;
   created_at: string;
 }
