@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -7,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SyllabusProvider } from "@/contexts/SyllabusContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Landing from "./pages/Landing";
@@ -33,6 +35,9 @@ const queryClient = new QueryClient({
       gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
       retry: 1,
       refetchOnWindowFocus: false,
+    },
+    mutations: {
+      retry: 1,
     },
   },
 });
@@ -94,57 +99,73 @@ const AppContent = () => {
 
   // Show landing page
   if (showLanding) {
-    return <Landing onGetStarted={handleLandingComplete} />;
+    return (
+      <ErrorBoundary>
+        <Landing onGetStarted={handleLandingComplete} />
+      </ErrorBoundary>
+    );
   }
 
   // Show onboarding
   if (showOnboarding) {
-    return <Onboarding onComplete={handleOnboardingComplete} />;
+    return (
+      <ErrorBoundary>
+        <Onboarding onComplete={handleOnboardingComplete} />
+      </ErrorBoundary>
+    );
   }
 
   // Show auth page if no user
   if (!user) {
-    return <Auth onBack={handleBackToLanding} />;
+    return (
+      <ErrorBoundary>
+        <Auth onBack={handleBackToLanding} />
+      </ErrorBoundary>
+    );
   }
 
   // Show main app - user is authenticated
   return (
-    <SyllabusProvider>
-      <MainLayout>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/syllabus" element={<SyllabusPage />} />
-          <Route path="/questions" element={<QuestionsPage />} />
-          <Route path="/doubts" element={<DoubtsPage />} />
-          <Route path="/predictor" element={<PredictorPage />} />
-          <Route path="/history" element={<HistoryPage />} />
-          <Route path="/timer" element={<TimerPage />} />
-          <Route path="/notes" element={<NotesPage />} />
-          <Route path="/badges" element={<BadgesPage />} />
-          <Route path="/export" element={<ExportPage />} />
-          <Route path="/theme" element={<ThemePage />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </MainLayout>
-    </SyllabusProvider>
+    <ErrorBoundary>
+      <SyllabusProvider>
+        <MainLayout>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/syllabus" element={<SyllabusPage />} />
+            <Route path="/questions" element={<QuestionsPage />} />
+            <Route path="/doubts" element={<DoubtsPage />} />
+            <Route path="/predictor" element={<PredictorPage />} />
+            <Route path="/history" element={<HistoryPage />} />
+            <Route path="/timer" element={<TimerPage />} />
+            <Route path="/notes" element={<NotesPage />} />
+            <Route path="/badges" element={<BadgesPage />} />
+            <Route path="/export" element={<ExportPage />} />
+            <Route path="/theme" element={<ThemePage />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </MainLayout>
+      </SyllabusProvider>
+    </ErrorBoundary>
   );
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
