@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Sun, Moon, Home, BookOpen, Brain, TrendingUp, Bookmark, User, MessageCircleQuestion } from 'lucide-react';
+import { Sun, Moon, Home, BookOpen, Brain, TrendingUp, Bookmark, User } from 'lucide-react';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -15,18 +15,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { user } = useAuth();
   const location = useLocation();
 
-  // Sidebar navigation for desktop
-  const sidebarNavigation = [
+  const navigation = [
+    { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Syllabus', href: '/syllabus', icon: BookOpen },
+    { name: 'Questions', href: '/questions', icon: Brain },
     { name: 'Predictor', href: '/predictor', icon: TrendingUp },
     { name: 'Bookmarks', href: '/bookmarks', icon: Bookmark },
-  ];
-
-  // Bottom navigation for mobile
-  const bottomNavigation = [
-    { name: 'Dashboard', href: '/', icon: Home },
-    { name: 'Questions', href: '/questions', icon: Brain },
-    { name: 'Ask Doubt', href: '/ask-doubt', icon: MessageCircleQuestion },
     { name: 'Profile', href: '/profile', icon: User },
   ];
 
@@ -48,7 +42,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
             <div className="flex items-center space-x-4">
               <span className="text-sm text-muted-foreground hidden sm:block">
-                Welcome, {user?.name || 'Student'}!
+                Welcome, {user?.name}!
               </span>
               <Button
                 variant="ghost"
@@ -64,16 +58,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </header>
 
       {/* Main Content with optimized scrolling */}
-      <main className="flex-1 pb-20 lg:pb-6 lg:pl-64 scroll-smooth">
+      <main className="flex-1 pb-20 lg:pb-6 scroll-smooth">
         <div className="hardware-acceleration">
           {children}
         </div>
       </main>
 
-      {/* Bottom Navigation - Mobile Only */}
+      {/* Navigation - Mobile */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border-t border-white/20 dark:border-gray-700/50 lg:hidden z-40 hardware-acceleration">
-        <div className="grid grid-cols-4 py-2 px-2">
-          {bottomNavigation.map((item) => {
+        <div className="grid grid-cols-6 py-2">
+          {navigation.map((item) => {
             const isActive = location.pathname === item.href;
             const Icon = item.icon;
             
@@ -81,47 +75,42 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex flex-col items-center space-y-1 py-3 px-2 smooth-transition rounded-lg ${
+                className={`flex flex-col items-center space-y-1 py-2 px-1 smooth-transition ${
                   isActive 
-                    ? 'text-primary bg-primary/10' 
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                    ? 'text-primary' 
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Icon className="w-5 h-5" />
-                <span className="text-xs font-medium">{item.name}</span>
+                <span className="text-xs font-medium truncate">{item.name}</span>
               </Link>
             );
           })}
         </div>
       </nav>
 
-      {/* Side Navigation - Desktop Only */}
-      <div className="hidden lg:block fixed left-0 top-16 bottom-0 w-64 z-40">
-        <div className="h-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-r border-white/20 dark:border-gray-700/50 hardware-acceleration">
-          <div className="p-6 space-y-2">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-              Navigation
-            </h3>
-            {sidebarNavigation.map((item) => {
-              const isActive = location.pathname === item.href;
-              const Icon = item.icon;
-              
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg smooth-transition ${
-                    isActive 
-                      ? 'bg-primary text-primary-foreground shadow-sm' 
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium">{item.name}</span>
-                </Link>
-              );
-            })}
-          </div>
+      {/* Side Navigation - Desktop */}
+      <div className="hidden lg:block fixed left-4 top-1/2 transform -translate-y-1/2 z-40">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl border border-white/20 dark:border-gray-700/50 p-3 space-y-2 hardware-acceleration">
+          {navigation.map((item) => {
+            const isActive = location.pathname === item.href;
+            const Icon = item.icon;
+            
+            return (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`flex items-center space-x-3 px-3 py-2 rounded-lg smooth-transition ${
+                  isActive 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="font-medium">{item.name}</span>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,184 +5,463 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useSyllabus } from '@/contexts/SyllabusContext';
 import { useToast } from '@/hooks/use-toast';
-import { Brain, Shuffle, BookOpen, Target, Clock, Award, Loader2 } from 'lucide-react';
+import { Brain, Copy, Download, Share, Bookmark, Loader2, Eye, EyeOff, Sparkles, Play } from 'lucide-react';
+import { QuizMode } from './QuizMode';
 
-interface Question {
+interface GeneratedQuestion {
   id: string;
   question: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  answer?: string;
+  type: string;
+  difficulty: string;
   subject: string;
   chapter: string;
-  type: 'mcq' | 'short' | 'long';
-  marks: number;
-  estimatedTime: number;
-  topic?: string;
+  timestamp: number;
+  options?: string[];
+  correctAnswer?: number;
 }
 
 export const QuestionGenerator = () => {
   const { subjects } = useSyllabus();
   const { toast } = useToast();
-  const [selectedSubject, setSelectedSubject] = useState<string>('');
-  const [selectedChapter, setSelectedChapter] = useState<string>('');
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard' | 'mixed'>('mixed');
-  const [questionType, setQuestionType] = useState<'mcq' | 'short' | 'long' | 'mixed'>('mixed');
-  const [questionCount, setQuestionCount] = useState<number>(5);
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedChapter, setSelectedChapter] = useState('');
+  const [difficulty, setDifficulty] = useState('');
+  const [questionTypes, setQuestionTypes] = useState<string[]>([]);
+  const [questionCount, setQuestionCount] = useState('5');
   const [isLoading, setIsLoading] = useState(false);
+  const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([]);
+  const [visibleSolutions, setVisibleSolutions] = useState<Set<string>>(new Set());
+  const [generatingSolution, setGeneratingSolution] = useState<string | null>(null);
+  const [showQuizMode, setShowQuizMode] = useState(false);
+
+  const selectedSubjectData = subjects.find(s => s.id === selectedSubject);
+  const availableChapters = selectedSubjectData?.chapters || [];
+
+  const handleQuestionTypeToggle = (type: string) => {
+    setQuestionTypes(prev =>
+      prev.includes(type)
+        ? prev.filter(t => t !== type)
+        : [...prev, type]
+    );
+  };
+
+  const formatAIResponse = (text: string): string => {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/#{1,6}\s*/g, '')
+      .replace(/\n\s*\n/g, '\n\n')
+      .replace(/^\s+|\s+$/g, '');
+  };
 
   const generateQuestions = async () => {
-    if (!selectedSubject || !selectedChapter) {
+    if (!selectedSubject || !selectedChapter || !difficulty || questionTypes.length === 0) {
       toast({
         title: "Missing Information",
-        description: "Please select a subject and chapter.",
-        variant: "destructive",
+        description: "Please fill all fields before generating questions",
+        variant: "destructive"
       });
       return;
     }
 
     setIsLoading(true);
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const subjectName = selectedSubjectData?.name || '';
+      const chapterName = availableChapters.find(ch => ch.id === selectedChapter)?.name || '';
+      
+      const prompt = `Create ${questionCount} high-quality practice questions for Class 10 CBSE ${subjectName}, chapter "${chapterName}".
 
-      const generatedQuestions: Question[] = Array.from({ length: questionCount }, (_, i) => ({
-        id: Date.now().toString() + i,
-        question: `Question ${i + 1}: What is the capital of ${selectedSubject}?`,
-        difficulty: difficulty === 'mixed' ? ['easy', 'medium', 'hard'][i % 3] as 'easy' | 'medium' | 'hard' : difficulty,
-        subject: selectedSubject,
-        chapter: selectedChapter,
-        type: questionType === 'mixed' ? ['mcq', 'short', 'long'][i % 3] as 'mcq' | 'short' | 'long' : questionType,
-        marks: i + 1,
-        estimatedTime: (i + 1) * 60,
-        topic: 'Geography'
-      }));
+Requirements:
+- Question types: ${questionTypes.join(', ')}
+- Difficulty: ${difficulty} level
+- Make them exam-oriented and based on latest CBSE pattern
+- DO NOT include any context or introduction as the first question
 
-      setQuestions(generatedQuestions);
-      toast({
-        title: "Questions Generated",
-        description: `Successfully generated ${questionCount} questions for ${selectedSubject} - ${selectedChapter}.`,
+For MCQ questions, provide exactly 4 options labeled as:
+a) [option 1]
+b) [option 2] 
+c) [option 3]
+d) [option 4]
+
+Then clearly state: "Correct Answer: [letter]"
+
+For other question types, write clear, direct questions that test understanding.
+
+Format each question as:
+Question 1: [question text]
+[If MCQ, include options and correct answer]
+
+Question 2: [question text]
+[If MCQ, include options and correct answer]
+
+And so on...
+
+Write in a friendly, encouraging tone like a helpful tutor. Focus on clarity and exam relevance.`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
+        })
       });
-    } catch (error) {
+
+      if (!response.ok) {
+        throw new Error('Failed to generate questions');
+      }
+
+      const data = await response.json();
+      const generatedText = data.candidates[0].content.parts[0].text;
+      const formattedText = formatAIResponse(generatedText);
+      
+      // Parse questions more carefully
+      const questionBlocks = formattedText.split(/Question\s*\d+:/i).filter(q => q.trim());
+      
+      const questions = questionBlocks.map((block, index) => {
+        let options: string[] | undefined;
+        let correctAnswer: number | undefined;
+        let questionText = block.trim();
+        
+        // Check if it's an MCQ
+        const optionMatches = block.match(/[a-d]\)\s*([^\n]+)/gi);
+        const correctAnswerMatch = block.match(/Correct Answer:\s*([a-d])/i);
+        
+        if (optionMatches && optionMatches.length === 4 && correctAnswerMatch) {
+          options = optionMatches.map(opt => opt.replace(/[a-d]\)\s*/, '').trim());
+          const correctLetter = correctAnswerMatch[1].toLowerCase();
+          correctAnswer = correctLetter.charCodeAt(0) - 97; // Convert a-d to 0-3
+          
+          // Remove options and correct answer from question text
+          questionText = questionText
+            .replace(/[a-d]\)\s*[^\n]+/gi, '')
+            .replace(/Correct Answer:\s*[a-d]/i, '')
+            .trim();
+        }
+        
+        return {
+          id: `${Date.now()}-${index}`,
+          question: questionText,
+          type: questionTypes[index % questionTypes.length],
+          difficulty,
+          subject: subjectName,
+          chapter: chapterName,
+          timestamp: Date.now(),
+          options,
+          correctAnswer
+        };
+      });
+
+      setGeneratedQuestions(questions);
+      
       toast({
-        title: "Error",
-        description: "Failed to generate questions. Please try again.",
-        variant: "destructive",
+        title: "Questions Generated Successfully! 🎉",
+        description: `Created ${questions.length} practice questions tailored for you`,
+      });
+
+    } catch (error) {
+      console.error('Error generating questions:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Unable to create questions right now. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const selectedSubjectData = subjects.find(s => s.name === selectedSubject);
-  
+  const generateSolution = async (question: GeneratedQuestion) => {
+    setGeneratingSolution(question.id);
+    
+    try {
+      const prompt = `Provide a detailed, student-friendly solution for this Class 10 CBSE ${question.subject} question from "${question.chapter}":
+
+${question.question}
+
+${question.options ? `Options:\na) ${question.options[0]}\nb) ${question.options[1]}\nc) ${question.options[2]}\nd) ${question.options[3]}` : ''}
+
+Please provide:
+1. The correct answer (if applicable)
+2. Clear step-by-step explanation
+3. Key concepts involved
+4. Study tips for similar questions
+
+Write in a friendly, encouraging tone as if you're a helpful tutor explaining to a student who wants to truly understand the concept.`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate solution');
+      }
+
+      const data = await response.json();
+      const solution = formatAIResponse(data.candidates[0].content.parts[0].text);
+      
+      setGeneratedQuestions(prev => 
+        prev.map(q => 
+          q.id === question.id 
+            ? { ...q, answer: solution }
+            : q
+        )
+      );
+
+      setVisibleSolutions(prev => new Set([...prev, question.id]));
+
+      toast({
+        title: "Solution Ready! ✨",
+        description: "Detailed explanation generated successfully",
+      });
+
+    } catch (error) {
+      console.error('Error generating solution:', error);
+      toast({
+        title: "Solution Generation Failed",
+        description: "Please try again in a moment.",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingSolution(null);
+    }
+  };
+
+  const toggleSolutionVisibility = (questionId: string) => {
+    setVisibleSolutions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(questionId)) {
+        newSet.delete(questionId);
+      } else {
+        newSet.add(questionId);
+      }
+      return newSet;
+    });
+  };
+
+  const copyQuestion = (question: string) => {
+    navigator.clipboard.writeText(question);
+    toast({
+      title: "Copied! 📋",
+      description: "Question copied to clipboard",
+    });
+  };
+
+  const saveQuestion = (question: GeneratedQuestion) => {
+    const savedQuestions = JSON.parse(localStorage.getItem('bookmarkedQuestions') || '[]');
+    const updatedQuestions = [...savedQuestions, question];
+    localStorage.setItem('bookmarkedQuestions', JSON.stringify(updatedQuestions));
+    
+    toast({
+      title: "Bookmarked! 🔖",
+      description: "Question saved to your bookmarks",
+    });
+  };
+
+  const exportQuestions = () => {
+    const questionsText = generatedQuestions.map((q, index) => 
+      `Question ${index + 1}:\n${q.question}\n${q.options ? q.options.map((opt, i) => `${String.fromCharCode(97 + i)}) ${opt}`).join('\n') : ''}\n${q.answer ? `\nSolution:\n${q.answer}` : ''}\n${'='.repeat(50)}\n\n`
+    ).join('');
+    
+    const blob = new Blob([questionsText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `practice-questions-${selectedSubject}-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Downloaded! 📥",
+      description: "Questions exported successfully",
+    });
+  };
+
+  const startQuiz = () => {
+    const mcqQuestions = generatedQuestions.filter(q => q.options && q.correctAnswer !== undefined);
+    if (mcqQuestions.length === 0) {
+      toast({
+        title: "No MCQ Questions Available",
+        description: "Please generate MCQ questions first to start the quiz mode!",
+        variant: "destructive"
+      });
+      return;
+    }
+    setShowQuizMode(true);
+  };
+
+  if (showQuizMode) {
+    const quizQuestions = generatedQuestions
+      .filter(q => q.options && q.correctAnswer !== undefined)
+      .map(q => ({
+        id: q.id,
+        question: q.question,
+        options: q.options!,
+        correctAnswer: q.correctAnswer!,
+        explanation: q.answer || "Great attempt! The key to mastering this topic is regular practice and understanding the underlying concepts.",
+        subject: q.subject,
+        chapter: q.chapter
+      }));
+
+    return (
+      <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
+        <QuizMode 
+          questions={quizQuestions}
+          onExit={() => setShowQuizMode(false)}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
       <div className="text-center space-y-2 animate-fade-in">
         <h2 className="text-2xl sm:text-3xl font-bold flex items-center justify-center space-x-2">
-          <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-          <span>Question Generator</span>
+          <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+          <span>Smart Question Generator</span>
         </h2>
-        <p className="text-muted-foreground text-sm sm:text-lg">Generate practice questions tailored to your needs 🎯</p>
+        <p className="text-muted-foreground text-sm sm:text-lg px-2">Generate personalized CBSE practice questions with AI-powered solutions</p>
+        
+        {/* Ask Doubt Button */}
+        <div className="pt-2">
+          <Button 
+            variant="outline" 
+            className="bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0 hover:opacity-90"
+            onClick={() => window.location.href = '/doubts'}
+          >
+            <Brain className="w-4 h-4 mr-2" />
+            Ask Doubt - ChatGPT Style
+          </Button>
+        </div>
       </div>
 
-      {/* Configuration Card */}
-      <Card className="glass-card">
+      {/* Generator Form */}
+      <Card className="glass-card smooth-transition">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Target className="w-5 h-5" />
-            <span>Question Settings</span>
+          <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+            <Brain className="w-5 h-5 sm:w-6 sm:h-6" />
+            <span>Create Your Practice Set</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Subject and Chapter Selection */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Select onValueChange={(value) => setSelectedSubject(value)}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Subject</label>
+              <Select value={selectedSubject} onValueChange={setSelectedSubject}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Subject" />
+                  <SelectValue placeholder="Choose your subject" />
                 </SelectTrigger>
                 <SelectContent>
                   {subjects.map((subject) => (
-                    <SelectItem key={subject.id} value={subject.name}>
-                      {subject.name}
+                    <SelectItem key={subject.id} value={subject.id}>
+                      {subject.icon} {subject.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Select onValueChange={(value) => setSelectedChapter(value)}>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Chapter</label>
+              <Select 
+                value={selectedChapter} 
+                onValueChange={setSelectedChapter}
+                disabled={!selectedSubject}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Chapter" />
+                  <SelectValue placeholder="Select chapter" />
                 </SelectTrigger>
                 <SelectContent>
-                  {selectedSubjectData &&
-                    selectedSubjectData.chapters.map((chapter) => (
-                      <SelectItem key={chapter.id} value={chapter.name}>
-                        {chapter.name}
-                      </SelectItem>
-                    ))}
+                  {availableChapters.map((chapter) => (
+                    <SelectItem key={chapter.id} value={chapter.id}>
+                      {chapter.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Difficulty and Question Type Selection */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Select onValueChange={(value) => setDifficulty(value as 'easy' | 'medium' | 'hard' | 'mixed')}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Difficulty Level</label>
+              <Select value={difficulty} onValueChange={setDifficulty}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Difficulty" />
+                  <SelectValue placeholder="How challenging should it be?" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
-                  <SelectItem value="mixed">Mixed</SelectItem>
+                  <SelectItem value="easy">🟢 Easy - Foundation building</SelectItem>
+                  <SelectItem value="medium">🟡 Medium - Exam preparation</SelectItem>
+                  <SelectItem value="hard">🔴 Hard - Advanced practice</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Select onValueChange={(value) => setQuestionType(value as 'mcq' | 'short' | 'long' | 'mixed')}>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Number of Questions</label>
+              <Select value={questionCount} onValueChange={setQuestionCount}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Question Type" />
+                  <SelectValue placeholder="How many questions?" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mcq">MCQ</SelectItem>
-                  <SelectItem value="short">Short Answer</SelectItem>
-                  <SelectItem value="long">Long Answer</SelectItem>
-                  <SelectItem value="mixed">Mixed</SelectItem>
+                  <SelectItem value="3">3 Questions</SelectItem>
+                  <SelectItem value="5">5 Questions</SelectItem>
+                  <SelectItem value="10">10 Questions</SelectItem>
+                  <SelectItem value="15">15 Questions</SelectItem>
+                  <SelectItem value="20">20 Questions</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Question Count */}
-          <div>
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Number of Questions
-            </label>
-            <input
-              type="number"
-              value={questionCount}
-              onChange={(e) => setQuestionCount(Number(e.target.value))}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="Enter question count"
-            />
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Question Types</label>
+            <div className="flex flex-wrap gap-2">
+              {['MCQ', 'Short Answer', 'Long Answer', 'Application Based'].map((type) => (
+                <Badge
+                  key={type}
+                  variant={questionTypes.includes(type) ? "default" : "outline"}
+                  className="cursor-pointer px-3 py-2 text-xs sm:text-sm smooth-transition hover:scale-105"
+                  onClick={() => handleQuestionTypeToggle(type)}
+                >
+                  {type}
+                </Badge>
+              ))}
+            </div>
           </div>
 
-          {/* Generate Button */}
-          <Button onClick={generateQuestions} disabled={isLoading}>
+          <Button 
+            onClick={generateQuestions} 
+            disabled={isLoading}
+            className="w-full smooth-transition"
+            size="lg"
+          >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
+                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
+                <span className="text-sm sm:text-base">Generating practice questions...</span>
               </>
             ) : (
               <>
-                <Shuffle className="mr-2 h-4 w-4" />
-                Generate Questions
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                <span className="text-sm sm:text-base">Generate Practice Questions</span>
               </>
             )}
           </Button>
@@ -191,41 +469,143 @@ export const QuestionGenerator = () => {
       </Card>
 
       {/* Generated Questions */}
-      {questions.length > 0 && (
-        <Card className="glass-card">
+      {generatedQuestions.length > 0 && (
+        <Card className="glass-card smooth-transition">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div className="flex items-center space-x-2">
-                <BookOpen className="w-5 h-5" />
-                <span>Generated Questions</span>
+                <span className="text-lg sm:text-xl">🎯 Your Practice Questions</span>
+                <Badge variant="secondary" className="text-sm sm:text-lg">{generatedQuestions.length} questions</Badge>
               </div>
-              <Badge variant="secondary">{questions.length} Questions</Badge>
-            </CardTitle>
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                {generatedQuestions.some(q => q.options) && (
+                  <Button variant="outline" size="sm" onClick={startQuiz} className="bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0 hover:opacity-90 text-xs sm:text-sm">
+                    <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                    Start Quiz Mode
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={exportQuestions} className="text-xs sm:text-sm">
+                  <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                  Download All
+                </Button>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {questions.map((question) => (
-              <div key={question.id} className="rounded-md border p-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">{question.question}</h3>
-                  <Badge variant="outline">{question.difficulty}</Badge>
+          <CardContent className="space-y-4 sm:space-y-6">
+            {generatedQuestions.map((question, index) => (
+              <div key={question.id} className="border rounded-lg p-4 sm:p-6 space-y-4 smooth-transition bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/10 dark:to-purple-900/10">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                  <h4 className="font-semibold text-lg sm:text-xl text-primary">Question {index + 1}</h4>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyQuestion(question.question)}
+                      title="Copy question"
+                    >
+                      <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => saveQuestion(question)}
+                      title="Save to bookmarks"
+                    >
+                      <Bookmark className="w-3 h-3 sm:w-4 sm:h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigator.share?.({ text: question.question })}
+                      title="Share question"
+                    >
+                      <Share className="w-3 h-3 sm:w-4 sm:h-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="font-medium">Subject:</span> {question.subject}
+                
+                <div className="prose prose-sm sm:prose-lg max-w-none">
+                  <div className="text-base sm:text-lg leading-relaxed bg-white/80 dark:bg-gray-800/80 p-3 sm:p-4 rounded-lg border">
+                    {question.question}
                   </div>
-                  <div>
-                    <span className="font-medium">Chapter:</span> {question.chapter}
+                  
+                  {question.options && (
+                    <div className="mt-4 space-y-2">
+                      {question.options.map((option, optIndex) => (
+                        <div key={optIndex} className="flex items-center space-x-3 p-2 sm:p-3 bg-secondary/30 rounded-lg">
+                          <span className="font-bold text-primary text-sm sm:text-base">{String.fromCharCode(97 + optIndex)})</span>
+                          <span className="text-sm sm:text-base">{option}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className="text-xs">{question.type}</Badge>
+                    <Badge variant="outline" className="capitalize text-xs">{question.difficulty}</Badge>
+                    {question.options && <Badge className="bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs">MCQ</Badge>}
                   </div>
-                  <div>
-                    <span className="font-medium">Type:</span> {question.type}
-                  </div>
-                  <div>
-                    <span className="font-medium">Marks:</span> {question.marks}
-                  </div>
-                  <div>
-                    <span className="font-medium">Estimated Time:</span> {question.estimatedTime} seconds
+                  
+                  <div className="flex space-x-2">
+                    {question.answer ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toggleSolutionVisibility(question.id)}
+                        className="smooth-transition text-xs sm:text-sm"
+                      >
+                        {visibleSolutions.has(question.id) ? (
+                          <>
+                            <EyeOff className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                            Hide Solution
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                            Show Solution
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => generateSolution(question)}
+                        disabled={generatingSolution === question.id}
+                        className="smooth-transition text-xs sm:text-sm"
+                      >
+                        {generatingSolution === question.id ? (
+                          <>
+                            <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                            Get Solution
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </div>
                 </div>
+
+                {/* Solution Display */}
+                {question.answer && visibleSolutions.has(question.id) && (
+                  <div className="mt-4 sm:mt-6 p-4 sm:p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-lg animate-fade-in">
+                    <h5 className="font-semibold mb-4 text-primary flex items-center text-base sm:text-lg">
+                      <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                      Detailed Solution & Explanation
+                    </h5>
+                    <div className="prose prose-sm sm:prose-lg max-w-none">
+                      <div className="whitespace-pre-wrap leading-relaxed text-sm sm:text-base">
+                        {question.answer}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </CardContent>
