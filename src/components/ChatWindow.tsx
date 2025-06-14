@@ -20,9 +20,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   isSidebarOpen,
   onToggleSidebar
 }) => {
-  const { messages, sendMessage, isLoading } = useConversationMessages(conversationId);
+  const { messages, addMessage, loading } = useConversationMessages(conversationId);
   const { toast } = useToast();
   const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -37,6 +38,41 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
+
+  const sendMessage = useCallback(async (messageText: string) => {
+    if (!conversationId) return;
+
+    setIsLoading(true);
+    try {
+      // Add user message
+      const userMessage = {
+        id: `user-${Date.now()}`,
+        content: messageText,
+        role: 'user' as const,
+        timestamp: Date.now()
+      };
+      
+      await addMessage(userMessage);
+
+      // Simulate AI response (replace with actual AI service call)
+      setTimeout(async () => {
+        const aiMessage = {
+          id: `ai-${Date.now()}`,
+          content: `I understand your question: "${messageText}". Let me help you with that. This is a placeholder response for now.`,
+          role: 'assistant' as const,
+          timestamp: Date.now()
+        };
+        
+        await addMessage(aiMessage);
+        setIsLoading(false);
+      }, 1000);
+
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setIsLoading(false);
+      throw error;
+    }
+  }, [conversationId, addMessage]);
 
   const handleSendMessage = useCallback(async () => {
     if (!inputMessage.trim() || isLoading || !conversationId) return;
