@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, MessageCircle, Trash2 } from 'lucide-react';
+import { Plus, MessageCircle, Trash2, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +31,7 @@ interface ConversationSidebarProps {
   onNewChat: () => void;
   onDeleteConversation: (id: string) => void;
   loading: boolean;
+  onClose?: () => void;
 }
 
 export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
@@ -38,9 +40,11 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
   onSelectConversation,
   onNewChat,
   onDeleteConversation,
-  loading
+  loading,
+  onClose
 }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const handleDelete = (conversationId: string) => {
     onDeleteConversation(conversationId);
@@ -48,12 +52,27 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
+    <div className="h-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <div className="p-3 sm:p-4 border-b flex-shrink-0">
+      <div className="flex items-center justify-between p-3 border-b flex-shrink-0">
+        <h2 className="text-lg font-semibold">Chat History</h2>
+        {isMobile && onClose && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="p-1 h-8 w-8"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
+
+      {/* New Chat Button */}
+      <div className="p-3 flex-shrink-0">
         <Button
           onClick={onNewChat}
-          className="w-full flex items-center gap-2 bg-primary hover:bg-primary/90 text-sm sm:text-base"
+          className="w-full flex items-center gap-2 bg-primary hover:bg-primary/90 text-sm"
           disabled={loading}
         >
           <Plus className="w-4 h-4" />
@@ -62,14 +81,14 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
       </div>
 
       {/* Conversations List */}
-      <ScrollArea className="flex-1 p-2 overflow-hidden">
-        <div className="space-y-1">
+      <ScrollArea className="flex-1 px-3 overflow-hidden">
+        <div className="space-y-1 pb-3">
           {conversations.map((conversation) => (
             <div
               key={conversation.id}
               className={`
-                group relative rounded-lg p-2 sm:p-3 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer
-                ${selectedConversationId === conversation.id ? 'bg-gray-200 dark:bg-gray-700' : ''}
+                group relative rounded-lg p-3 hover:bg-secondary/50 cursor-pointer transition-colors
+                ${selectedConversationId === conversation.id ? 'bg-secondary' : ''}
               `}
             >
               <div
@@ -77,7 +96,7 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
                 onClick={() => onSelectConversation(conversation.id)}
               >
                 <div className="flex items-center gap-2 w-full">
-                  <MessageCircle className="w-4 h-4 flex-shrink-0" />
+                  <MessageCircle className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
                   <span className="truncate text-sm font-medium">
                     {conversation.title}
                   </span>
@@ -87,13 +106,18 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
                 </span>
               </div>
 
-              {/* Delete Button */}
+              {/* Delete Button - Always visible on mobile for better UX */}
               <AlertDialog open={deleteDialogOpen === conversation.id} onOpenChange={(open) => setDeleteDialogOpen(open ? conversation.id : null)}>
                 <AlertDialogTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
+                    className={`
+                      absolute top-2 right-2 p-1 h-6 w-6 
+                      hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20
+                      ${isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} 
+                      transition-opacity
+                    `}
                     onClick={(e) => {
                       e.stopPropagation();
                     }}
@@ -123,9 +147,16 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
           ))}
           
           {conversations.length === 0 && !loading && (
-            <div className="text-center text-muted-foreground text-sm p-4">
-              No conversations yet.
-              Start a new chat!
+            <div className="text-center text-muted-foreground text-sm p-6">
+              <MessageCircle className="w-8 h-8 mx-auto mb-3 opacity-50" />
+              <p>No conversations yet.</p>
+              <p className="text-xs mt-1">Start a new chat!</p>
+            </div>
+          )}
+
+          {loading && (
+            <div className="text-center text-muted-foreground text-sm p-6">
+              <div className="animate-pulse">Loading conversations...</div>
             </div>
           )}
         </div>

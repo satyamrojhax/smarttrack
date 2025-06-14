@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ConversationSidebar } from './ConversationSidebar';
 import { ChatWindow } from './ChatWindow';
@@ -44,17 +43,13 @@ export const ChatInterface = () => {
     }
   }, [conversations, loading, selectedConversationId]);
 
-  // Close sidebar on mobile by default
+  // Keep sidebar closed by default on both mobile and desktop
   useEffect(() => {
-    if (isMobile) {
-      setIsSidebarOpen(false);
-    } else {
-      setIsSidebarOpen(true);
-    }
-  }, [isMobile]);
+    setIsSidebarOpen(false);
+  }, []);
 
   return (
-    <div className="flex h-full bg-background relative overflow-hidden">
+    <div className="flex h-screen bg-background relative overflow-hidden">
       {/* Overlay for mobile when sidebar is open */}
       {isMobile && isSidebarOpen && (
         <div 
@@ -63,12 +58,14 @@ export const ChatInterface = () => {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Hidden by default, shows only when toggled */}
       <div className={`
-        ${isMobile ? 'fixed' : 'relative'} 
+        ${isMobile ? 'fixed' : 'absolute'} 
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-        ${isMobile ? 'w-80 z-50' : 'w-64'} 
-        transition-transform duration-300 h-full border-r bg-background flex-shrink-0
+        ${isMobile ? 'w-[280px]' : 'w-[260px]'} 
+        transition-transform duration-300 ease-in-out
+        h-full bg-background border-r z-50 flex-shrink-0
+        ${!isMobile ? 'shadow-lg' : ''}
       `}>
         <ConversationSidebar
           conversations={conversations}
@@ -77,10 +74,11 @@ export const ChatInterface = () => {
           onNewChat={handleNewChat}
           onDeleteConversation={handleDeleteConversation}
           loading={loading}
+          onClose={() => setIsSidebarOpen(false)}
         />
       </div>
 
-      {/* Main Chat Area */}
+      {/* Main Chat Area - Always full width */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <ChatWindow
           conversationId={selectedConversationId}
