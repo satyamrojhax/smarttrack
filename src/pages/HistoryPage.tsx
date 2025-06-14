@@ -5,19 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { History, MessageSquare, Brain, Calendar, User, Bot, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { History, MessageSquare, Calendar, User, Bot, RefreshCw } from 'lucide-react';
 import { getUserDoubts, getDoubtHistory, type Doubt, type DoubtResponse } from '@/services/doubtService';
-import { getUserQuestionHistory, type QuestionHistory } from '@/services/questionHistoryService';
-import { getUserQuestionResponses, type QuestionResponse } from '@/services/questionResponseService';
 
 const HistoryPage = () => {
   const { toast } = useToast();
   const [doubts, setDoubts] = useState<Doubt[]>([]);
-  const [questionHistory, setQuestionHistory] = useState<QuestionHistory[]>([]);
-  const [questionResponses, setQuestionResponses] = useState<QuestionResponse[]>([]);
   const [selectedDoubt, setSelectedDoubt] = useState<string | null>(null);
   const [doubtHistory, setDoubtHistory] = useState<DoubtResponse[]>([]);
-  const [activeTab, setActiveTab] = useState<'doubts' | 'questions' | 'responses'>('doubts');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -28,16 +23,10 @@ const HistoryPage = () => {
     try {
       setIsLoading(true);
       console.log('Loading history data...');
-      const [doubtsData, questionsData, responsesData] = await Promise.all([
-        getUserDoubts(),
-        getUserQuestionHistory(),
-        getUserQuestionResponses()
-      ]);
+      const doubtsData = await getUserDoubts();
       
-      console.log('History data loaded:', { doubtsData, questionsData, responsesData });
+      console.log('History data loaded:', { doubtsData });
       setDoubts(doubtsData);
-      setQuestionHistory(questionsData);
-      setQuestionResponses(responsesData);
     } catch (error) {
       console.error('Error loading history:', error);
       toast({
@@ -86,7 +75,7 @@ const HistoryPage = () => {
             <span>Learning History</span>
           </h2>
           <p className="text-sm md:text-base text-muted-foreground px-2">
-            Track your doubts, conversations, and question attempts
+            Track your doubts and conversations
           </p>
         </div>
 
@@ -103,212 +92,66 @@ const HistoryPage = () => {
           </Button>
         </div>
 
-        {/* Tabs - Mobile Optimized */}
-        <div className="flex flex-col sm:flex-row justify-center mb-6">
-          <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1 p-1 bg-muted rounded-lg w-full sm:w-fit">
-            <Button
-              variant={activeTab === 'doubts' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('doubts')}
-              className="flex items-center gap-2 justify-center w-full sm:w-auto text-xs sm:text-sm"
-            >
-              <MessageSquare className="w-4 h-4" />
-              Doubts ({doubts.length})
-            </Button>
-            <Button
-              variant={activeTab === 'questions' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('questions')}
-              className="flex items-center gap-2 justify-center w-full sm:w-auto text-xs sm:text-sm"
-            >
-              <Brain className="w-4 h-4" />
-              Questions ({questionHistory.length})
-            </Button>
-            <Button
-              variant={activeTab === 'responses' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('responses')}
-              className="flex items-center gap-2 justify-center w-full sm:w-auto text-xs sm:text-sm"
-            >
-              <CheckCircle className="w-4 h-4" />
-              Responses ({questionResponses.length})
-            </Button>
-          </div>
-        </div>
-
         {/* Content - Mobile First Design */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-          {/* Left Panel - List */}
+          {/* Left Panel - Doubts List */}
           <Card className="glass-card">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                {activeTab === 'doubts' ? (
-                  <>
-                    <MessageSquare className="w-5 h-5" />
-                    Your Doubts
-                  </>
-                ) : activeTab === 'questions' ? (
-                  <>
-                    <Brain className="w-5 h-5" />
-                    Question History
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-5 h-5" />
-                    Question Responses
-                  </>
-                )}
+                <MessageSquare className="w-5 h-5" />
+                Your Doubts ({doubts.length})
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <ScrollArea className="h-[400px] lg:h-[500px]">
                 <div className="space-y-2 p-4">
-                  {activeTab === 'doubts' ? (
-                    doubts.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No doubts asked yet</p>
-                      </div>
-                    ) : (
-                      doubts.map((doubt) => (
-                        <Card 
-                          key={doubt.id} 
-                          className={`cursor-pointer transition-colors ${
-                            selectedDoubt === doubt.id ? 'ring-2 ring-primary' : 'hover:bg-muted/50'
-                          }`}
-                          onClick={() => loadDoubtHistory(doubt.id)}
-                        >
-                          <CardContent className="p-3">
-                            <h4 className="font-medium text-sm mb-1 line-clamp-1">{doubt.title}</h4>
-                            <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                              {doubt.description}
-                            </p>
-                            <div className="flex items-center justify-between">
-                              <Badge variant={doubt.status === 'open' ? 'default' : 'secondary'} className="text-xs">
-                                {doubt.status}
-                              </Badge>
-                              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {new Date(doubt.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))
-                    )
-                  ) : activeTab === 'questions' ? (
-                    questionHistory.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Brain className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No questions attempted yet</p>
-                      </div>
-                    ) : (
-                      questionHistory.map((question) => (
-                        <Card key={question.id} className="hover:bg-muted/50">
-                          <CardContent className="p-3">
-                            <p className="text-sm mb-2 line-clamp-2">{question.question_text}</p>
-                            <div className="flex flex-wrap items-center gap-2 mb-2">
-                              <Badge variant="outline" className="text-xs">
-                                {question.question_type || 'Question'}
-                              </Badge>
-                              {question.difficulty_level && (
-                                <Badge variant="secondary" className="text-xs">
-                                  Level {question.difficulty_level}
-                                </Badge>
-                              )}
-                              {question.is_correct !== null && (
-                                <div className="flex items-center gap-1">
-                                  {question.is_correct ? (
-                                    <CheckCircle className="w-4 h-4 text-green-500" />
-                                  ) : (
-                                    <XCircle className="w-4 h-4 text-red-500" />
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                              {question.time_taken && (
-                                <span>Time: {question.time_taken}s</span>
-                              )}
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {new Date(question.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))
-                    )
+                  {doubts.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No doubts asked yet</p>
+                    </div>
                   ) : (
-                    questionResponses.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <CheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No question responses yet</p>
-                      </div>
-                    ) : (
-                      questionResponses.map((response) => (
-                        <Card key={response.id} className="hover:bg-muted/50">
-                          <CardContent className="p-3">
-                            <p className="text-sm mb-2 line-clamp-2">{response.generated_question_text}</p>
-                            <div className="flex flex-wrap items-center gap-2 mb-2">
-                              {response.user_response && (
-                                <Badge variant="outline" className="text-xs">
-                                  Answered
-                                </Badge>
-                              )}
-                              {response.is_correct !== null && (
-                                <div className="flex items-center gap-1">
-                                  {response.is_correct ? (
-                                    <CheckCircle className="w-4 h-4 text-green-500" />
-                                  ) : (
-                                    <XCircle className="w-4 h-4 text-red-500" />
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                              {response.response_time && (
-                                <span>Time: {response.response_time}s</span>
-                              )}
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {new Date(response.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))
-                    )
+                    doubts.map((doubt) => (
+                      <Card 
+                        key={doubt.id} 
+                        className={`cursor-pointer transition-colors ${
+                          selectedDoubt === doubt.id ? 'ring-2 ring-primary' : 'hover:bg-muted/50'
+                        }`}
+                        onClick={() => loadDoubtHistory(doubt.id)}
+                      >
+                        <CardContent className="p-3">
+                          <h4 className="font-medium text-sm mb-1 line-clamp-1">{doubt.title}</h4>
+                          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                            {doubt.description}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <Badge variant={doubt.status === 'open' ? 'default' : 'secondary'} className="text-xs">
+                              {doubt.status}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {new Date(doubt.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
                   )}
                 </div>
               </ScrollArea>
             </CardContent>
           </Card>
 
-          {/* Right Panel - Details */}
+          {/* Right Panel - Conversation Details */}
           <Card className="glass-card">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                {activeTab === 'doubts' ? (
-                  <>
-                    <MessageSquare className="w-5 h-5" />
-                    Conversation History
-                  </>
-                ) : activeTab === 'questions' ? (
-                  <>
-                    <Brain className="w-5 h-5" />
-                    Question Details
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-5 h-5" />
-                    Response Details
-                  </>
-                )}
+                <MessageSquare className="w-5 h-5" />
+                Conversation History
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              {activeTab === 'doubts' && selectedDoubt && doubtHistory.length > 0 ? (
+              {selectedDoubt && doubtHistory.length > 0 ? (
                 <ScrollArea className="h-[400px] lg:h-[500px]">
                   <div className="space-y-3 p-4">
                     {doubtHistory.map((response) => (
@@ -358,22 +201,8 @@ const HistoryPage = () => {
               ) : (
                 <div className="flex items-center justify-center h-[400px] lg:h-[500px] text-muted-foreground p-4">
                   <div className="text-center">
-                    {activeTab === 'doubts' ? (
-                      <>
-                        <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">Select a doubt to view conversation</p>
-                      </>
-                    ) : activeTab === 'questions' ? (
-                      <>
-                        <Brain className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">Question details will appear here</p>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">Response details will appear here</p>
-                      </>
-                    )}
+                    <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Select a doubt to view conversation</p>
                   </div>
                 </div>
               )}

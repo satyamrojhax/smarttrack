@@ -17,6 +17,7 @@ export interface AuthContextProps {
   login: (userData: { email: string; password: string }) => Promise<{ success: boolean; error?: string }>;
   signup: (userData: { name: string; email: string; password: string; class: string; board: string }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  signOut: () => void;
   updateProfile: (updatedProfile: { name: string; class: string; board: string }) => Promise<{ success: boolean; error?: string }>;
   isLoading: boolean;
 }

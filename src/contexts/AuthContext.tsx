@@ -13,6 +13,7 @@ const AuthContext = createContext<AuthContextProps>({
   login: async () => ({ success: false }),
   signup: async () => ({ success: false }),
   logout: () => {},
+  signOut: () => {},
   updateProfile: async () => ({ success: false }),
   isLoading: true,
 });
@@ -128,6 +129,8 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     setSession(null);
   };
 
+  const signOut = logout; // Alias for logout
+
   const updateProfile = async (updatedProfile: ProfileUpdateData) => {
     if (!user) return { success: false, error: 'No user logged in' };
 
@@ -148,6 +151,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       login, 
       signup, 
       logout, 
+      signOut,
       updateProfile, 
       isLoading 
     }}>

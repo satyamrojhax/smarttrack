@@ -1,14 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, BookOpen, Brain, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-interface OnboardingProps {
-  onComplete: () => void;
-}
-
-const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
+const Onboarding: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const navigate = useNavigate();
 
   const slides = [
     {
@@ -35,12 +33,12 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      onComplete();
+      navigate('/dashboard');
     }
   };
 
   const skipOnboarding = () => {
-    onComplete();
+    navigate('/dashboard');
   };
 
   return (
