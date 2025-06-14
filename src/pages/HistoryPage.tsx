@@ -5,32 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { History, MessageSquare, BookOpen, Calendar, User, Bot, Brain, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { History, MessageSquare, Brain, Calendar, User, Bot, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { getUserDoubts, getDoubtHistory, type Doubt, type DoubtResponse } from '@/services/doubtService';
-import { getUserBookmarks } from '@/services/bookmarkService';
 import { getUserQuestionHistory, type QuestionHistory } from '@/services/questionHistoryService';
-
-interface BookmarkWithQuestion {
-  id: string;
-  question_id: string;
-  created_at: string;
-  questions: {
-    id: string;
-    question_text: string;
-    question_type: string;
-    difficulty_level: number;
-    chapter_id: string;
-  } | null;
-}
+import { getUserQuestionResponses, type QuestionResponse } from '@/services/questionResponseService';
 
 const HistoryPage = () => {
   const { toast } = useToast();
   const [doubts, setDoubts] = useState<Doubt[]>([]);
-  const [bookmarks, setBookmarks] = useState<BookmarkWithQuestion[]>([]);
   const [questionHistory, setQuestionHistory] = useState<QuestionHistory[]>([]);
+  const [questionResponses, setQuestionResponses] = useState<QuestionResponse[]>([]);
   const [selectedDoubt, setSelectedDoubt] = useState<string | null>(null);
   const [doubtHistory, setDoubtHistory] = useState<DoubtResponse[]>([]);
-  const [activeTab, setActiveTab] = useState<'doubts' | 'bookmarks' | 'questions'>('doubts');
+  const [activeTab, setActiveTab] = useState<'doubts' | 'questions' | 'responses'>('doubts');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -41,16 +28,16 @@ const HistoryPage = () => {
     try {
       setIsLoading(true);
       console.log('Loading history data...');
-      const [doubtsData, bookmarksData, questionsData] = await Promise.all([
+      const [doubtsData, questionsData, responsesData] = await Promise.all([
         getUserDoubts(),
-        getUserBookmarks(),
-        getUserQuestionHistory()
+        getUserQuestionHistory(),
+        getUserQuestionResponses()
       ]);
       
-      console.log('History data loaded:', { doubtsData, bookmarksData, questionsData });
+      console.log('History data loaded:', { doubtsData, questionsData, responsesData });
       setDoubts(doubtsData);
-      setBookmarks(bookmarksData);
       setQuestionHistory(questionsData);
+      setQuestionResponses(responsesData);
     } catch (error) {
       console.error('Error loading history:', error);
       toast({
@@ -99,7 +86,7 @@ const HistoryPage = () => {
             <span>Learning History</span>
           </h2>
           <p className="text-sm md:text-base text-muted-foreground px-2">
-            Track your doubts, conversations, questions, and bookmarked content
+            Track your doubts, conversations, and question attempts
           </p>
         </div>
 
@@ -138,13 +125,13 @@ const HistoryPage = () => {
               Questions ({questionHistory.length})
             </Button>
             <Button
-              variant={activeTab === 'bookmarks' ? 'default' : 'ghost'}
+              variant={activeTab === 'responses' ? 'default' : 'ghost'}
               size="sm"
-              onClick={() => setActiveTab('bookmarks')}
+              onClick={() => setActiveTab('responses')}
               className="flex items-center gap-2 justify-center w-full sm:w-auto text-xs sm:text-sm"
             >
-              <BookOpen className="w-4 h-4" />
-              Bookmarks ({bookmarks.length})
+              <CheckCircle className="w-4 h-4" />
+              Responses ({questionResponses.length})
             </Button>
           </div>
         </div>
@@ -167,8 +154,8 @@ const HistoryPage = () => {
                   </>
                 ) : (
                   <>
-                    <BookOpen className="w-5 h-5" />
-                    Bookmarked Questions
+                    <CheckCircle className="w-5 h-5" />
+                    Question Responses
                   </>
                 )}
               </CardTitle>
@@ -253,23 +240,39 @@ const HistoryPage = () => {
                       ))
                     )
                   ) : (
-                    bookmarks.length === 0 ? (
+                    questionResponses.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground">
-                        <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No bookmarks saved yet</p>
+                        <CheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No question responses yet</p>
                       </div>
                     ) : (
-                      bookmarks.map((bookmark) => (
-                        <Card key={bookmark.id} className="hover:bg-muted/50">
+                      questionResponses.map((response) => (
+                        <Card key={response.id} className="hover:bg-muted/50">
                           <CardContent className="p-3">
-                            <p className="text-sm mb-2 line-clamp-2">{bookmark.questions?.question_text}</p>
-                            <div className="flex items-center justify-between">
-                              <Badge variant="outline" className="text-xs">
-                                {bookmark.questions?.question_type || 'Question'}
-                              </Badge>
-                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <p className="text-sm mb-2 line-clamp-2">{response.generated_question_text}</p>
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              {response.user_response && (
+                                <Badge variant="outline" className="text-xs">
+                                  Answered
+                                </Badge>
+                              )}
+                              {response.is_correct !== null && (
+                                <div className="flex items-center gap-1">
+                                  {response.is_correct ? (
+                                    <CheckCircle className="w-4 h-4 text-green-500" />
+                                  ) : (
+                                    <XCircle className="w-4 h-4 text-red-500" />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              {response.response_time && (
+                                <span>Time: {response.response_time}s</span>
+                              )}
+                              <span className="flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
-                                {new Date(bookmark.created_at).toLocaleDateString()}
+                                {new Date(response.created_at).toLocaleDateString()}
                               </span>
                             </div>
                           </CardContent>
@@ -298,8 +301,8 @@ const HistoryPage = () => {
                   </>
                 ) : (
                   <>
-                    <BookOpen className="w-5 h-5" />
-                    Bookmark Details
+                    <CheckCircle className="w-5 h-5" />
+                    Response Details
                   </>
                 )}
               </CardTitle>
@@ -367,8 +370,8 @@ const HistoryPage = () => {
                       </>
                     ) : (
                       <>
-                        <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">Bookmark details will appear here</p>
+                        <CheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">Response details will appear here</p>
                       </>
                     )}
                   </div>
