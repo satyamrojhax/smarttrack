@@ -28,17 +28,30 @@ export const saveQuestionToHistory = async (
   try {
     console.log('Saving question to history:', { questionText, questionType, difficultyLevel });
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) throw sessionError;
+    // Try to get session first, then fall back to getUser if needed
+    let userId: string | null = null;
     
-    if (!session?.user) {
-      throw new Error('User not authenticated');
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (session?.user) {
+      userId = session.user.id;
+    } else {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (user) {
+        userId = user.id;
+      } else {
+        console.error('Auth errors:', { sessionError, userError });
+        throw new Error('User not authenticated - please log in');
+      }
+    }
+
+    if (!userId) {
+      throw new Error('Unable to get user ID');
     }
 
     const { data, error } = await supabase
       .from('question_history')
       .insert([{
-        user_id: session.user.id,
+        user_id: userId,
         question_id: questionId,
         question_text: questionText,
         question_type: questionType,
@@ -66,17 +79,30 @@ export const saveQuestionToHistory = async (
 
 export const getUserQuestionHistory = async () => {
   try {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) throw sessionError;
+    // Try to get session first, then fall back to getUser if needed
+    let userId: string | null = null;
     
-    if (!session?.user) {
-      throw new Error('User not authenticated');
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (session?.user) {
+      userId = session.user.id;
+    } else {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (user) {
+        userId = user.id;
+      } else {
+        console.error('Auth errors:', { sessionError, userError });
+        throw new Error('User not authenticated');
+      }
+    }
+
+    if (!userId) {
+      throw new Error('Unable to get user ID');
     }
 
     const { data, error } = await supabase
       .from('question_history')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {

@@ -24,17 +24,30 @@ export const saveQuestionResponse = async (
   try {
     console.log('Saving question response:', { generatedQuestionText, userResponse, correctAnswer, isCorrect });
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) throw sessionError;
+    // Try to get session first, then fall back to getUser if needed
+    let userId: string | null = null;
     
-    if (!session?.user) {
-      throw new Error('User not authenticated');
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (session?.user) {
+      userId = session.user.id;
+    } else {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (user) {
+        userId = user.id;
+      } else {
+        console.error('Auth errors:', { sessionError, userError });
+        throw new Error('User not authenticated - please log in');
+      }
+    }
+
+    if (!userId) {
+      throw new Error('Unable to get user ID');
     }
 
     const { data, error } = await supabase
       .from('questions_responses')
       .insert([{
-        user_id: session.user.id,
+        user_id: userId,
         question_id: questionId,
         generated_question_text: generatedQuestionText,
         user_response: userResponse,
@@ -99,17 +112,30 @@ export const saveQuestionToDatabase = async (
 
 export const getUserQuestionResponses = async () => {
   try {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) throw sessionError;
+    // Try to get session first, then fall back to getUser if needed
+    let userId: string | null = null;
     
-    if (!session?.user) {
-      throw new Error('User not authenticated');
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (session?.user) {
+      userId = session.user.id;
+    } else {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (user) {
+        userId = user.id;
+      } else {
+        console.error('Auth errors:', { sessionError, userError });
+        throw new Error('User not authenticated');
+      }
+    }
+
+    if (!userId) {
+      throw new Error('Unable to get user ID');
     }
 
     const { data, error } = await supabase
       .from('questions_responses')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {
