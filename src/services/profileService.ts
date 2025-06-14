@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export const fetchProfile = async (userId: string) => {
@@ -33,12 +32,14 @@ export const createProfileFromUser = async (userId: string) => {
   try {
     console.log('Creating profile for user:', userId);
     
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      console.error('No user found for profile creation');
+    // Get the current session instead of just the user
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      console.error('No authenticated session found for profile creation');
       return null;
     }
 
+    const user = session.user;
     const profileData = {
       id: userId,
       name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
@@ -58,14 +59,30 @@ export const createProfileFromUser = async (userId: string) => {
 
     if (error) {
       console.error('Error creating profile:', error);
-      throw error;
+      // Return a default profile object instead of throwing
+      return {
+        id: userId,
+        name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+        email: user.email || '',
+        class: 'class-10' as const,
+        board: 'cbse' as const,
+        role: 'student' as const
+      };
     }
 
     console.log('Profile created successfully:', data);
     return data;
   } catch (error) {
     console.error('Error creating profile from user:', error);
-    throw error;
+    // Return a fallback profile to prevent app from being stuck
+    return {
+      id: userId,
+      name: 'User',
+      email: '',
+      class: 'class-10' as const,
+      board: 'cbse' as const,
+      role: 'student' as const
+    };
   }
 };
 

@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,25 +23,34 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Optimize profile fetching with debouncing
+  // Optimize profile fetching with better error handling
   const fetchUserProfile = async (userId: string) => {
     try {
       console.log('Fetching profile for user:', userId);
       const profileData = await fetchProfile(userId);
       if (profileData) {
         setProfile(profileData);
-        // Ensure user data tracking is set up
-        setTimeout(() => ensureUserDataTracking(userId), 1000);
+        // Ensure user data tracking is set up (non-blocking)
+        ensureUserDataTracking(userId).catch(console.error);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      // Create a fallback profile to prevent app from being stuck
+      setProfile({
+        id: userId,
+        name: 'User',
+        email: '',
+        class: 'class-10',
+        board: 'cbse',
+        role: 'student'
+      });
     }
   };
 
   useEffect(() => {
     console.log('Setting up auth state listener');
     
-    let profileFetchTimeout: NodeJS.Timeout;
+    let mounted = true;
 
     // Get initial session
     const initializeAuth = async () => {
@@ -50,18 +58,20 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         const { data: { session: initialSession } } = await supabase.auth.getSession();
         console.log('Initial session:', initialSession);
         
-        if (initialSession?.user) {
-          setSession(initialSession);
-          setUser(initialSession.user);
-          // Fetch profile with slight delay to ensure DB is ready
-          profileFetchTimeout = setTimeout(() => {
+        if (mounted) {
+          if (initialSession?.user) {
+            setSession(initialSession);
+            setUser(initialSession.user);
+            // Fetch profile immediately but don't block loading
             fetchUserProfile(initialSession.user.id);
-          }, 500);
+          }
+          setIsLoading(false);
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
-      } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -72,32 +82,24 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       (event, session) => {
         console.log('Auth state changed:', event, session);
         
-        // Clear any pending profile fetch
-        if (profileFetchTimeout) {
-          clearTimeout(profileFetchTimeout);
-        }
+        if (!mounted) return;
         
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-          // Fetch profile with delay to ensure RLS is properly set up
-          profileFetchTimeout = setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 300);
+          // Fetch profile but don't block the UI
+          fetchUserProfile(session.user.id);
         } else if (event === 'SIGNED_OUT') {
           setProfile(null);
         }
         
-        // Only set loading to false after handling the auth event
-        setTimeout(() => setIsLoading(false), 100);
+        setIsLoading(false);
       }
     );
 
     return () => {
-      if (profileFetchTimeout) {
-        clearTimeout(profileFetchTimeout);
-      }
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
