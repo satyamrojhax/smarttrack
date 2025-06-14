@@ -29,15 +29,25 @@ const AppContent = () => {
   const [showLanding, setShowLanding] = useState(false);
 
   useEffect(() => {
+    console.log('AppContent - Auth state:', { user, profile, isLoading });
+    
+    if (isLoading) return;
+    
     const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
     const hasSeenLanding = localStorage.getItem('hasSeenLanding');
     
-    if (!hasSeenLanding && !user) {
-      setShowLanding(true);
-    } else if (!hasSeenOnboarding && !user) {
-      setShowOnboarding(true);
+    if (!user) {
+      if (!hasSeenLanding) {
+        setShowLanding(true);
+      } else if (!hasSeenOnboarding) {
+        setShowOnboarding(true);
+      }
+    } else {
+      // User is authenticated, clear any onboarding/landing flags
+      setShowLanding(false);
+      setShowOnboarding(false);
     }
-  }, [user]);
+  }, [user, profile, isLoading]);
 
   const handleOnboardingComplete = () => {
     localStorage.setItem('hasSeenOnboarding', 'true');
@@ -51,6 +61,7 @@ const AppContent = () => {
 
   const handleBackToLanding = () => {
     setShowLanding(true);
+    setShowOnboarding(false);
   };
 
   if (isLoading) {

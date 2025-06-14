@@ -63,20 +63,36 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   // Set up auth state listener
   useEffect(() => {
-    // Set up auth state listener FIRST
+    console.log('Setting up auth state listener');
+    
+    // Get initial session
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Initial session:', session);
+      
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        const profileData = await fetchProfile(session.user.id);
+        setProfile(profileData);
+      }
+      
+      setIsLoading(false);
+    };
+
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session);
+        
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user) {
-          // Defer profile fetching with setTimeout
-          setTimeout(async () => {
-            const profileData = await fetchProfile(session.user.id);
-            setProfile(profileData);
-          }, 0);
-        } else {
+        if (session?.user && event === 'SIGNED_IN') {
+          const profileData = await fetchProfile(session.user.id);
+          setProfile(profileData);
+        } else if (event === 'SIGNED_OUT') {
           setProfile(null);
         }
         
@@ -84,19 +100,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        setTimeout(async () => {
-          const profileData = await fetchProfile(session.user.id);
-          setProfile(profileData);
-        }, 0);
-      }
-      setIsLoading(false);
-    });
+    getInitialSession();
 
     return () => subscription.unsubscribe();
   }, []);
@@ -112,6 +116,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         return { success: false, error: error.message };
       }
 
+      // The auth state change listener will handle setting the user and profile
       return { success: true };
     } catch (error) {
       return { success: false, error: 'An unexpected error occurred' };
@@ -136,8 +141,8 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
           emailRedirectTo: redirectUrl,
           data: {
             name: userData.name,
-            class: 'class-10', // Fixed to class-10 only
-            board: 'cbse', // Fixed to CBSE only
+            class: 'class-10' as const,
+            board: 'cbse' as const,
           }
         }
       });
@@ -167,8 +172,8 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         .from('profiles')
         .update({
           name: updatedProfile.name,
-          class: 'class-10', // Fixed to class-10 only
-          board: 'cbse', // Fixed to CBSE only
+          class: 'class-10' as const,
+          board: 'cbse' as const,
         })
         .eq('id', user.id)
         .select()
