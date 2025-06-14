@@ -105,7 +105,9 @@ export const QuestionGenerator = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {subjects.map((subject) => (
-                    <SelectItem key={subject.id} value={subject.name}>{subject.name}</SelectItem>
+                    <SelectItem key={subject.id} value={subject.name}>
+                      {subject.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -118,7 +120,9 @@ export const QuestionGenerator = () => {
                 <SelectContent>
                   {selectedSubjectData &&
                     selectedSubjectData.chapters.map((chapter) => (
-                      <SelectItem key={chapter.id} value={chapter.name}>{chapter.name}</SelectItem>
+                      <SelectItem key={chapter.id} value={chapter.name}>
+                        {chapter.name}
+                      </SelectItem>
                     ))}
                 </SelectContent>
               </Select>

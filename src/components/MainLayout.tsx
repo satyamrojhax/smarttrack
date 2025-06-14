@@ -48,7 +48,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
             <div className="flex items-center space-x-4">
               <span className="text-sm text-muted-foreground hidden sm:block">
-                Welcome, {user?.name}!
+                Welcome, {user?.name || 'Student'}!
               </span>
               <Button
                 variant="ghost"
