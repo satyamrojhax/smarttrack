@@ -5,9 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, ChevronLeft, Brain } from 'lucide-react';
+import { Eye, EyeOff, ChevronLeft, Brain, Mail, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface AuthProps {
   onBack?: () => void;
@@ -16,6 +17,7 @@ interface AuthProps {
 const Auth: React.FC<AuthProps> = ({ onBack }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -34,8 +36,8 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
 
     try {
       if (isLogin) {
-        const success = await login({ email: formData.email, password: formData.password });
-        if (success) {
+        const result = await login({ email: formData.email, password: formData.password });
+        if (result.success) {
           toast({
             title: "Welcome back!",
             description: "Successfully logged in to Axiom Smart Track",
@@ -43,7 +45,7 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
         } else {
           toast({
             title: "Login Failed",
-            description: "Invalid email or password. Please sign up if you don't have an account.",
+            description: result.error || "Invalid email or password. Please try again.",
             variant: "destructive"
           });
         }
@@ -56,17 +58,28 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
           });
           return;
         }
-        signup({ 
+        
+        const result = await signup({ 
           name: formData.name, 
           email: formData.email, 
           password: formData.password, 
           class: formData.className, 
           board: formData.board 
         });
-        toast({
-          title: "Account Created!",
-          description: "Welcome to Axiom Smart Track. Let's start your learning journey!",
-        });
+        
+        if (result.success) {
+          setShowVerificationMessage(true);
+          toast({
+            title: "Account Created!",
+            description: "Please check your email to verify your account before logging in.",
+          });
+        } else {
+          toast({
+            title: "Signup Failed",
+            description: result.error || "Failed to create account. Please try again.",
+            variant: "destructive"
+          });
+        }
       }
     } catch (error) {
       toast({
@@ -90,6 +103,59 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
   };
 
   const passwordStrength = getPasswordStrength(formData.password);
+
+  if (showVerificationMessage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex flex-col items-center justify-center p-6">
+        <Card className="w-full max-w-md bg-white rounded-3xl border-0 shadow-2xl">
+          <CardHeader className="text-center pb-4">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <Mail className="w-8 h-8 text-green-600" />
+            </div>
+            <CardTitle className="text-2xl font-bold text-gray-900">
+              Check Your Email
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              We've sent a verification link to {formData.email}
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="px-6 pb-6">
+            <Alert className="mb-4">
+              <CheckCircle className="h-4 w-4" />
+              <AlertDescription>
+                Click the verification link in your email to activate your account, then return here to sign in.
+              </AlertDescription>
+            </Alert>
+            
+            <Button 
+              onClick={() => {
+                setShowVerificationMessage(false);
+                setIsLogin(true);
+                setFormData(prev => ({ ...prev, password: '' }));
+              }}
+              className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl"
+            >
+              Back to Sign In
+            </Button>
+            
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-600">
+                Didn't receive the email?{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowVerificationMessage(false)}
+                  className="text-purple-600 hover:text-purple-700 font-medium"
+                >
+                  Try again
+                </button>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex flex-col">
@@ -219,7 +285,10 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
                           <SelectValue placeholder="Select your class" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="class-9">Class 9</SelectItem>
                           <SelectItem value="class-10">Class 10</SelectItem>
+                          <SelectItem value="class-11">Class 11</SelectItem>
+                          <SelectItem value="class-12">Class 12</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -232,6 +301,8 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="cbse">CBSE</SelectItem>
+                          <SelectItem value="icse">ICSE</SelectItem>
+                          <SelectItem value="state">State Board</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

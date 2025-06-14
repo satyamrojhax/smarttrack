@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -23,7 +24,7 @@ import MainLayout from "./components/MainLayout";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { user, isLoading } = useAuth();
+  const { user, profile, isLoading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showLanding, setShowLanding] = useState(false);
 
@@ -68,7 +69,7 @@ const AppContent = () => {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
-  if (!user) {
+  if (!user || !profile) {
     return <Auth onBack={handleBackToLanding} />;
   }
 

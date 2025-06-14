@@ -1,10 +1,13 @@
 
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 
 interface Chapter {
   id: string;
   name: string;
   completed: boolean;
+  order_index: number;
 }
 
 interface Subject {
@@ -13,214 +16,229 @@ interface Subject {
   icon: string;
   color: string;
   chapters: Chapter[];
+  subject_type: string;
 }
 
-interface SyllabusContextProps {
+interface SyllabusContextType {
   subjects: Subject[];
-  toggleChapterCompletion: (subjectId: string, chapterId: string) => void;
+  loading: boolean;
+  toggleChapterCompletion: (subjectId: string, chapterId: string) => Promise<void>;
   getSubjectProgress: (subjectId: string) => number;
-  getOverallProgress: () => number;
-  resetProgress: () => void;
+  resetProgress: () => Promise<void>;
+  refreshData: () => Promise<void>;
 }
 
-const SyllabusContext = createContext<SyllabusContextProps | undefined>(undefined);
+const SyllabusContext = createContext<SyllabusContextType>({
+  subjects: [],
+  loading: false,
+  toggleChapterCompletion: async () => {},
+  getSubjectProgress: () => 0,
+  resetProgress: async () => {},
+  refreshData: async () => {},
+});
 
-interface SyllabusProviderProps {
-  children: ReactNode;
-}
+export const SyllabusProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { user, profile } = useAuth();
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [loading, setLoading] = useState(false);
 
-const initialSubjects: Subject[] = [
-  {
-    id: 'mathematics',
-    name: 'Mathematics',
-    icon: '📊',
-    color: 'from-blue-400 to-blue-600',
-    chapters: [
-      { id: 'real-numbers', name: 'Real Numbers', completed: false },
-      { id: 'polynomials', name: 'Polynomials', completed: false },
-      { id: 'linear-equations', name: 'Pair of Linear Equations in Two Variables', completed: false },
-      { id: 'quadratic-equations', name: 'Quadratic Equations', completed: false },
-      { id: 'arithmetic-progressions', name: 'Arithmetic Progressions', completed: false },
-      { id: 'triangles', name: 'Triangles', completed: false },
-      { id: 'coordinate-geometry', name: 'Coordinate Geometry', completed: false },
-      { id: 'trigonometry', name: 'Introduction to Trigonometry', completed: false },
-      { id: 'trigonometry-applications', name: 'Some Applications of Trigonometry', completed: false },
-      { id: 'circles', name: 'Circles', completed: false },
-      { id: 'area-related-circles', name: 'Area Related to Circles', completed: false },
-      { id: 'surface-area-volumes', name: 'Surface Area and Volumes', completed: false },
-      { id: 'statistics', name: 'Statistics', completed: false },
-      { id: 'probability', name: 'Probability', completed: false }
-    ]
-  },
-  {
-    id: 'science',
-    name: 'Science',
-    icon: '🔬',
-    color: 'from-green-400 to-green-600',
-    chapters: [
-      { id: 'light-reflection', name: 'Light - Reflection and Refraction', completed: false },
-      { id: 'human-eye', name: 'Human Eye and Colourful World', completed: false },
-      { id: 'electricity', name: 'Electricity', completed: false },
-      { id: 'magnetic-effects', name: 'Magnetic Effects of Electric Current', completed: false },
-      { id: 'life-processes', name: 'Life Processes', completed: false },
-      { id: 'control-coordination', name: 'Control and Coordination', completed: false },
-      { id: 'reproduction', name: 'How do Organisms Reproduce?', completed: false },
-      { id: 'heredity-evolution', name: 'Heredity and Evolution', completed: false },
-      { id: 'natural-resources', name: 'Natural Resource Management', completed: false },
-      { id: 'acids-bases', name: 'Acids, Bases and Salts', completed: false },
-      { id: 'metals-nonmetals', name: 'Metals and Non-metals', completed: false },
-      { id: 'carbon-compounds', name: 'Carbon and its Compounds', completed: false },
-      { id: 'periodic-classification', name: 'Periodic Classification of Elements', completed: false }
-    ]
-  },
-  {
-    id: 'social-science',
-    name: 'Social Science',
-    icon: '🌍',
-    color: 'from-orange-400 to-orange-600',
-    chapters: [
-      { id: 'nationalism-europe', name: 'The Rise of Nationalism in Europe', completed: false },
-      { id: 'nationalism-india', name: 'Nationalism in India', completed: false },
-      { id: 'making-global-world', name: 'The Making of a Global World', completed: false },
-      { id: 'age-industrialisation', name: 'The Age of Industrialisation', completed: false },
-      { id: 'print-culture', name: 'Print Culture and the Modern World', completed: false },
-      { id: 'resources-development', name: 'Resources and Development', completed: false },
-      { id: 'forest-wildlife', name: 'Forest and Wildlife Resources', completed: false },
-      { id: 'water-resources', name: 'Water Resources', completed: false },
-      { id: 'agriculture', name: 'Agriculture', completed: false },
-      { id: 'minerals-energy', name: 'Minerals and Energy Resources', completed: false },
-      { id: 'manufacturing-industries', name: 'Manufacturing Industries', completed: false },
-      { id: 'lifelines-economy', name: 'Lifelines of National Economy', completed: false },
-      { id: 'power-sharing', name: 'Power Sharing', completed: false },
-      { id: 'federalism', name: 'Federalism', completed: false },
-      { id: 'democracy-diversity', name: 'Democracy and Diversity', completed: false },
-      { id: 'gender-religion-caste', name: 'Gender, Religion and Caste', completed: false },
-      { id: 'popular-struggles', name: 'Popular Struggles and Movements', completed: false },
-      { id: 'political-parties', name: 'Political Parties', completed: false },
-      { id: 'outcomes-democracy', name: 'Outcomes of Democracy', completed: false },
-      { id: 'challenges-democracy', name: 'Challenges to Democracy', completed: false },
-      { id: 'development', name: 'Development', completed: false },
-      { id: 'sectors-economy', name: 'Sectors of the Indian Economy', completed: false },
-      { id: 'money-credit', name: 'Money and Credit', completed: false },
-      { id: 'globalisation', name: 'Globalisation and the Indian Economy', completed: false },
-      { id: 'consumer-rights', name: 'Consumer Rights', completed: false }
-    ]
-  },
-  {
-    id: 'english-first-flight',
-    name: 'English - First Flight',
-    icon: '📖',
-    color: 'from-purple-400 to-purple-600',
-    chapters: [
-      { id: 'letter-to-god', name: 'A Letter to God', completed: false },
-      { id: 'nelson-mandela', name: 'Nelson Mandela: Long Walk to Freedom', completed: false },
-      { id: 'two-stories-flying', name: 'Two Stories about Flying', completed: false },
-      { id: 'from-diary-anne-frank', name: 'From the Diary of Anne Frank', completed: false },
-      { id: 'hundred-dresses-i', name: 'The Hundred Dresses - I', completed: false },
-      { id: 'hundred-dresses-ii', name: 'The Hundred Dresses - II', completed: false },
-      { id: 'glimpses-india', name: 'Glimpses of India', completed: false },
-      { id: 'mijbil-otter', name: 'Mijbil the Otter', completed: false },
-      { id: 'madam-rides-bus', name: 'Madam Rides the Bus', completed: false },
-      { id: 'sermon-benares', name: 'The Sermon at Benares', completed: false },
-      { id: 'proposal', name: 'The Proposal', completed: false }
-    ]
-  },
-  {
-    id: 'english-footprints',
-    name: 'English - Footprints Without Feet',
-    icon: '👣',
-    color: 'from-pink-400 to-pink-600',
-    chapters: [
-      { id: 'triumph-surgery', name: 'A Triumph of Surgery', completed: false },
-      { id: 'thief-story', name: 'The Thief\'s Story', completed: false },
-      { id: 'midnight-visitor', name: 'The Midnight Visitor', completed: false },
-      { id: 'question-trust', name: 'A Question of Trust', completed: false },
-      { id: 'footprints-without-feet', name: 'Footprints without Feet', completed: false },
-      { id: 'making-scientist', name: 'The Making of a Scientist', completed: false },
-      { id: 'necklace', name: 'The Necklace', completed: false },
-      { id: 'hack-driver', name: 'The Hack Driver', completed: false },
-      { id: 'bholi', name: 'Bholi', completed: false },
-      { id: 'book-saved-earth', name: 'The Book That Saved the Earth', completed: false }
-    ]
-  },
-  {
-    id: 'hindi',
-    name: 'Hindi',
-    icon: '🇮🇳',
-    color: 'from-yellow-400 to-yellow-600',
-    chapters: [
-      { id: 'surdas-ke-pad', name: 'सूरदास के पद', completed: false },
-      { id: 'ram-lakshman-parshuram', name: 'राम-लक्ष्मण-परशुराम संवाद', completed: false },
-      { id: 'neta-ji-subhash', name: 'नेताजी का चश्मा', completed: false },
-      { id: 'balgobin-bhagat', name: 'बालगोबिन भगत', completed: false },
-      { id: 'lakhmi', name: 'लखनवी अंदाज़', completed: false },
-      { id: 'manushyata', name: 'मनुष्यता', completed: false },
-      { id: 'parwat-pradesh', name: 'पर्वत प्रदेश में पावस', completed: false },
-      { id: 'top', name: 'तोप', completed: false },
-      { id: 'kargil-vijay', name: 'कारतूस', completed: false },
-      { id: 'balshek', name: 'बालक', completed: false }
-    ]
-  }
-];
+  // Fetch subjects and chapters with user progress
+  const fetchSyllabusData = async () => {
+    if (!user || !profile) return;
 
-export const SyllabusProvider: React.FC<SyllabusProviderProps> = ({ children }) => {
-  const [subjects, setSubjects] = useState<Subject[]>(() => {
-    const storedSubjects = localStorage.getItem('syllabus');
-    return storedSubjects ? JSON.parse(storedSubjects) : initialSubjects;
-  });
+    setLoading(true);
+    try {
+      // Fetch subjects for user's class and board
+      const { data: subjectsData, error: subjectsError } = await supabase
+        .from('subjects')
+        .select('*')
+        .eq('class', profile.class)
+        .eq('board', profile.board)
+        .order('name');
 
-  useEffect(() => {
-    localStorage.setItem('syllabus', JSON.stringify(subjects));
-  }, [subjects]);
+      if (subjectsError) {
+        console.error('Error fetching subjects:', subjectsError);
+        return;
+      }
 
-  const toggleChapterCompletion = (subjectId: string, chapterId: string) => {
-    setSubjects(prevSubjects =>
-      prevSubjects.map(subject =>
-        subject.id === subjectId
-          ? {
-              ...subject,
-              chapters: subject.chapters.map(chapter =>
-                chapter.id === chapterId
-                  ? { ...chapter, completed: !chapter.completed }
-                  : chapter
-              ),
-            }
-          : subject
-      )
-    );
+      // Fetch all chapters for these subjects
+      const subjectIds = subjectsData.map(s => s.id);
+      const { data: chaptersData, error: chaptersError } = await supabase
+        .from('chapters')
+        .select('*')
+        .in('subject_id', subjectIds)
+        .order('order_index');
+
+      if (chaptersError) {
+        console.error('Error fetching chapters:', chaptersError);
+        return;
+      }
+
+      // Fetch user progress
+      const chapterIds = chaptersData.map(c => c.id);
+      const { data: progressData, error: progressError } = await supabase
+        .from('user_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('chapter_id', chapterIds);
+
+      if (progressError) {
+        console.error('Error fetching progress:', progressError);
+        return;
+      }
+
+      // Combine data
+      const subjectsWithChapters = subjectsData.map(subject => ({
+        id: subject.id,
+        name: subject.name,
+        icon: subject.icon,
+        color: subject.color,
+        subject_type: subject.subject_type,
+        chapters: chaptersData
+          .filter(chapter => chapter.subject_id === subject.id)
+          .map(chapter => {
+            const progress = progressData.find(p => p.chapter_id === chapter.id);
+            return {
+              id: chapter.id,
+              name: chapter.name,
+              completed: progress?.completed || false,
+              order_index: chapter.order_index,
+            };
+          })
+          .sort((a, b) => a.order_index - b.order_index),
+      }));
+
+      setSubjects(subjectsWithChapters);
+    } catch (error) {
+      console.error('Error fetching syllabus data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getSubjectProgress = (subjectId: string): number => {
-    const subject = subjects.find(s => s.id === subjectId);
-    if (!subject) return 0;
+  // Toggle chapter completion
+  const toggleChapterCompletion = async (subjectId: string, chapterId: string) => {
+    if (!user) return;
 
-    const completedChapters = subject.chapters.filter(chapter => chapter.completed).length;
+    try {
+      // Find current completion status
+      const subject = subjects.find(s => s.id === subjectId);
+      const chapter = subject?.chapters.find(c => c.id === chapterId);
+      const isCompleted = chapter?.completed || false;
+
+      if (isCompleted) {
+        // Remove progress entry
+        const { error } = await supabase
+          .from('user_progress')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('chapter_id', chapterId);
+
+        if (error) {
+          console.error('Error removing progress:', error);
+          return;
+        }
+      } else {
+        // Add or update progress entry
+        const { error } = await supabase
+          .from('user_progress')
+          .upsert({
+            user_id: user.id,
+            chapter_id: chapterId,
+            completed: true,
+            completed_at: new Date().toISOString(),
+          });
+
+        if (error) {
+          console.error('Error updating progress:', error);
+          return;
+        }
+      }
+
+      // Update local state
+      setSubjects(prevSubjects =>
+        prevSubjects.map(subject =>
+          subject.id === subjectId
+            ? {
+                ...subject,
+                chapters: subject.chapters.map(chapter =>
+                  chapter.id === chapterId
+                    ? { ...chapter, completed: !isCompleted }
+                    : chapter
+                ),
+              }
+            : subject
+        )
+      );
+    } catch (error) {
+      console.error('Error toggling chapter completion:', error);
+    }
+  };
+
+  // Calculate subject progress
+  const getSubjectProgress = (subjectId: string) => {
+    const subject = subjects.find(s => s.id === subjectId);
+    if (!subject || subject.chapters.length === 0) return 0;
+    
+    const completedChapters = subject.chapters.filter(c => c.completed).length;
     return Math.round((completedChapters / subject.chapters.length) * 100);
   };
 
-  const getOverallProgress = (): number => {
-    const totalChapters = subjects.reduce((total, subject) => total + subject.chapters.length, 0);
-    const completedChapters = subjects.reduce(
-      (total, subject) => total + subject.chapters.filter(chapter => chapter.completed).length,
-      0
-    );
-    
-    if (totalChapters === 0) return 0;
-    return Math.round((completedChapters / totalChapters) * 100);
+  // Reset all progress
+  const resetProgress = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_progress')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error resetting progress:', error);
+        return;
+      }
+
+      // Update local state
+      setSubjects(prevSubjects =>
+        prevSubjects.map(subject => ({
+          ...subject,
+          chapters: subject.chapters.map(chapter => ({
+            ...chapter,
+            completed: false,
+          })),
+        }))
+      );
+    } catch (error) {
+      console.error('Error resetting progress:', error);
+    }
   };
 
-  const resetProgress = () => {
-    setSubjects(initialSubjects);
+  // Refresh data
+  const refreshData = async () => {
+    await fetchSyllabusData();
   };
+
+  // Fetch data when user or profile changes
+  useEffect(() => {
+    if (user && profile) {
+      fetchSyllabusData();
+    } else {
+      setSubjects([]);
+    }
+  }, [user, profile]);
 
   return (
-    <SyllabusContext.Provider value={{ 
-      subjects, 
-      toggleChapterCompletion, 
-      getSubjectProgress, 
-      getOverallProgress,
-      resetProgress 
-    }}>
+    <SyllabusContext.Provider
+      value={{
+        subjects,
+        loading,
+        toggleChapterCompletion,
+        getSubjectProgress,
+        resetProgress,
+        refreshData,
+      }}
+    >
       {children}
     </SyllabusContext.Provider>
   );

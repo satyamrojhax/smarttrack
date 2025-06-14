@@ -9,7 +9,291 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      chapters: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          order_index: number
+          subject_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          order_index?: number
+          subject_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          order_index?: number
+          subject_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chapters_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doubt_responses: {
+        Row: {
+          created_at: string | null
+          doubt_id: string | null
+          id: string
+          is_ai_response: boolean | null
+          response_text: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          doubt_id?: string | null
+          id?: string
+          is_ai_response?: boolean | null
+          response_text: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          doubt_id?: string | null
+          id?: string
+          is_ai_response?: boolean | null
+          response_text?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doubt_responses_doubt_id_fkey"
+            columns: ["doubt_id"]
+            isOneToOne: false
+            referencedRelation: "doubts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doubts: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          status: string | null
+          subject_id: string | null
+          title: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          status?: string | null
+          subject_id?: string | null
+          title: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          status?: string | null
+          subject_id?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doubts_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          board: Database["public"]["Enums"]["board_type"]
+          class: Database["public"]["Enums"]["class_level"]
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          role: Database["public"]["Enums"]["app_role"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          board: Database["public"]["Enums"]["board_type"]
+          class: Database["public"]["Enums"]["class_level"]
+          created_at?: string | null
+          email: string
+          id: string
+          name: string
+          role?: Database["public"]["Enums"]["app_role"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          board?: Database["public"]["Enums"]["board_type"]
+          class?: Database["public"]["Enums"]["class_level"]
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          role?: Database["public"]["Enums"]["app_role"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          chapter_id: string | null
+          correct_answer: string | null
+          created_at: string | null
+          difficulty_level: number | null
+          explanation: string | null
+          id: string
+          options: Json | null
+          question_text: string
+          question_type: string | null
+        }
+        Insert: {
+          chapter_id?: string | null
+          correct_answer?: string | null
+          created_at?: string | null
+          difficulty_level?: number | null
+          explanation?: string | null
+          id?: string
+          options?: Json | null
+          question_text: string
+          question_type?: string | null
+        }
+        Update: {
+          chapter_id?: string | null
+          correct_answer?: string | null
+          created_at?: string | null
+          difficulty_level?: number | null
+          explanation?: string | null
+          id?: string
+          options?: Json | null
+          question_text?: string
+          question_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subjects: {
+        Row: {
+          board: Database["public"]["Enums"]["board_type"]
+          class: Database["public"]["Enums"]["class_level"]
+          color: string
+          created_at: string | null
+          icon: string
+          id: string
+          name: string
+          subject_type: Database["public"]["Enums"]["subject_type"]
+        }
+        Insert: {
+          board: Database["public"]["Enums"]["board_type"]
+          class: Database["public"]["Enums"]["class_level"]
+          color?: string
+          created_at?: string | null
+          icon?: string
+          id?: string
+          name: string
+          subject_type: Database["public"]["Enums"]["subject_type"]
+        }
+        Update: {
+          board?: Database["public"]["Enums"]["board_type"]
+          class?: Database["public"]["Enums"]["class_level"]
+          color?: string
+          created_at?: string | null
+          icon?: string
+          id?: string
+          name?: string
+          subject_type?: Database["public"]["Enums"]["subject_type"]
+        }
+        Relationships: []
+      }
+      user_bookmarks: {
+        Row: {
+          created_at: string | null
+          id: string
+          question_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          question_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          question_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_bookmarks_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_progress: {
+        Row: {
+          chapter_id: string | null
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          chapter_id?: string | null
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          chapter_id?: string | null
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_progress_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +302,16 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      app_role: "student" | "teacher" | "admin"
+      board_type: "cbse" | "icse" | "state"
+      class_level: "class-9" | "class-10" | "class-11" | "class-12"
+      subject_type:
+        | "mathematics"
+        | "science"
+        | "social-science"
+        | "english-first-flight"
+        | "english-footprints"
+        | "hindi"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +426,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["student", "teacher", "admin"],
+      board_type: ["cbse", "icse", "state"],
+      class_level: ["class-9", "class-10", "class-11", "class-12"],
+      subject_type: [
+        "mathematics",
+        "science",
+        "social-science",
+        "english-first-flight",
+        "english-footprints",
+        "hindi",
+      ],
+    },
   },
 } as const
