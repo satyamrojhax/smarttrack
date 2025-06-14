@@ -51,12 +51,46 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       
       if (error) {
         console.error('Error fetching profile:', error);
-        return null;
+        // If profile doesn't exist, create one from user metadata
+        return await createProfileFromUser(userId);
       }
       
       return data;
     } catch (error) {
       console.error('Error fetching profile:', error);
+      return await createProfileFromUser(userId);
+    }
+  };
+
+  // Create profile from user metadata if it doesn't exist
+  const createProfileFromUser = async (userId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const profileData = {
+        id: userId,
+        name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+        email: user.email || '',
+        class: 'class-10' as const,
+        board: 'cbse' as const,
+        role: 'student'
+      };
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert(profileData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating profile:', error);
+        return profileData; // Return the data even if insert fails
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating profile:', error);
       return null;
     }
   };
@@ -89,7 +123,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user && event === 'SIGNED_IN') {
+        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
           const profileData = await fetchProfile(session.user.id);
           setProfile(profileData);
         } else if (event === 'SIGNED_OUT') {

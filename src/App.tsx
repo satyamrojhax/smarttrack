@@ -80,7 +80,8 @@ const AppContent = () => {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
-  if (!user || !profile) {
+  // If user exists but no profile, still show the main app (profile will be created/fetched)
+  if (!user) {
     return <Auth onBack={handleBackToLanding} />;
   }
 
