@@ -10,48 +10,16 @@ export interface Doubt {
   status: string;
   created_at: string;
   updated_at: string;
-  conversation_id?: string;
 }
 
 export interface DoubtResponse {
   id: string;
-  doubt_id?: string;
-  conversation_id?: string;
+  doubt_id: string;
   user_id: string;
   response_text: string;
   is_ai_response: boolean;
   created_at: string;
 }
-
-export interface Conversation {
-  id: string;
-  user_id: string;
-  title: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export const createConversation = async (title: string) => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { data, error } = await supabase
-      .from('doubt_conversations')
-      .insert({
-        title,
-        user_id: user.id
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error('Error creating conversation:', error);
-    throw error;
-  }
-};
 
 export const saveDoubtToDatabase = async (title: string, description: string, subjectId?: string) => {
   try {
@@ -102,30 +70,6 @@ export const saveDoubtResponseToDatabase = async (doubtId: string, responseText:
   }
 };
 
-export const saveMessageToConversation = async (conversationId: string, responseText: string, isAiResponse: boolean = false) => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { data, error } = await supabase
-      .from('doubt_responses')
-      .insert({
-        conversation_id: conversationId,
-        user_id: user.id,
-        response_text: responseText,
-        is_ai_response: isAiResponse
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error('Error saving message to conversation:', error);
-    throw error;
-  }
-};
-
 export const getUserDoubts = async () => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -144,41 +88,6 @@ export const getUserDoubts = async () => {
     return data || [];
   } catch (error) {
     console.error('Error fetching user doubts:', error);
-    return [];
-  }
-};
-
-export const getUserConversations = async () => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { data, error } = await supabase
-      .from('doubt_conversations')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('updated_at', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    console.error('Error fetching user conversations:', error);
-    return [];
-  }
-};
-
-export const getConversationMessages = async (conversationId: string) => {
-  try {
-    const { data, error } = await supabase
-      .from('doubt_responses')
-      .select('*')
-      .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
-
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    console.error('Error fetching conversation messages:', error);
     return [];
   }
 };

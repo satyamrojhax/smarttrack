@@ -41,33 +41,8 @@ export type Database = {
           },
         ]
       }
-      doubt_conversations: {
-        Row: {
-          created_at: string
-          id: string
-          title: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          title: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       doubt_responses: {
         Row: {
-          conversation_id: string | null
           created_at: string | null
           doubt_id: string | null
           id: string
@@ -76,7 +51,6 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          conversation_id?: string | null
           created_at?: string | null
           doubt_id?: string | null
           id?: string
@@ -85,7 +59,6 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          conversation_id?: string | null
           created_at?: string | null
           doubt_id?: string | null
           id?: string
@@ -94,13 +67,6 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "doubt_responses_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "doubt_conversations"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "doubt_responses_doubt_id_fkey"
             columns: ["doubt_id"]
@@ -112,7 +78,6 @@ export type Database = {
       }
       doubts: {
         Row: {
-          conversation_id: string | null
           created_at: string | null
           description: string
           id: string
@@ -123,7 +88,6 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          conversation_id?: string | null
           created_at?: string | null
           description: string
           id?: string
@@ -134,7 +98,6 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          conversation_id?: string | null
           created_at?: string | null
           description?: string
           id?: string
@@ -145,13 +108,6 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "doubts_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "doubt_conversations"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "doubts_subject_id_fkey"
             columns: ["subject_id"]

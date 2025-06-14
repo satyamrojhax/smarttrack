@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -15,7 +16,7 @@ import {
   SidebarInset,
   useSidebar
 } from '@/components/ui/sidebar';
-import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp } from 'lucide-react';
+import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History } from 'lucide-react';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -34,10 +35,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'Profile', href: '/profile', icon: User },
   ];
 
-  // Sidebar items (removed History)
+  // Sidebar items
   const sidebarItems = [
     { name: 'Syllabus', href: '/syllabus', icon: BookOpen },
     { name: 'Predictor', href: '/predictor', icon: TrendingUp },
+    { name: 'History', href: '/history', icon: History },
   ];
 
   const AppSidebar = () => {
