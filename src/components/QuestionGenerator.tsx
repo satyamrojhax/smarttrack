@@ -4,9 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { Brain, CheckCircle, XCircle, RefreshCw, Loader2, Clock, Target } from 'lucide-react';
+import { Brain, CheckCircle, XCircle, RefreshCw, Loader2, Clock, Target, Play, Settings } from 'lucide-react';
 import { saveQuestionResponse, saveQuestionHistory, saveQuestionToDatabase } from '@/services/questionResponseService';
+import { useSyllabus } from '@/contexts/SyllabusContext';
+import { QuizMode } from '@/components/QuizMode';
 
 interface QuestionData {
   question: string;
@@ -17,9 +21,27 @@ interface QuestionData {
   difficulty: number;
 }
 
+interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+  subject: string;
+  chapter: string;
+}
+
 const QuestionGenerator = () => {
   const { toast } = useToast();
+  const { subjects } = useSyllabus();
+  const [selectedSubject, setSelectedSubject] = useState<string>('');
+  const [selectedChapter, setSelectedChapter] = useState<string>('');
+  const [difficulty, setDifficulty] = useState<number>(1);
+  const [questionCount, setQuestionCount] = useState<number>(5);
+  const [questionType, setQuestionType] = useState<string>('mcq');
   const [currentQuestion, setCurrentQuestion] = useState<QuestionData | null>(null);
+  const [generatedQuestions, setGeneratedQuestions] = useState<QuestionData[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState('');
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -27,64 +49,102 @@ const QuestionGenerator = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [responseTime, setResponseTime] = useState<number | null>(null);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [showSettings, setShowSettings] = useState(true);
 
-  const generateQuestion = async () => {
+  const selectedSubjectData = subjects.find(s => s.id === selectedSubject);
+  const availableChapters = selectedSubjectData?.chapters || [];
+
+  const generateQuestions = async () => {
+    if (!selectedSubject || !selectedChapter) {
+      toast({
+        title: "Missing Selection",
+        description: "Please select both subject and chapter",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsGenerating(true);
+    setShowSettings(false);
+    
     try {
-      // Mock question generation - replace with actual AI integration
-      const mockQuestions = [
-        {
-          question: "What is the capital of France?",
-          options: ["London", "Berlin", "Paris", "Madrid"],
-          correct_answer: "Paris",
-          explanation: "Paris is the capital and largest city of France.",
-          type: "mcq",
-          difficulty: 1
-        },
-        {
-          question: "Explain the process of photosynthesis.",
-          correct_answer: "Photosynthesis is the process by which plants use sunlight, water, and carbon dioxide to produce glucose and oxygen.",
-          explanation: "This is a fundamental biological process that converts light energy into chemical energy.",
-          type: "descriptive",
-          difficulty: 2
-        }
-      ];
+      // Mock question generation based on selections
+      const mockQuestions: QuestionData[] = [];
       
-      const randomQuestion = mockQuestions[Math.floor(Math.random() * mockQuestions.length)];
-      setCurrentQuestion(randomQuestion);
+      for (let i = 0; i < questionCount; i++) {
+        if (questionType === 'mcq') {
+          mockQuestions.push({
+            question: `MCQ Question ${i + 1} for ${selectedSubjectData?.name} - ${availableChapters.find(c => c.id === selectedChapter)?.name} (Level ${difficulty})`,
+            options: ["Option A", "Option B", "Option C", "Option D"],
+            correct_answer: "Option A",
+            explanation: "This is the correct answer because...",
+            type: "mcq",
+            difficulty: difficulty
+          });
+        } else {
+          mockQuestions.push({
+            question: `Descriptive Question ${i + 1} for ${selectedSubjectData?.name} - ${availableChapters.find(c => c.id === selectedChapter)?.name} (Level ${difficulty})`,
+            correct_answer: "This is a sample descriptive answer that explains the concept thoroughly.",
+            explanation: "This answer covers all the key points needed for understanding.",
+            type: "descriptive",
+            difficulty: difficulty
+          });
+        }
+      }
+      
+      setGeneratedQuestions(mockQuestions);
+      setCurrentQuestion(mockQuestions[0]);
+      setCurrentQuestionIndex(0);
       setUserAnswer('');
       setSelectedOption(null);
       setShowAnswer(false);
       setStartTime(Date.now());
       setResponseTime(null);
       
-      // Save the generated question to database
-      console.log('Saving generated question to database...');
-      const saveResult = await saveQuestionToDatabase(
-        randomQuestion.question,
-        randomQuestion.type,
-        randomQuestion.difficulty,
-        randomQuestion.correct_answer,
-        randomQuestion.options ? { options: randomQuestion.options } : null,
-        randomQuestion.explanation
-      );
-      
-      if (saveResult.success) {
-        console.log('Question saved to database successfully');
-      } else {
-        console.error('Failed to save question to database:', saveResult.error);
+      // Save all generated questions to database
+      for (const question of mockQuestions) {
+        const saveResult = await saveQuestionToDatabase(
+          question.question,
+          question.type,
+          question.difficulty,
+          question.correct_answer,
+          question.options ? { options: question.options } : null,
+          question.explanation,
+          selectedChapter
+        );
+        
+        if (!saveResult.success) {
+          console.error('Failed to save question:', saveResult.error);
+        }
       }
       
     } catch (error) {
-      console.error('Error generating question:', error);
+      console.error('Error generating questions:', error);
       toast({
         title: "Error",
-        description: "Failed to generate question",
+        description: "Failed to generate questions",
         variant: "destructive"
       });
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const startQuizMode = () => {
+    if (generatedQuestions.length === 0 || questionType !== 'mcq') return;
+    
+    const quizQuestions: QuizQuestion[] = generatedQuestions.map((q, index) => ({
+      id: `question-${index}`,
+      question: q.question,
+      options: q.options || [],
+      correctAnswer: q.options?.indexOf(q.correct_answer) || 0,
+      explanation: q.explanation || '',
+      subject: selectedSubjectData?.name || '',
+      chapter: availableChapters.find(c => c.id === selectedChapter)?.name || ''
+    }));
+    
+    setShowQuiz(true);
   };
 
   const submitAnswer = async () => {
@@ -111,12 +171,8 @@ const QuestionGenerator = () => {
       if (currentQuestion.type === 'mcq') {
         isCorrect = finalAnswer === currentQuestion.correct_answer;
       } else {
-        // For descriptive questions, we'll mark as correct for now
-        // In a real app, this would use AI to evaluate the answer
         isCorrect = finalAnswer.toLowerCase().includes(currentQuestion.correct_answer.toLowerCase().split(' ')[0]);
       }
-
-      console.log('Submitting answer:', { finalAnswer, isCorrect, timeTaken });
 
       // Save to question_responses table
       const responseResult = await saveQuestionResponse(
@@ -139,18 +195,10 @@ const QuestionGenerator = () => {
       );
 
       if (responseResult.success && historyResult.success) {
-        console.log('Answer saved to database successfully');
         toast({
           title: "Answer Submitted",
           description: `Your answer has been saved. ${isCorrect ? 'Correct!' : 'Incorrect, but keep trying!'}`,
           variant: isCorrect ? "default" : "destructive"
-        });
-      } else {
-        console.error('Failed to save answer:', responseResult.error || historyResult.error);
-        toast({
-          title: "Warning",
-          description: "Answer submitted but failed to save to database",
-          variant: "destructive"
         });
       }
 
@@ -167,18 +215,45 @@ const QuestionGenerator = () => {
     }
   };
 
-  const resetQuestion = () => {
+  const nextQuestion = () => {
+    if (currentQuestionIndex < generatedQuestions.length - 1) {
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      setCurrentQuestion(generatedQuestions[nextIndex]);
+      setUserAnswer('');
+      setSelectedOption(null);
+      setShowAnswer(false);
+      setStartTime(Date.now());
+      setResponseTime(null);
+    }
+  };
+
+  const resetGenerator = () => {
     setCurrentQuestion(null);
+    setGeneratedQuestions([]);
+    setCurrentQuestionIndex(0);
     setUserAnswer('');
     setSelectedOption(null);
     setShowAnswer(false);
     setStartTime(null);
     setResponseTime(null);
+    setShowSettings(true);
+    setShowQuiz(false);
   };
 
-  useEffect(() => {
-    generateQuestion();
-  }, []);
+  if (showQuiz && generatedQuestions.length > 0 && questionType === 'mcq') {
+    const quizQuestions: QuizQuestion[] = generatedQuestions.map((q, index) => ({
+      id: `question-${index}`,
+      question: q.question,
+      options: q.options || [],
+      correctAnswer: q.options?.indexOf(q.correct_answer) || 0,
+      explanation: q.explanation || '',
+      subject: selectedSubjectData?.name || '',
+      chapter: availableChapters.find(c => c.id === selectedChapter)?.name || ''
+    }));
+
+    return <QuizMode questions={quizQuestions} onExit={() => setShowQuiz(false)} />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -190,36 +265,155 @@ const QuestionGenerator = () => {
             <span>AI Question Generator</span>
           </h2>
           <p className="text-sm md:text-base text-muted-foreground px-2">
-            Practice with AI-generated questions and track your progress
+            Generate customized questions based on your syllabus and practice with AI
           </p>
         </div>
 
+        {/* Settings Panel */}
+        {showSettings && (
+          <Card className="glass-card mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                Question Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Subject Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Select Subject</label>
+                <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subjects.map((subject) => (
+                      <SelectItem key={subject.id} value={subject.id}>
+                        <div className="flex items-center gap-2">
+                          <span>{subject.icon}</span>
+                          <span>{subject.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Chapter Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Select Chapter</label>
+                <Select 
+                  value={selectedChapter} 
+                  onValueChange={setSelectedChapter}
+                  disabled={!selectedSubject}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a chapter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableChapters.map((chapter) => (
+                      <SelectItem key={chapter.id} value={chapter.id}>
+                        {chapter.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Question Type */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium">Question Type</label>
+                <RadioGroup value={questionType} onValueChange={setQuestionType}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="mcq" id="mcq" />
+                    <label htmlFor="mcq" className="text-sm">Multiple Choice Questions (MCQ)</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="descriptive" id="descriptive" />
+                    <label htmlFor="descriptive" className="text-sm">Descriptive Questions</label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* Difficulty Level */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Difficulty Level</label>
+                <Select value={difficulty.toString()} onValueChange={(value) => setDifficulty(parseInt(value))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Easy (Level 1)</SelectItem>
+                    <SelectItem value="2">Medium (Level 2)</SelectItem>
+                    <SelectItem value="3">Hard (Level 3)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Number of Questions */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Number of Questions</label>
+                <Select value={questionCount.toString()} onValueChange={(value) => setQuestionCount(parseInt(value))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5 Questions</SelectItem>
+                    <SelectItem value="10">10 Questions</SelectItem>
+                    <SelectItem value="15">15 Questions</SelectItem>
+                    <SelectItem value="20">20 Questions</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Generate Button */}
+              <Button
+                onClick={generateQuestions}
+                disabled={isGenerating || !selectedSubject || !selectedChapter}
+                className="w-full flex items-center gap-2"
+                size="lg"
+              >
+                {isGenerating ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-5 h-5" />
+                )}
+                Generate Questions
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Controls */}
-        <div className="flex flex-col sm:flex-row justify-center gap-2 mb-6">
-          <Button
-            onClick={generateQuestion}
-            disabled={isGenerating}
-            className="flex items-center gap-2"
-          >
-            {isGenerating ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <RefreshCw className="w-4 h-4" />
-            )}
-            Generate New Question
-          </Button>
-          <Button
-            onClick={resetQuestion}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <Target className="w-4 h-4" />
-            Reset
-          </Button>
-        </div>
+        {!showSettings && generatedQuestions.length > 0 && (
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mb-6">
+            <div className="flex gap-2">
+              <Button
+                onClick={resetGenerator}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Target className="w-4 h-4" />
+                New Questions
+              </Button>
+              {questionType === 'mcq' && (
+                <Button
+                  onClick={startQuizMode}
+                  className="flex items-center gap-2"
+                >
+                  <Play className="w-4 h-4" />
+                  Quiz Mode
+                </Button>
+              )}
+            </div>
+            <Badge variant="outline" className="text-sm">
+              Question {currentQuestionIndex + 1} of {generatedQuestions.length}
+            </Badge>
+          </div>
+        )}
 
         {/* Question Card */}
-        {currentQuestion && (
+        {currentQuestion && !showSettings && (
           <Card className="glass-card mb-6">
             <CardHeader className="pb-3">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -309,6 +503,16 @@ const QuestionGenerator = () => {
                 </Button>
               )}
 
+              {/* Next Question Button */}
+              {showAnswer && currentQuestionIndex < generatedQuestions.length - 1 && (
+                <Button
+                  onClick={nextQuestion}
+                  className="w-full sm:w-auto flex items-center gap-2"
+                >
+                  Next Question
+                </Button>
+              )}
+
               {/* Answer Display */}
               {showAnswer && (
                 <div className="mt-6 p-4 rounded-lg bg-muted/50 border">
@@ -341,7 +545,7 @@ const QuestionGenerator = () => {
             <CardContent className="p-8">
               <div className="text-center">
                 <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-                <p className="text-muted-foreground">Generating your question...</p>
+                <p className="text-muted-foreground">Generating your customized questions...</p>
               </div>
             </CardContent>
           </Card>
