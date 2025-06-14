@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -73,8 +72,6 @@ export const QuestionGenerator = () => {
       setIsLoading(false);
     }
   };
-
-  const selectedSubjectData = subjects.find(s => s.name === selectedSubject);
   
   return (
     <div className="space-y-6">
@@ -105,7 +102,7 @@ export const QuestionGenerator = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {subjects.map((subject) => (
-                    <SelectItem key={subject.id} value={subject.name}>{subject.name}</SelectItem>
+                    <SelectItem key={subject} value={subject}>{subject}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -116,9 +113,9 @@ export const QuestionGenerator = () => {
                   <SelectValue placeholder="Select Chapter" />
                 </SelectTrigger>
                 <SelectContent>
-                  {selectedSubjectData &&
-                    selectedSubjectData.chapters.map((chapter) => (
-                      <SelectItem key={chapter.id} value={chapter.name}>{chapter.name}</SelectItem>
+                  {selectedSubject &&
+                    ['Chapter 1', 'Chapter 2', 'Chapter 3'].map((chapter) => (
+                      <SelectItem key={chapter} value={chapter}>{chapter}</SelectItem>
                     ))}
                 </SelectContent>
               </Select>
