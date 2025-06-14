@@ -167,11 +167,11 @@ Answer briefly:`;
 
   if (!conversationId) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full px-4">
         <div className="text-center">
           <Brain className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-semibold mb-2">Start a Conversation</h3>
-          <p className="text-muted-foreground">Select a conversation or start a new chat</p>
+          <p className="text-muted-foreground text-sm">Select a conversation or start a new chat</p>
         </div>
       </div>
     );
@@ -180,57 +180,57 @@ Answer briefly:`;
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-background">
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-background">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={onToggleSidebar}
-            className="lg:hidden"
+            className="p-2 h-auto"
           >
             <Menu className="w-4 h-4" />
           </Button>
           <div className="flex items-center gap-2">
-            <Brain className="w-6 h-6 text-primary" />
-            <h2 className="font-semibold">AI Study Assistant</h2>
+            <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+            <h2 className="font-semibold text-sm sm:text-base">AI Study Assistant</h2>
           </div>
         </div>
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-3 sm:p-4">
         <div className="space-y-4 max-w-4xl mx-auto">
           {messages.length === 0 && !messagesLoading && (
             <div className="text-center py-8">
-              <Brain className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">Welcome to AI Study Assistant!</h3>
-              <p className="text-muted-foreground">Ask me any Class 10 CBSE questions and I'll give you clear, short answers! 📚</p>
+              <Brain className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">Welcome to AI Study Assistant!</h3>
+              <p className="text-muted-foreground text-sm sm:text-base px-4">Ask me any Class 10 CBSE questions and I'll give you clear, short answers! 📚</p>
             </div>
           )}
 
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex items-start gap-3 ${
+              className={`flex items-start gap-2 sm:gap-3 ${
                 message.role === 'user' ? 'flex-row-reverse' : ''
               }`}
             >
-              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+              <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${
                 message.role === 'user' 
                   ? 'bg-primary text-primary-foreground' 
                   : 'bg-secondary text-secondary-foreground'
               }`}>
                 {message.role === 'user' ? (
-                  <User className="w-4 h-4" />
+                  <User className="w-3 h-3 sm:w-4 sm:h-4" />
                 ) : (
-                  <Bot className="w-4 h-4" />
+                  <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
                 )}
               </div>
               
-              <div className={`flex-1 max-w-[80%] ${
+              <div className={`flex-1 max-w-[85%] sm:max-w-[80%] ${
                 message.role === 'user' ? 'text-right' : ''
               }`}>
-                <div className={`inline-block p-3 rounded-2xl ${
+                <div className={`inline-block p-2 sm:p-3 rounded-2xl text-sm sm:text-base ${
                   message.role === 'user'
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary/50 text-secondary-foreground border'
@@ -252,15 +252,15 @@ Answer briefly:`;
           ))}
           
           {isLoading && (
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center">
-                <Bot className="w-4 h-4" />
+            <div className="flex items-start gap-2 sm:gap-3">
+              <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center">
+                <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
               </div>
               <div className="flex-1">
-                <div className="inline-block p-3 rounded-2xl bg-secondary/50 border">
+                <div className="inline-block p-2 sm:p-3 rounded-2xl bg-secondary/50 border">
                   <div className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm">Thinking...</span>
+                    <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                    <span className="text-xs sm:text-sm">Thinking...</span>
                   </div>
                 </div>
               </div>
@@ -272,7 +272,7 @@ Answer briefly:`;
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="border-t p-4 bg-background">
+      <div className="border-t p-3 sm:p-4 bg-background">
         <div className="max-w-4xl mx-auto">
           <div className="flex gap-2">
             <Textarea
@@ -280,14 +280,14 @@ Answer briefly:`;
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Ask your doubt here... (Press Enter to send)"
-              className="flex-1 min-h-[40px] max-h-32 resize-none"
+              className="flex-1 min-h-[40px] max-h-32 resize-none text-sm sm:text-base"
               disabled={isLoading}
               rows={1}
             />
             <Button
               onClick={sendMessage}
               disabled={!inputMessage.trim() || isLoading}
-              className="px-4 h-10 flex-shrink-0"
+              className="px-3 sm:px-4 h-10 flex-shrink-0"
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

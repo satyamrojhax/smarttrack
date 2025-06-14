@@ -60,6 +60,24 @@ export const useConversations = () => {
     return null;
   };
 
+  const deleteConversation = async (conversationId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('doubt_conversations')
+        .delete()
+        .eq('id', conversationId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+    }
+  };
+
   useEffect(() => {
     fetchConversations();
   }, [user]);
@@ -68,6 +86,7 @@ export const useConversations = () => {
     conversations,
     loading,
     createNewConversation,
+    deleteConversation,
     refetch: fetchConversations
   };
 };
