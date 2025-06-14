@@ -11,13 +11,14 @@ export const fetchProfile = async (userId: string) => {
     
     if (error) {
       console.error('Error fetching profile:', error);
-      // If profile doesn't exist, create one from user metadata
+      // If profile doesn't exist, try to create one from user metadata
       return await createProfileFromUser(userId);
     }
     
     return data;
   } catch (error) {
     console.error('Error fetching profile:', error);
+    // Try to create profile from user metadata as fallback
     return await createProfileFromUser(userId);
   }
 };
@@ -25,7 +26,10 @@ export const fetchProfile = async (userId: string) => {
 export const createProfileFromUser = async (userId: string) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
+    if (!user) {
+      console.log('No user found, returning null profile');
+      return null;
+    }
 
     const profileData = {
       id: userId,
@@ -44,12 +48,14 @@ export const createProfileFromUser = async (userId: string) => {
 
     if (error) {
       console.error('Error creating profile:', error);
-      return profileData; // Return the data even if insert fails
+      // Return the profile data even if insert fails - this allows the app to continue loading
+      return profileData;
     }
 
     return data;
   } catch (error) {
-    console.error('Error creating profile:', error);
+    console.error('Error creating profile from user:', error);
+    // Return null instead of throwing - this allows the app to continue loading
     return null;
   }
 };

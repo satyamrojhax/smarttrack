@@ -30,18 +30,27 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('Initial session:', session);
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        const profileData = await fetchProfile(session.user.id);
-        setProfile(profileData);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initial session:', session);
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          try {
+            const profileData = await fetchProfile(session.user.id);
+            setProfile(profileData);
+          } catch (error) {
+            console.error('Error fetching profile:', error);
+            // Continue loading the app even if profile fetch fails
+          }
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
 
     // Set up auth state change listener
@@ -53,12 +62,18 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         setUser(session?.user ?? null);
         
         if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-          const profileData = await fetchProfile(session.user.id);
-          setProfile(profileData);
+          try {
+            const profileData = await fetchProfile(session.user.id);
+            setProfile(profileData);
+          } catch (error) {
+            console.error('Error fetching profile during auth state change:', error);
+            // Don't block the app if profile fetch fails
+          }
         } else if (event === 'SIGNED_OUT') {
           setProfile(null);
         }
         
+        // Always ensure loading is set to false after handling auth state change
         setIsLoading(false);
       }
     );
