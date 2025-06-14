@@ -178,9 +178,9 @@ Answer briefly:`;
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-background">
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-background flex-shrink-0">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -198,81 +198,83 @@ Answer briefly:`;
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-3 sm:p-4">
-        <div className="space-y-4 max-w-4xl mx-auto">
-          {messages.length === 0 && !messagesLoading && (
-            <div className="text-center py-8">
-              <Brain className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">Welcome to AI Study Assistant!</h3>
-              <p className="text-muted-foreground text-sm sm:text-base px-4">Ask me any Class 10 CBSE questions and I'll give you clear, short answers! 📚</p>
-            </div>
-          )}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full p-3 sm:p-4">
+          <div className="space-y-4 max-w-4xl mx-auto">
+            {messages.length === 0 && !messagesLoading && (
+              <div className="text-center py-8">
+                <Brain className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg sm:text-xl font-semibold mb-2">Welcome to AI Study Assistant!</h3>
+                <p className="text-muted-foreground text-sm sm:text-base px-4">Ask me any Class 10 CBSE questions and I'll give you clear, short answers! 📚</p>
+              </div>
+            )}
 
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex items-start gap-2 sm:gap-3 ${
-                message.role === 'user' ? 'flex-row-reverse' : ''
-              }`}
-            >
-              <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${
-                message.role === 'user' 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-secondary text-secondary-foreground'
-              }`}>
-                {message.role === 'user' ? (
-                  <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                ) : (
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex items-start gap-2 sm:gap-3 ${
+                  message.role === 'user' ? 'flex-row-reverse' : ''
+                }`}
+              >
+                <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${
+                  message.role === 'user' 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-secondary text-secondary-foreground'
+                }`}>
+                  {message.role === 'user' ? (
+                    <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                  ) : (
+                    <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
+                  )}
+                </div>
+                
+                <div className={`flex-1 max-w-[85%] sm:max-w-[80%] ${
+                  message.role === 'user' ? 'text-right' : ''
+                }`}>
+                  <div className={`inline-block p-2 sm:p-3 rounded-2xl text-sm sm:text-base ${
+                    message.role === 'user'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary/50 text-secondary-foreground border'
+                  }`}>
+                    <div className="whitespace-pre-wrap leading-relaxed">
+                      {message.content}
+                    </div>
+                  </div>
+                  <div className={`text-xs text-muted-foreground mt-1 ${
+                    message.role === 'user' ? 'text-right' : 'text-left'
+                  }`}>
+                    {new Date(message.timestamp).toLocaleTimeString([], { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {isLoading && (
+              <div className="flex items-start gap-2 sm:gap-3">
+                <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center">
                   <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
-                )}
-              </div>
-              
-              <div className={`flex-1 max-w-[85%] sm:max-w-[80%] ${
-                message.role === 'user' ? 'text-right' : ''
-              }`}>
-                <div className={`inline-block p-2 sm:p-3 rounded-2xl text-sm sm:text-base ${
-                  message.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary/50 text-secondary-foreground border'
-                }`}>
-                  <div className="whitespace-pre-wrap leading-relaxed">
-                    {message.content}
-                  </div>
                 </div>
-                <div className={`text-xs text-muted-foreground mt-1 ${
-                  message.role === 'user' ? 'text-right' : 'text-left'
-                }`}>
-                  {new Date(message.timestamp).toLocaleTimeString([], { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })}
-                </div>
-              </div>
-            </div>
-          ))}
-          
-          {isLoading && (
-            <div className="flex items-start gap-2 sm:gap-3">
-              <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center">
-                <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
-              </div>
-              <div className="flex-1">
-                <div className="inline-block p-2 sm:p-3 rounded-2xl bg-secondary/50 border">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
-                    <span className="text-xs sm:text-sm">Thinking...</span>
+                <div className="flex-1">
+                  <div className="inline-block p-2 sm:p-3 rounded-2xl bg-secondary/50 border">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                      <span className="text-xs sm:text-sm">Thinking...</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+      </div>
 
       {/* Input Area */}
-      <div className="border-t p-3 sm:p-4 bg-background">
+      <div className="border-t p-3 sm:p-4 bg-background flex-shrink-0">
         <div className="max-w-4xl mx-auto">
           <div className="flex gap-2">
             <Textarea

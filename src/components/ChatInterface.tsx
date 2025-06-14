@@ -54,7 +54,7 @@ export const ChatInterface = () => {
   }, [isMobile]);
 
   return (
-    <div className="flex h-full bg-background relative">
+    <div className="flex h-full bg-background relative overflow-hidden">
       {/* Overlay for mobile when sidebar is open */}
       {isMobile && isSidebarOpen && (
         <div 
@@ -68,7 +68,7 @@ export const ChatInterface = () => {
         ${isMobile ? 'fixed' : 'relative'} 
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
         ${isMobile ? 'w-80 z-50' : 'w-64'} 
-        transition-transform duration-300 h-full border-r bg-background
+        transition-transform duration-300 h-full border-r bg-background flex-shrink-0
       `}>
         <ConversationSidebar
           conversations={conversations}
@@ -81,7 +81,7 @@ export const ChatInterface = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <ChatWindow
           conversationId={selectedConversationId}
           isSidebarOpen={isSidebarOpen}

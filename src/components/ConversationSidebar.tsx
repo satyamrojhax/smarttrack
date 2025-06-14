@@ -48,9 +48,9 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
       {/* Header */}
-      <div className="p-3 sm:p-4 border-b">
+      <div className="p-3 sm:p-4 border-b flex-shrink-0">
         <Button
           onClick={onNewChat}
           className="w-full flex items-center gap-2 bg-primary hover:bg-primary/90 text-sm sm:text-base"
@@ -62,18 +62,18 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
       </div>
 
       {/* Conversations List */}
-      <ScrollArea className="flex-1 p-2">
+      <ScrollArea className="flex-1 p-2 overflow-hidden">
         <div className="space-y-1">
           {conversations.map((conversation) => (
             <div
               key={conversation.id}
               className={`
-                group relative rounded-lg p-2 sm:p-3 hover:bg-gray-100 dark:hover:bg-gray-800 
+                group relative rounded-lg p-2 sm:p-3 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer
                 ${selectedConversationId === conversation.id ? 'bg-gray-200 dark:bg-gray-700' : ''}
               `}
             >
               <div
-                className="cursor-pointer"
+                className="pr-8"
                 onClick={() => onSelectConversation(conversation.id)}
               >
                 <div className="flex items-center gap-2 w-full">
@@ -93,7 +93,10 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto w-auto hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
                   >
                     <Trash2 className="w-3 h-3" />
                   </Button>
@@ -105,11 +108,11 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
                       Are you sure you want to delete this conversation? This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                    <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => handleDelete(conversation.id)}
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
                     >
                       Delete
                     </AlertDialogAction>
