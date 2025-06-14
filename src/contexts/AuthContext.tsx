@@ -74,7 +74,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         email: user.email || '',
         class: 'class-10' as const,
         board: 'cbse' as const,
-        role: 'student'
+        role: 'student' as const
       };
 
       const { data, error } = await supabase
