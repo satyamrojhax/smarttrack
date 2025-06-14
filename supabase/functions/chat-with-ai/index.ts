@@ -2,7 +2,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,42 +18,84 @@ serve(async (req) => {
   try {
     const { message, conversationHistory = [] } = await req.json();
 
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    if (!geminiApiKey) {
+      throw new Error('Gemini API key not configured');
     }
 
-    const messages = [
-      { 
-        role: 'system', 
-        content: 'You are a helpful AI study assistant. Provide clear, educational responses to help students learn. Keep your responses concise but informative.' 
-      },
-      ...conversationHistory.map((msg: any) => ({
-        role: msg.role,
-        content: msg.content
-      })),
-      { role: 'user', content: message }
-    ];
+    // Build conversation context for Gemini
+    let contextMessages = [];
+    
+    // Add system message as context
+    contextMessages.push({
+      role: 'user',
+      parts: [{ text: 'You are a helpful AI study assistant. Provide clear, educational responses to help students learn. Keep your responses concise but informative.' }]
+    });
+    contextMessages.push({
+      role: 'model',
+      parts: [{ text: 'I understand. I\'m here to help you with your studies. Please ask me any questions you have!' }]
+    });
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Add conversation history
+    conversationHistory.forEach((msg: any) => {
+      if (msg.role === 'user') {
+        contextMessages.push({
+          role: 'user',
+          parts: [{ text: msg.content }]
+        });
+      } else if (msg.role === 'assistant') {
+        contextMessages.push({
+          role: 'model',
+          parts: [{ text: msg.content }]
+        });
+      }
+    });
+
+    // Add current user message
+    contextMessages.push({
+      role: 'user',
+      parts: [{ text: message }]
+    });
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages,
-        max_tokens: 1000,
-        temperature: 0.7,
+        contents: contextMessages,
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1000,
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          }
+        ]
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Gemini API error:', response.status, errorText);
+      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    const generatedText = data.choices[0].message.content;
+    console.log('Gemini response:', data);
+
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+      throw new Error('Invalid response structure from Gemini API');
+    }
+
+    const generatedText = data.candidates[0].content.parts[0].text;
 
     return new Response(JSON.stringify({ response: generatedText }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
