@@ -18,6 +18,11 @@ import QuestionsPage from "./pages/QuestionsPage";
 import PredictorPage from "./pages/PredictorPage";
 import DoubtsPage from "./pages/DoubtsPage";
 import HistoryPage from "./pages/HistoryPage";
+import TimerPage from "./pages/TimerPage";
+import NotesPage from "./pages/NotesPage";
+import BadgesPage from "./pages/BadgesPage";
+import ExportPage from "./pages/ExportPage";
+import ThemePage from "./pages/ThemePage";
 import MainLayout from "./components/MainLayout";
 
 // Optimize query client for better performance
@@ -113,6 +118,11 @@ const AppContent = () => {
           <Route path="/doubts" element={<DoubtsPage />} />
           <Route path="/predictor" element={<PredictorPage />} />
           <Route path="/history" element={<HistoryPage />} />
+          <Route path="/timer" element={<TimerPage />} />
+          <Route path="/notes" element={<NotesPage />} />
+          <Route path="/badges" element={<BadgesPage />} />
+          <Route path="/export" element={<ExportPage />} />
+          <Route path="/theme" element={<ThemePage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
