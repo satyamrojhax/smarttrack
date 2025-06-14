@@ -150,6 +150,56 @@ export type Database = {
         }
         Relationships: []
       }
+      question_history: {
+        Row: {
+          correct_answer: string | null
+          created_at: string
+          difficulty_level: number | null
+          id: string
+          is_correct: boolean | null
+          question_id: string | null
+          question_text: string
+          question_type: string | null
+          time_taken: number | null
+          user_answer: string | null
+          user_id: string
+        }
+        Insert: {
+          correct_answer?: string | null
+          created_at?: string
+          difficulty_level?: number | null
+          id?: string
+          is_correct?: boolean | null
+          question_id?: string | null
+          question_text: string
+          question_type?: string | null
+          time_taken?: number | null
+          user_answer?: string | null
+          user_id: string
+        }
+        Update: {
+          correct_answer?: string | null
+          created_at?: string
+          difficulty_level?: number | null
+          id?: string
+          is_correct?: boolean | null
+          question_id?: string | null
+          question_text?: string
+          question_type?: string | null
+          time_taken?: number | null
+          user_answer?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_history_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       questions: {
         Row: {
           chapter_id: string | null

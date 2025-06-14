@@ -32,7 +32,9 @@ export const BookmarksView = () => {
   const loadBookmarks = async () => {
     try {
       setIsLoading(true);
+      console.log('Loading bookmarks...');
       const data = await getUserBookmarks();
+      console.log('Bookmarks loaded:', data);
       setBookmarks(data);
     } catch (error) {
       console.error('Error loading bookmarks:', error);
@@ -48,6 +50,7 @@ export const BookmarksView = () => {
 
   const removeQuestion = async (questionId: string, bookmarkId: string) => {
     try {
+      console.log('Removing bookmark:', { questionId, bookmarkId });
       const result = await removeBookmarkFromDatabase(questionId);
       if (result.success) {
         setBookmarks(prev => prev.filter(b => b.id !== bookmarkId));

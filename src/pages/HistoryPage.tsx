@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { History, MessageSquare, BookOpen, Calendar, User, Bot } from 'lucide-react';
+import { History, MessageSquare, BookOpen, Calendar, User, Bot, Brain, CheckCircle, XCircle } from 'lucide-react';
 import { getUserDoubts, getDoubtHistory, type Doubt, type DoubtResponse } from '@/services/doubtService';
 import { getUserBookmarks } from '@/services/bookmarkService';
+import { getUserQuestionHistory, type QuestionHistory } from '@/services/questionHistoryService';
 
 interface BookmarkWithQuestion {
   id: string;
@@ -26,9 +27,10 @@ const HistoryPage = () => {
   const { toast } = useToast();
   const [doubts, setDoubts] = useState<Doubt[]>([]);
   const [bookmarks, setBookmarks] = useState<BookmarkWithQuestion[]>([]);
+  const [questionHistory, setQuestionHistory] = useState<QuestionHistory[]>([]);
   const [selectedDoubt, setSelectedDoubt] = useState<string | null>(null);
   const [doubtHistory, setDoubtHistory] = useState<DoubtResponse[]>([]);
-  const [activeTab, setActiveTab] = useState<'doubts' | 'bookmarks'>('doubts');
+  const [activeTab, setActiveTab] = useState<'doubts' | 'bookmarks' | 'questions'>('doubts');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -38,13 +40,15 @@ const HistoryPage = () => {
   const loadHistoryData = async () => {
     try {
       setIsLoading(true);
-      const [doubtsData, bookmarksData] = await Promise.all([
+      const [doubtsData, bookmarksData, questionsData] = await Promise.all([
         getUserDoubts(),
-        getUserBookmarks()
+        getUserBookmarks(),
+        getUserQuestionHistory()
       ]);
       
       setDoubts(doubtsData);
       setBookmarks(bookmarksData);
+      setQuestionHistory(questionsData);
     } catch (error) {
       console.error('Error loading history:', error);
       toast({
@@ -91,7 +95,7 @@ const HistoryPage = () => {
           <History className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
           <span>Learning History</span>
         </h2>
-        <p className="text-muted-foreground">Track your doubts, conversations, and bookmarked questions</p>
+        <p className="text-muted-foreground">Track your doubts, conversations, questions, and bookmarked content</p>
       </div>
 
       {/* Tabs */}
@@ -104,6 +108,15 @@ const HistoryPage = () => {
         >
           <MessageSquare className="w-4 h-4" />
           Doubts ({doubts.length})
+        </Button>
+        <Button
+          variant={activeTab === 'questions' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setActiveTab('questions')}
+          className="flex items-center gap-2"
+        >
+          <Brain className="w-4 h-4" />
+          Questions ({questionHistory.length})
         </Button>
         <Button
           variant={activeTab === 'bookmarks' ? 'default' : 'ghost'}
@@ -126,6 +139,11 @@ const HistoryPage = () => {
                 <>
                   <MessageSquare className="w-5 h-5" />
                   Your Doubts
+                </>
+              ) : activeTab === 'questions' ? (
+                <>
+                  <Brain className="w-5 h-5" />
+                  Question History
                 </>
               ) : (
                 <>
@@ -171,6 +189,53 @@ const HistoryPage = () => {
                       </Card>
                     ))
                   )
+                ) : activeTab === 'questions' ? (
+                  questionHistory.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Brain className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>No questions attempted yet</p>
+                    </div>
+                  ) : (
+                    questionHistory.map((question) => (
+                      <Card key={question.id} className="hover:bg-muted/50">
+                        <CardContent className="p-3">
+                          <p className="text-sm mb-2 line-clamp-2">{question.question_text}</p>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                {question.question_type || 'Question'}
+                              </Badge>
+                              {question.difficulty_level && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Level {question.difficulty_level}
+                                </Badge>
+                              )}
+                            </div>
+                            {question.is_correct !== null && (
+                              <div className="flex items-center gap-1">
+                                {question.is_correct ? (
+                                  <CheckCircle className="w-4 h-4 text-green-500" />
+                                ) : (
+                                  <XCircle className="w-4 h-4 text-red-500" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            {question.time_taken && (
+                              <span className="text-xs text-muted-foreground">
+                                Time: {question.time_taken}s
+                              </span>
+                            )}
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {new Date(question.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )
                 ) : (
                   bookmarks.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
@@ -201,16 +266,30 @@ const HistoryPage = () => {
           </CardContent>
         </Card>
 
-        {/* Right Panel - Conversation */}
+        {/* Right Panel - Details */}
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5" />
-              Conversation History
+              {activeTab === 'doubts' ? (
+                <>
+                  <MessageSquare className="w-5 h-5" />
+                  Conversation History
+                </>
+              ) : activeTab === 'questions' ? (
+                <>
+                  <Brain className="w-5 h-5" />
+                  Question Details
+                </>
+              ) : (
+                <>
+                  <BookOpen className="w-5 h-5" />
+                  Bookmark Details
+                </>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {selectedDoubt && doubtHistory.length > 0 ? (
+            {activeTab === 'doubts' && selectedDoubt && doubtHistory.length > 0 ? (
               <ScrollArea className="h-96">
                 <div className="space-y-3 p-4">
                   {doubtHistory.map((response) => (
@@ -260,8 +339,22 @@ const HistoryPage = () => {
             ) : (
               <div className="flex items-center justify-center h-96 text-muted-foreground">
                 <div className="text-center">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>Select a doubt to view conversation</p>
+                  {activeTab === 'doubts' ? (
+                    <>
+                      <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>Select a doubt to view conversation</p>
+                    </>
+                  ) : activeTab === 'questions' ? (
+                    <>
+                      <Brain className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>Question details will appear here</p>
+                    </>
+                  ) : (
+                    <>
+                      <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>Bookmark details will appear here</p>
+                    </>
+                  )}
                 </div>
               </div>
             )}
