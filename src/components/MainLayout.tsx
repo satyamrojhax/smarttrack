@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Sun, Moon, Home, BookOpen, Brain, TrendingUp, Bookmark, User } from 'lucide-react';
+import { Sun, Moon, Home, BookOpen, Brain, TrendingUp, Bookmark, User, MessageCircleQuestion } from 'lucide-react';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -19,6 +19,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Syllabus', href: '/syllabus', icon: BookOpen },
     { name: 'Questions', href: '/questions', icon: Brain },
+    { name: 'Ask Doubt', href: '/ask-doubt', icon: MessageCircleQuestion },
     { name: 'Predictor', href: '/predictor', icon: TrendingUp },
     { name: 'Bookmarks', href: '/bookmarks', icon: Bookmark },
     { name: 'Profile', href: '/profile', icon: User },

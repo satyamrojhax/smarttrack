@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -17,6 +18,7 @@ import QuestionsPage from "./pages/QuestionsPage";
 import PredictorPage from "./pages/PredictorPage";
 import BookmarksPage from "./pages/BookmarksPage";
 import DoubtsPage from "./pages/DoubtsPage";
+import AskDoubtPage from "./pages/AskDoubtPage";
 import MainLayout from "./components/MainLayout";
 
 const queryClient = new QueryClient();
@@ -61,6 +63,7 @@ const AppContent = () => {
           <Route path="/syllabus" element={<SyllabusPage />} />
           <Route path="/questions" element={<QuestionsPage />} />
           <Route path="/doubts" element={<DoubtsPage />} />
+          <Route path="/ask-doubt" element={<AskDoubtPage />} />
           <Route path="/predictor" element={<PredictorPage />} />
           <Route path="/bookmarks" element={<BookmarksPage />} />
           <Route path="/profile" element={<Profile />} />
