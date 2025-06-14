@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { Send, Bot, User, Loader2, Menu, Brain } from 'lucide-react';
 import { useConversationMessages } from '@/hooks/useConversationMessages';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChatWindowProps {
   conversationId: string | null;
@@ -54,25 +54,45 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       
       await addMessage(userMessage);
 
-      // Simulate AI response (replace with actual AI service call)
-      setTimeout(async () => {
-        const aiMessage = {
-          id: `ai-${Date.now()}`,
-          content: `I understand your question: "${messageText}". Let me help you with that. This is a placeholder response for now.`,
-          role: 'assistant' as const,
-          timestamp: Date.now()
-        };
-        
-        await addMessage(aiMessage);
-        setIsLoading(false);
-      }, 1000);
+      // Call AI service
+      const { data, error } = await supabase.functions.invoke('chat-with-ai', {
+        body: {
+          message: messageText,
+          conversationHistory: messages.slice(-10) // Send last 10 messages for context
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Add AI response
+      const aiMessage = {
+        id: `ai-${Date.now()}`,
+        content: data.response,
+        role: 'assistant' as const,
+        timestamp: Date.now()
+      };
+      
+      await addMessage(aiMessage);
+      setIsLoading(false);
 
     } catch (error) {
       console.error('Error sending message:', error);
       setIsLoading(false);
+      
+      // Add error message
+      const errorMessage = {
+        id: `error-${Date.now()}`,
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+        role: 'assistant' as const,
+        timestamp: Date.now()
+      };
+      
+      await addMessage(errorMessage);
       throw error;
     }
-  }, [conversationId, addMessage]);
+  }, [conversationId, addMessage, messages]);
 
   const handleSendMessage = useCallback(async () => {
     if (!inputMessage.trim() || isLoading || !conversationId) return;

@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, MessageCircle, Trash2, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { useIsMobile } from '@/hooks/use-mobile';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,7 +43,6 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
   onClose
 }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<string | null>(null);
-  const isMobile = useIsMobile();
 
   const handleDelete = (conversationId: string) => {
     onDeleteConversation(conversationId);
@@ -53,15 +51,15 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
 
   return (
     <div className="h-full flex flex-col bg-background overflow-hidden">
-      {/* Header */}
+      {/* Header with close button for all devices */}
       <div className="flex items-center justify-between p-3 border-b flex-shrink-0">
         <h2 className="text-lg font-semibold">Chat History</h2>
-        {isMobile && onClose && (
+        {onClose && (
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="p-1 h-8 w-8"
+            className="p-1 h-8 w-8 hover:bg-secondary"
           >
             <X className="w-4 h-4" />
           </Button>
@@ -106,18 +104,13 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
                 </span>
               </div>
 
-              {/* Delete Button - Always visible on mobile for better UX */}
+              {/* Delete Button */}
               <AlertDialog open={deleteDialogOpen === conversation.id} onOpenChange={(open) => setDeleteDialogOpen(open ? conversation.id : null)}>
                 <AlertDialogTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={`
-                      absolute top-2 right-2 p-1 h-6 w-6 
-                      hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20
-                      ${isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} 
-                      transition-opacity
-                    `}
+                    className="absolute top-2 right-2 p-1 h-6 w-6 opacity-0 group-hover:opacity-100 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20 transition-opacity"
                     onClick={(e) => {
                       e.stopPropagation();
                     }}

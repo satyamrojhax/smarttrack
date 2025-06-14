@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ConversationSidebar } from './ConversationSidebar';
 import { ChatWindow } from './ChatWindow';
@@ -14,17 +15,13 @@ export const ChatInterface = () => {
     const newConversation = await createNewConversation();
     if (newConversation) {
       setSelectedConversationId(newConversation.id);
-      if (isMobile) {
-        setIsSidebarOpen(false);
-      }
+      setIsSidebarOpen(false);
     }
   };
 
   const handleSelectConversation = (conversationId: string) => {
     setSelectedConversationId(conversationId);
-    if (isMobile) {
-      setIsSidebarOpen(false);
-    }
+    setIsSidebarOpen(false);
   };
 
   const handleDeleteConversation = async (conversationId: string) => {
@@ -43,11 +40,6 @@ export const ChatInterface = () => {
     }
   }, [conversations, loading, selectedConversationId]);
 
-  // Keep sidebar closed by default on both mobile and desktop
-  useEffect(() => {
-    setIsSidebarOpen(false);
-  }, []);
-
   return (
     <div className="flex h-screen bg-background relative overflow-hidden">
       {/* Overlay for mobile when sidebar is open */}
@@ -58,14 +50,13 @@ export const ChatInterface = () => {
         />
       )}
 
-      {/* Sidebar - Hidden by default, shows only when toggled */}
+      {/* Sidebar - Smaller width, completely hidden when closed */}
       <div className={`
-        ${isMobile ? 'fixed' : 'absolute'} 
+        ${isMobile ? 'fixed' : 'fixed'} 
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-        ${isMobile ? 'w-[280px]' : 'w-[260px]'} 
+        ${isMobile ? 'w-[280px]' : 'w-[320px]'} 
         transition-transform duration-300 ease-in-out
-        h-full bg-background border-r z-50 flex-shrink-0
-        ${!isMobile ? 'shadow-lg' : ''}
+        h-full bg-background border-r z-50 flex-shrink-0 shadow-xl
       `}>
         <ConversationSidebar
           conversations={conversations}
