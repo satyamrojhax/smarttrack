@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 
 const Index = () => {
   const { subjects, getOverallProgress } = useSyllabus();
-  const { user } = useAuth();
+  const { profile } = useAuth();
   const overallProgress = getOverallProgress();
 
   const totalChapters = subjects.reduce((total, subject) => total + subject.chapters.length, 0);
@@ -61,7 +61,7 @@ const Index = () => {
       <div className="text-center space-y-6 py-8 animate-fade-in">
         <div className="inline-flex items-center space-x-2 bg-primary/10 px-4 py-2 rounded-full text-sm">
           <Sparkles className="w-4 h-4 text-primary" />
-          <span className="text-primary font-medium">Welcome back, {user?.name}!</span>
+          <span className="text-primary font-medium">Welcome back, {profile?.name}!</span>
         </div>
         
         <h1 className="text-4xl md:text-6xl font-bold gradient-text leading-tight">

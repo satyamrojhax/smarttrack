@@ -24,6 +24,7 @@ interface SyllabusContextType {
   loading: boolean;
   toggleChapterCompletion: (subjectId: string, chapterId: string) => Promise<void>;
   getSubjectProgress: (subjectId: string) => number;
+  getOverallProgress: () => number;
   resetProgress: () => Promise<void>;
   refreshData: () => Promise<void>;
 }
@@ -33,6 +34,7 @@ const SyllabusContext = createContext<SyllabusContextType>({
   loading: false,
   toggleChapterCompletion: async () => {},
   getSubjectProgress: () => 0,
+  getOverallProgress: () => 0,
   resetProgress: async () => {},
   refreshData: async () => {},
 });
@@ -52,8 +54,8 @@ export const SyllabusProvider: React.FC<{ children: ReactNode }> = ({ children }
       const { data: subjectsData, error: subjectsError } = await supabase
         .from('subjects')
         .select('*')
-        .eq('class', profile.class)
-        .eq('board', profile.board)
+        .eq('class', profile.class as 'class-9' | 'class-10' | 'class-11' | 'class-12')
+        .eq('board', profile.board as 'cbse' | 'icse' | 'state')
         .order('name');
 
       if (subjectsError) {
@@ -184,6 +186,19 @@ export const SyllabusProvider: React.FC<{ children: ReactNode }> = ({ children }
     return Math.round((completedChapters / subject.chapters.length) * 100);
   };
 
+  // Calculate overall progress
+  const getOverallProgress = () => {
+    if (subjects.length === 0) return 0;
+    
+    const totalChapters = subjects.reduce((total, subject) => total + subject.chapters.length, 0);
+    const completedChapters = subjects.reduce(
+      (total, subject) => total + subject.chapters.filter(c => c.completed).length,
+      0
+    );
+    
+    return totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
+  };
+
   // Reset all progress
   const resetProgress = async () => {
     if (!user) return;
@@ -235,6 +250,7 @@ export const SyllabusProvider: React.FC<{ children: ReactNode }> = ({ children }
         loading,
         toggleChapterCompletion,
         getSubjectProgress,
+        getOverallProgress,
         resetProgress,
         refreshData,
       }}

@@ -135,8 +135,8 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
           emailRedirectTo: redirectUrl,
           data: {
             name: userData.name,
-            class: userData.class,
-            board: userData.board,
+            class: userData.class as 'class-9' | 'class-10' | 'class-11' | 'class-12',
+            board: userData.board as 'cbse' | 'icse' | 'state',
           }
         }
       });
@@ -166,8 +166,8 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         .from('profiles')
         .update({
           name: updatedProfile.name,
-          class: updatedProfile.class,
-          board: updatedProfile.board,
+          class: updatedProfile.class as 'class-9' | 'class-10' | 'class-11' | 'class-12',
+          board: updatedProfile.board as 'cbse' | 'icse' | 'state',
         })
         .eq('id', user.id)
         .select()

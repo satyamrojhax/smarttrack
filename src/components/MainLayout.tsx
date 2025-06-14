@@ -24,7 +24,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { theme, toggleTheme } = useTheme();
-  const { user } = useAuth();
+  const { profile } = useAuth();
   const location = useLocation();
 
   // Bottom navigation items (mobile)
@@ -118,7 +118,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-muted-foreground hidden sm:block">
-                  Welcome, {user?.name}!
+                  Welcome, {profile?.name}!
                 </span>
                 <Button
                   variant="ghost"
