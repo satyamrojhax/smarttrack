@@ -78,25 +78,26 @@ export const BookmarksView = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold flex items-center space-x-2">
-            <Bookmark className="w-6 h-6 text-primary" />
+    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6">
+      {/* Header - Responsive */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div className="text-center sm:text-left space-y-2">
+          <h2 className="text-xl sm:text-2xl font-bold flex items-center justify-center sm:justify-start space-x-2">
+            <Bookmark className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
             <span>Saved Questions</span>
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             {savedQuestions.length} question{savedQuestions.length !== 1 ? 's' : ''} saved
           </p>
         </div>
         
         {savedQuestions.length > 0 && (
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm" onClick={exportAllQuestions}>
+          <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
+            <Button variant="outline" size="sm" onClick={exportAllQuestions} className="w-full sm:w-auto">
               <Download className="w-4 h-4 mr-2" />
               Export All
             </Button>
-            <Button variant="destructive" size="sm" onClick={clearAllBookmarks}>
+            <Button variant="destructive" size="sm" onClick={clearAllBookmarks} className="w-full sm:w-auto">
               <Trash2 className="w-4 h-4 mr-2" />
               Clear All
             </Button>
@@ -106,58 +107,64 @@ export const BookmarksView = () => {
 
       {savedQuestions.length === 0 ? (
         <Card className="glass-card">
-          <CardContent className="text-center py-12">
-            <Bookmark className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+          <CardContent className="text-center py-8 sm:py-12 px-4">
+            <Bookmark className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No Saved Questions</h3>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               Questions you bookmark will appear here for easy access
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {savedQuestions.map((question) => (
             <Card key={question.id} className="glass-card">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <CardTitle className="text-lg">{question.subject}</CardTitle>
-                      <Badge variant="outline">{question.chapter}</Badge>
+              <CardHeader className="pb-3 sm:pb-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <CardTitle className="text-base sm:text-lg">{question.subject}</CardTitle>
+                      <Badge variant="outline" className="w-fit">{question.chapter}</Badge>
                     </div>
-                    <div className="flex space-x-2">
-                      <Badge variant="secondary">{question.type}</Badge>
-                      <Badge variant="outline">{question.difficulty}</Badge>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="text-xs">{question.type}</Badge>
+                      <Badge variant="outline" className="text-xs">{question.difficulty}</Badge>
                     </div>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-row sm:flex-col lg:flex-row gap-1 sm:gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => copyQuestion(question.question)}
+                      className="flex-1 sm:flex-none"
                     >
                       <Copy className="w-4 h-4" />
+                      <span className="sm:hidden lg:inline ml-1">Copy</span>
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => navigator.share?.({ text: question.question })}
+                      className="flex-1 sm:flex-none"
                     >
                       <Share className="w-4 h-4" />
+                      <span className="sm:hidden lg:inline ml-1">Share</span>
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => removeQuestion(question.id)}
+                      className="flex-1 sm:flex-none text-destructive hover:text-destructive"
                     >
                       <Trash2 className="w-4 h-4" />
+                      <span className="sm:hidden lg:inline ml-1">Delete</span>
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm leading-relaxed">{question.question}</p>
-                <p className="text-xs text-muted-foreground mt-2">
+              <CardContent className="pt-0">
+                <p className="text-sm leading-relaxed break-words">{question.question}</p>
+                <p className="text-xs text-muted-foreground mt-2 sm:mt-3">
                   Saved on {new Date(question.timestamp).toLocaleDateString()}
                 </p>
               </CardContent>
