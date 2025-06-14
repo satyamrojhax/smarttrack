@@ -13,7 +13,8 @@ import {
   SidebarMenuItem, 
   SidebarProvider, 
   SidebarTrigger,
-  SidebarInset 
+  SidebarInset,
+  useSidebar
 } from '@/components/ui/sidebar';
 import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, Bookmark } from 'lucide-react';
 
@@ -41,42 +42,56 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'Bookmarks', href: '/bookmarks', icon: Bookmark },
   ];
 
-  const AppSidebar = () => (
-    <Sidebar>
-      <SidebarHeader className="p-4 border-b">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
-            <Brain className="w-5 h-5 text-white" />
+  const AppSidebar = () => {
+    const { setOpenMobile, isMobile } = useSidebar();
+
+    const handleSidebarItemClick = () => {
+      if (isMobile) {
+        setOpenMobile(false);
+      }
+    };
+
+    return (
+      <Sidebar>
+        <SidebarHeader className="p-4 border-b">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
+              <Brain className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-sm">Study Tools</h2>
+              <p className="text-xs text-muted-foreground">Track your progress</p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-semibold text-sm">Study Tools</h2>
-            <p className="text-xs text-muted-foreground">Track your progress</p>
+        </SidebarHeader>
+        <SidebarContent>
+          <div className="p-2">
+            <SidebarMenu>
+              {sidebarItems.map((item) => {
+                const isActive = location.pathname === item.href;
+                const Icon = item.icon;
+                
+                return (
+                  <SidebarMenuItem key={item.name}>
+                    <SidebarMenuButton asChild isActive={isActive}>
+                      <Link 
+                        to={item.href} 
+                        className="flex items-center space-x-3 w-full"
+                        onClick={handleSidebarItemClick}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{item.name}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
           </div>
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
-        <div className="p-2">
-          <SidebarMenu>
-            {sidebarItems.map((item) => {
-              const isActive = location.pathname === item.href;
-              const Icon = item.icon;
-              
-              return (
-                <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton asChild isActive={isActive}>
-                    <Link to={item.href} className="flex items-center space-x-3 w-full">
-                      <Icon className="w-4 h-4" />
-                      <span>{item.name}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            })}
-          </SidebarMenu>
-        </div>
-      </SidebarContent>
-    </Sidebar>
-  );
+        </SidebarContent>
+      </Sidebar>
+    );
+  };
 
   return (
     <SidebarProvider>
