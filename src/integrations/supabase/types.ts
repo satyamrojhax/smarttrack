@@ -194,6 +194,144 @@ export type Database = {
         }
         Relationships: []
       }
+      question_history: {
+        Row: {
+          correct_answer: string | null
+          created_at: string
+          difficulty_level: number | null
+          id: string
+          is_correct: boolean | null
+          question_id: string | null
+          question_text: string
+          question_type: string | null
+          time_taken: number | null
+          user_answer: string | null
+          user_id: string
+        }
+        Insert: {
+          correct_answer?: string | null
+          created_at?: string
+          difficulty_level?: number | null
+          id?: string
+          is_correct?: boolean | null
+          question_id?: string | null
+          question_text: string
+          question_type?: string | null
+          time_taken?: number | null
+          user_answer?: string | null
+          user_id: string
+        }
+        Update: {
+          correct_answer?: string | null
+          created_at?: string
+          difficulty_level?: number | null
+          id?: string
+          is_correct?: boolean | null
+          question_id?: string | null
+          question_text?: string
+          question_type?: string | null
+          time_taken?: number | null
+          user_answer?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_history_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      questions: {
+        Row: {
+          chapter_id: string | null
+          correct_answer: string | null
+          created_at: string | null
+          difficulty_level: number | null
+          explanation: string | null
+          id: string
+          options: Json | null
+          question_text: string
+          question_type: string | null
+        }
+        Insert: {
+          chapter_id?: string | null
+          correct_answer?: string | null
+          created_at?: string | null
+          difficulty_level?: number | null
+          explanation?: string | null
+          id?: string
+          options?: Json | null
+          question_text: string
+          question_type?: string | null
+        }
+        Update: {
+          chapter_id?: string | null
+          correct_answer?: string | null
+          created_at?: string | null
+          difficulty_level?: number | null
+          explanation?: string | null
+          id?: string
+          options?: Json | null
+          question_text?: string
+          question_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      questions_responses: {
+        Row: {
+          correct_answer: string | null
+          created_at: string
+          generated_question_text: string
+          id: string
+          is_correct: boolean | null
+          question_id: string | null
+          response_time: number | null
+          user_id: string
+          user_response: string | null
+        }
+        Insert: {
+          correct_answer?: string | null
+          created_at?: string
+          generated_question_text: string
+          id?: string
+          is_correct?: boolean | null
+          question_id?: string | null
+          response_time?: number | null
+          user_id: string
+          user_response?: string | null
+        }
+        Update: {
+          correct_answer?: string | null
+          created_at?: string
+          generated_question_text?: string
+          id?: string
+          is_correct?: boolean | null
+          question_id?: string | null
+          response_time?: number | null
+          user_id?: string
+          user_response?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subjects: {
         Row: {
           board: Database["public"]["Enums"]["board_type"]

@@ -1,196 +1,257 @@
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useSyllabus } from '@/contexts/SyllabusContext';
-import MainLayout from '@/components/MainLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  BookOpen, 
-  MessageCircleQuestion, 
-  TrendingUp, 
-  Target,
-  Clock,
-  Trophy,
-  ChevronRight,
-  Star
-} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { useSyllabus } from '@/contexts/SyllabusContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { Brain, BookOpen, Target, Users, Sparkles, ArrowRight, TrendingUp, Award, Star, History } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Index = () => {
-  const { user } = useAuth();
   const { subjects, getOverallProgress } = useSyllabus();
-
+  const { profile } = useAuth();
   const overallProgress = getOverallProgress();
 
-  const quickActions = [
+  const totalChapters = subjects.reduce((total, subject) => total + subject.chapters.length, 0);
+  const completedChapters = subjects.reduce(
+    (total, subject) => total + subject.chapters.filter(chapter => chapter.completed).length,
+    0
+  );
+
+  const recentlyStudied = subjects
+    .flatMap(subject => 
+      subject.chapters
+        .filter(chapter => chapter.completed)
+        .map(chapter => ({ ...chapter, subject: subject.name, icon: subject.icon }))
+    )
+    .slice(-3);
+
+  const features = [
     {
-      title: 'Track Syllabus',
-      description: 'Monitor your chapter completion progress',
+      icon: Brain,
+      title: 'AI-Powered Questions',
+      description: 'Generate unlimited practice questions tailored to your syllabus',
+      color: 'from-purple-400 to-pink-600'
+    },
+    {
+      icon: Target,
+      title: 'Smart Tracking',
+      description: 'Track your progress across all subjects with detailed analytics',
+      color: 'from-blue-400 to-indigo-600'
+    },
+    {
+      icon: Award,
+      title: 'Marks Prediction',
+      description: 'AI-powered predictions to help you achieve your target scores',
+      color: 'from-green-400 to-emerald-600'
+    },
+    {
       icon: BookOpen,
-      color: 'from-blue-500 to-blue-600',
-      href: '/syllabus'
-    },
-    {
-      title: 'Ask Doubts',
-      description: 'Get instant help with AI-powered doubt resolution',
-      icon: MessageCircleQuestion,
-      color: 'from-purple-500 to-purple-600',
-      href: '/doubts'
-    },
-    {
-      title: 'Predict Marks',
-      description: 'Estimate your exam performance based on progress',
-      icon: TrendingUp,
-      color: 'from-green-500 to-green-600',
-      href: '/predictor'
+      title: 'Complete Syllabus',
+      description: 'Comprehensive CBSE Class 10 curriculum with all subjects',
+      color: 'from-orange-400 to-red-600'
     }
   ];
 
-  const recentSubjects = subjects.slice(0, 3);
-
   return (
-    <MainLayout>
-      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-        {/* Welcome Section */}
-        <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
-            Welcome back! 👋
-          </h1>
-          <p className="text-muted-foreground text-base sm:text-lg">
-            Ready to continue your CBSE Class 10 journey? Let's make today productive!
-          </p>
+    <div className="max-w-6xl mx-auto p-4 lg:ml-64 space-y-8 scroll-smooth">
+      {/* Hero Section */}
+      <div className="text-center space-y-6 py-8 animate-fade-in">
+        <div className="inline-flex items-center space-x-2 bg-primary/10 px-4 py-2 rounded-full text-sm">
+          <Sparkles className="w-4 h-4 text-primary" />
+          <span className="text-primary font-medium">Welcome back, {profile?.name}!</span>
         </div>
+        
+        <h1 className="text-4xl md:text-6xl font-bold gradient-text leading-tight">
+          Your AI Study
+          <br />
+          <span className="text-primary">Companion</span>
+        </h1>
+        
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          Master Class 10 CBSE with intelligent question generation, progress tracking, and personalized learning insights
+        </p>
 
-        {/* Progress Overview */}
-        <Card className="bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Target className="w-5 h-5 text-primary" />
-              <span>Overall Progress</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-primary">{overallProgress}%</span>
-                <Badge variant={overallProgress >= 70 ? "default" : overallProgress >= 40 ? "secondary" : "outline"}>
-                  {overallProgress >= 70 ? "Excellent" : overallProgress >= 40 ? "Good" : "Keep Going"}
-                </Badge>
-              </div>
-              <Progress value={overallProgress} className="h-3" />
-              <p className="text-sm text-muted-foreground">
-                You've completed {overallProgress}% of your syllabus. {overallProgress >= 70 ? "Amazing work!" : "Keep it up!"}
-              </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <Link to="/questions">
+            <Button size="lg" className="px-8 py-6 text-lg smooth-transition hover:scale-105">
+              <Brain className="w-5 h-5 mr-2" />
+              Generate Questions
+            </Button>
+          </Link>
+          <Link to="/syllabus">
+            <Button variant="outline" size="lg" className="px-8 py-6 text-lg smooth-transition hover:scale-105">
+              <BookOpen className="w-5 h-5 mr-2" />
+              Track Progress
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Progress Overview */}
+      <Card className="glass-card smooth-transition hover:shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <TrendingUp className="w-5 h-5" />
+            <span>Your Learning Progress</span>
+          </CardTitle>
+          <CardDescription>Track your journey across all subjects</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="text-center space-y-2">
+              <div className="text-3xl font-bold text-primary">{overallProgress}%</div>
+              <p className="text-sm text-muted-foreground">Overall Completion</p>
+              <Progress value={overallProgress} className="h-2" />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {quickActions.map((action, index) => {
-              const Icon = action.icon;
-              return (
-                <Link key={index} to={action.href}>
-                  <Card className="h-full transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer group">
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${action.color} flex items-center justify-center`}>
-                          <Icon className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="space-y-2">
-                          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                            {action.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {action.description}
-                          </p>
-                        </div>
-                        <div className="flex items-center text-primary text-sm font-medium">
-                          Get Started
-                          <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              );
-            })}
+            <div className="text-center space-y-2">
+              <div className="text-3xl font-bold text-green-600">{completedChapters}</div>
+              <p className="text-sm text-muted-foreground">Chapters Completed</p>
+              <Badge variant="outline">{totalChapters} Total</Badge>
+            </div>
+            <div className="text-center space-y-2">
+              <div className="text-3xl font-bold text-blue-600">{subjects.length}</div>
+              <p className="text-sm text-muted-foreground">Active Subjects</p>
+              <Badge variant="secondary">CBSE Board</Badge>
+            </div>
           </div>
-        </div>
 
-        {/* Recent Subjects */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Your Subjects</h2>
-            <Link to="/syllabus">
-              <Button variant="outline" size="sm">
-                View All
-                <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
+          {recentlyStudied.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm text-muted-foreground">Recently Completed</h4>
+              <div className="flex flex-wrap gap-2">
+                {recentlyStudied.map((chapter, index) => (
+                  <Badge key={index} variant="outline" className="flex items-center space-x-1">
+                    <span>{chapter.icon}</span>
+                    <span className="text-xs">{chapter.name}</span>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Feature Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {features.map((feature, index) => (
+          <Card key={index} className="glass-card smooth-transition hover:shadow-lg hover:scale-105 group">
+            <CardHeader>
+              <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 smooth-transition`}>
+                <feature.icon className="w-6 h-6 text-white" />
+              </div>
+              <CardTitle className="text-xl">{feature.title}</CardTitle>
+              <CardDescription className="text-base">{feature.description}</CardDescription>
+            </CardHeader>
+          </Card>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <Card className="glass-card smooth-transition">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Sparkles className="w-5 h-5" />
+            <span>Quick Actions</span>
+          </CardTitle>
+          <CardDescription>Jump into your study session</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <Link to="/questions" className="group">
+              <div className="p-4 border rounded-lg smooth-transition hover:shadow-md hover:border-primary group-hover:scale-105">
+                <Brain className="w-8 h-8 text-primary mb-2" />
+                <h4 className="font-medium">Practice Questions</h4>
+                <p className="text-sm text-muted-foreground">AI-generated practice</p>
+                <ArrowRight className="w-4 h-4 mt-2 text-primary opacity-0 group-hover:opacity-100 smooth-transition" />
+              </div>
+            </Link>
+
+            <Link to="/syllabus" className="group">
+              <div className="p-4 border rounded-lg smooth-transition hover:shadow-md hover:border-primary group-hover:scale-105">
+                <BookOpen className="w-8 h-8 text-green-600 mb-2" />
+                <h4 className="font-medium">Syllabus Tracker</h4>
+                <p className="text-sm text-muted-foreground">Track your progress</p>
+                <ArrowRight className="w-4 h-4 mt-2 text-green-600 opacity-0 group-hover:opacity-100 smooth-transition" />
+              </div>
+            </Link>
+
+            <Link to="/predictor" className="group">
+              <div className="p-4 border rounded-lg smooth-transition hover:shadow-md hover:border-primary group-hover:scale-105">
+                <Target className="w-8 h-8 text-blue-600 mb-2" />
+                <h4 className="font-medium">Marks Predictor</h4>
+                <p className="text-sm text-muted-foreground">Predict your scores</p>
+                <ArrowRight className="w-4 h-4 mt-2 text-blue-600 opacity-0 group-hover:opacity-100 smooth-transition" />
+              </div>
+            </Link>
+
+            <Link to="/bookmarks" className="group">
+              <div className="p-4 border rounded-lg smooth-transition hover:shadow-md hover:border-primary group-hover:scale-105">
+                <Star className="w-8 h-8 text-yellow-600 mb-2" />
+                <h4 className="font-medium">Bookmarks</h4>
+                <p className="text-sm text-muted-foreground">Saved questions</p>
+                <ArrowRight className="w-4 h-4 mt-2 text-yellow-600 opacity-0 group-hover:opacity-100 smooth-transition" />
+              </div>
+            </Link>
+
+            <Link to="/history" className="group">
+              <div className="p-4 border rounded-lg smooth-transition hover:shadow-md hover:border-primary group-hover:scale-105">
+                <History className="w-8 h-8 text-purple-600 mb-2" />
+                <h4 className="font-medium">History</h4>
+                <p className="text-sm text-muted-foreground">View chat history</p>
+                <ArrowRight className="w-4 h-4 mt-2 text-purple-600 opacity-0 group-hover:opacity-100 smooth-transition" />
+              </div>
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {recentSubjects.map((subject) => {
-              const completedChapters = subject.chapters.filter(ch => ch.completed).length;
-              const totalChapters = subject.chapters.length;
-              const progress = totalChapters > 0 ? (completedChapters / totalChapters) * 100 : 0;
+        </CardContent>
+      </Card>
 
+      {/* Subject Overview */}
+      <Card className="glass-card smooth-transition">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <BookOpen className="w-5 h-5" />
+            <span>Subject Overview</span>
+          </CardTitle>
+          <CardDescription>Your progress across all subjects</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {subjects.slice(0, 6).map((subject) => {
+              const completedCount = subject.chapters.filter(ch => ch.completed).length;
+              const progress = (completedCount / subject.chapters.length) * 100;
+              
               return (
-                <Card key={subject.id} className="transition-all duration-200 hover:shadow-md">
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${subject.color} flex items-center justify-center text-white text-lg`}>
-                          {subject.icon}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold truncate">{subject.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {completedChapters}/{totalChapters} chapters
-                          </p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Progress</span>
-                          <span className="font-medium">{Math.round(progress)}%</span>
-                        </div>
-                        <Progress value={progress} className="h-2" />
-                      </div>
+                <div key={subject.id} className="p-4 border rounded-lg smooth-transition hover:shadow-md hover:scale-105">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <span className="text-2xl">{subject.icon}</span>
+                    <div>
+                      <h4 className="font-medium text-sm">{subject.name}</h4>
+                      <p className="text-xs text-muted-foreground">{completedCount}/{subject.chapters.length} chapters</p>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                  <Progress value={progress} className="h-2" />
+                  <p className="text-xs text-muted-foreground mt-2">{Math.round(progress)}% complete</p>
+                </div>
               );
             })}
           </div>
-        </div>
-
-        {/* Motivational Section */}
-        <Card className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800">
-          <CardContent className="p-6">
-            <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
-                <Trophy className="w-6 h-6 text-amber-600" />
-              </div>
-              <div className="flex-1 space-y-2">
-                <h3 className="font-semibold text-amber-900 dark:text-amber-100">
-                  Keep Up the Great Work! 🌟
-                </h3>
-                <p className="text-amber-800 dark:text-amber-200 text-sm">
-                  Consistency is key to success. Every chapter completed brings you closer to your goals. 
-                  {overallProgress >= 50 ? " You're doing amazing!" : " You've got this!"}
-                </p>
-              </div>
+          
+          {subjects.length > 6 && (
+            <div className="text-center mt-6">
+              <Link to="/syllabus">
+                <Button variant="outline" className="smooth-transition hover:scale-105">
+                  View All Subjects
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </MainLayout>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
