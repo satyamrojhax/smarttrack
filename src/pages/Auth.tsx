@@ -21,7 +21,7 @@ const Auth: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login, register } = useAuth();
+  const { login, signup } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,13 +30,11 @@ const Auth: React.FC = () => {
 
     try {
       if (isLogin) {
-        const success = await login(formData.email, formData.password);
-        if (success) {
-          toast({
-            title: "Welcome back!",
-            description: "Successfully logged in to Axiom Smart Track",
-          });
-        }
+        login({ email: formData.email, password: formData.password });
+        toast({
+          title: "Welcome back!",
+          description: "Successfully logged in to Axiom Smart Track",
+        });
       } else {
         if (!formData.name || !formData.className || !formData.board) {
           toast({
@@ -46,13 +44,17 @@ const Auth: React.FC = () => {
           });
           return;
         }
-        const success = await register(formData.name, formData.email, formData.password, formData.className, formData.board);
-        if (success) {
-          toast({
-            title: "Account Created!",
-            description: "Welcome to Axiom Smart Track. Let's start your learning journey!",
-          });
-        }
+        signup({ 
+          name: formData.name, 
+          email: formData.email, 
+          password: formData.password, 
+          class: formData.className, 
+          board: formData.board 
+        });
+        toast({
+          title: "Account Created!",
+          description: "Welcome to Axiom Smart Track. Let's start your learning journey!",
+        });
       }
     } catch (error) {
       toast({
@@ -165,7 +167,6 @@ const Auth: React.FC = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="cbse">CBSE</SelectItem>
-                        <SelectItem value="icse">ICSE</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
