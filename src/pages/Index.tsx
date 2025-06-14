@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useSyllabus } from '@/contexts/SyllabusContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Brain, BookOpen, Target, Users, Sparkles, ArrowRight, TrendingUp, Award, Star } from 'lucide-react';
+import { Brain, BookOpen, Target, Users, Sparkles, ArrowRight, TrendingUp, Award, Star, History } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Index = () => {
@@ -159,7 +159,7 @@ const Index = () => {
           <CardDescription>Jump into your study session</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <Link to="/questions" className="group">
               <div className="p-4 border rounded-lg smooth-transition hover:shadow-md hover:border-primary group-hover:scale-105">
                 <Brain className="w-8 h-8 text-primary mb-2" />
@@ -193,6 +193,15 @@ const Index = () => {
                 <h4 className="font-medium">Bookmarks</h4>
                 <p className="text-sm text-muted-foreground">Saved questions</p>
                 <ArrowRight className="w-4 h-4 mt-2 text-yellow-600 opacity-0 group-hover:opacity-100 smooth-transition" />
+              </div>
+            </Link>
+
+            <Link to="/history" className="group">
+              <div className="p-4 border rounded-lg smooth-transition hover:shadow-md hover:border-primary group-hover:scale-105">
+                <History className="w-8 h-8 text-purple-600 mb-2" />
+                <h4 className="font-medium">History</h4>
+                <p className="text-sm text-muted-foreground">View chat history</p>
+                <ArrowRight className="w-4 h-4 mt-2 text-purple-600 opacity-0 group-hover:opacity-100 smooth-transition" />
               </div>
             </Link>
           </div>
