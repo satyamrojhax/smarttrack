@@ -126,7 +126,8 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     board: string; 
   }) => {
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      // Use the current origin as the redirect URL
+      const redirectUrl = window.location.origin;
       
       const { data, error } = await supabase.auth.signUp({
         email: userData.email,
@@ -135,8 +136,8 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
           emailRedirectTo: redirectUrl,
           data: {
             name: userData.name,
-            class: userData.class as 'class-9' | 'class-10' | 'class-11' | 'class-12',
-            board: userData.board as 'cbse' | 'icse' | 'state',
+            class: 'class-10', // Fixed to class-10 only
+            board: 'cbse', // Fixed to CBSE only
           }
         }
       });
@@ -166,8 +167,8 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         .from('profiles')
         .update({
           name: updatedProfile.name,
-          class: updatedProfile.class as 'class-9' | 'class-10' | 'class-11' | 'class-12',
-          board: updatedProfile.board as 'cbse' | 'icse' | 'state',
+          class: 'class-10', // Fixed to class-10 only
+          board: 'cbse', // Fixed to CBSE only
         })
         .eq('id', user.id)
         .select()

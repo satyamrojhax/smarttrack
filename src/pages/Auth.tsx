@@ -4,11 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, ChevronLeft, Brain, Mail, CheckCircle, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, ChevronLeft, Brain, Mail, CheckCircle } from 'lucide-react';
 
 interface AuthProps {
   onBack?: () => void;
@@ -22,8 +21,6 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
     name: '',
     email: '',
     password: '',
-    className: '',
-    board: ''
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -50,7 +47,7 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
           });
         }
       } else {
-        if (!formData.name || !formData.className || !formData.board) {
+        if (!formData.name) {
           toast({
             title: "Missing Information",
             description: "Please fill in all required fields",
@@ -63,8 +60,8 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
           name: formData.name, 
           email: formData.email, 
           password: formData.password, 
-          class: formData.className, 
-          board: formData.board 
+          class: 'class-10', // Fixed value
+          board: 'cbse' // Fixed value
         });
         
         if (result.success) {
@@ -206,6 +203,11 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
                   : 'Free forever. No credit card needed.'
                 }
               </CardDescription>
+              {!isLogin && (
+                <div className="mt-2 text-xs text-gray-500 bg-blue-50 p-2 rounded-lg">
+                  For Class 10 CBSE students
+                </div>
+              )}
             </CardHeader>
             
             <CardContent className="px-6 pb-6">
@@ -275,39 +277,6 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
                     </div>
                   )}
                 </div>
-
-                {!isLogin && (
-                  <>
-                    <div className="space-y-1">
-                      <Label htmlFor="class" className="text-sm font-medium text-gray-700">Class</Label>
-                      <Select value={formData.className} onValueChange={(value) => handleInputChange('className', value)}>
-                        <SelectTrigger className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 transition-colors">
-                          <SelectValue placeholder="Select your class" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="class-9">Class 9</SelectItem>
-                          <SelectItem value="class-10">Class 10</SelectItem>
-                          <SelectItem value="class-11">Class 11</SelectItem>
-                          <SelectItem value="class-12">Class 12</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label htmlFor="board" className="text-sm font-medium text-gray-700">Board</Label>
-                      <Select value={formData.board} onValueChange={(value) => handleInputChange('board', value)}>
-                        <SelectTrigger className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 transition-colors">
-                          <SelectValue placeholder="Select your board" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="cbse">CBSE</SelectItem>
-                          <SelectItem value="icse">ICSE</SelectItem>
-                          <SelectItem value="state">State Board</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                )}
 
                 <Button 
                   type="submit" 
