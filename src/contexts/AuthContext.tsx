@@ -24,32 +24,40 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Helper function to fetch profile safely
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const profileData = await fetchProfile(userId);
+      setProfile(profileData);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      setProfile(null);
+    }
+  };
+
   // Set up auth state listener
   useEffect(() => {
     console.log('Setting up auth state listener');
     
-    // Set up auth state change listener FIRST
+    // Set up auth state change listener FIRST - NO async operations inside!
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state changed:', event, session);
         
+        // Only synchronous state updates here
         setSession(session);
         setUser(session?.user ?? null);
         
+        // Defer profile fetching to avoid deadlocks
         if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-          try {
-            const profileData = await fetchProfile(session.user.id);
-            setProfile(profileData);
-          } catch (error) {
-            console.error('Error fetching profile during auth state change:', error);
-            // Don't block the app if profile fetch fails
-            setProfile(null);
-          }
+          setTimeout(() => {
+            fetchUserProfile(session.user.id);
+          }, 0);
         } else if (event === 'SIGNED_OUT') {
           setProfile(null);
         }
         
-        // Always ensure loading is set to false after handling auth state change
+        // Always ensure loading is set to false
         setIsLoading(false);
       }
     );
@@ -64,14 +72,8 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          try {
-            const profileData = await fetchProfile(session.user.id);
-            setProfile(profileData);
-          } catch (error) {
-            console.error('Error fetching profile:', error);
-            // Continue loading the app even if profile fetch fails
-            setProfile(null);
-          }
+          // Fetch profile after setting user
+          await fetchUserProfile(session.user.id);
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
