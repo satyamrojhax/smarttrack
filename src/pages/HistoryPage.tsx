@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { History, MessageSquare, BookOpen, Calendar, User, Bot, Brain, CheckCircle, XCircle } from 'lucide-react';
+import { History, MessageSquare, BookOpen, Calendar, User, Bot, Brain, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { getUserDoubts, getDoubtHistory, type Doubt, type DoubtResponse } from '@/services/doubtService';
 import { getUserBookmarks } from '@/services/bookmarkService';
 import { getUserQuestionHistory, type QuestionHistory } from '@/services/questionHistoryService';
@@ -40,12 +40,14 @@ const HistoryPage = () => {
   const loadHistoryData = async () => {
     try {
       setIsLoading(true);
+      console.log('Loading history data...');
       const [doubtsData, bookmarksData, questionsData] = await Promise.all([
         getUserDoubts(),
         getUserBookmarks(),
         getUserQuestionHistory()
       ]);
       
+      console.log('History data loaded:', { doubtsData, bookmarksData, questionsData });
       setDoubts(doubtsData);
       setBookmarks(bookmarksData);
       setQuestionHistory(questionsData);
@@ -78,7 +80,7 @@ const HistoryPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center min-h-screen p-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
           <p className="text-muted-foreground">Loading history...</p>
@@ -88,120 +90,137 @@ const HistoryPage = () => {
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold flex items-center justify-center gap-2 mb-2">
-          <History className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-          <span>Learning History</span>
-        </h2>
-        <p className="text-muted-foreground">Track your doubts, conversations, questions, and bookmarked content</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-4 max-w-7xl">
+        {/* Header - Mobile Optimized */}
+        <div className="text-center mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-2 mb-2">
+            <History className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+            <span>Learning History</span>
+          </h2>
+          <p className="text-sm md:text-base text-muted-foreground px-2">
+            Track your doubts, conversations, questions, and bookmarked content
+          </p>
+        </div>
 
-      {/* Tabs */}
-      <div className="flex space-x-1 p-1 bg-muted rounded-lg w-fit mx-auto">
-        <Button
-          variant={activeTab === 'doubts' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setActiveTab('doubts')}
-          className="flex items-center gap-2"
-        >
-          <MessageSquare className="w-4 h-4" />
-          Doubts ({doubts.length})
-        </Button>
-        <Button
-          variant={activeTab === 'questions' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setActiveTab('questions')}
-          className="flex items-center gap-2"
-        >
-          <Brain className="w-4 h-4" />
-          Questions ({questionHistory.length})
-        </Button>
-        <Button
-          variant={activeTab === 'bookmarks' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setActiveTab('bookmarks')}
-          className="flex items-center gap-2"
-        >
-          <BookOpen className="w-4 h-4" />
-          Bookmarks ({bookmarks.length})
-        </Button>
-      </div>
+        {/* Refresh Button - Mobile */}
+        <div className="flex justify-center mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadHistoryData}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </Button>
+        </div>
 
-      {/* Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Panel - List */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {activeTab === 'doubts' ? (
-                <>
-                  <MessageSquare className="w-5 h-5" />
-                  Your Doubts
-                </>
-              ) : activeTab === 'questions' ? (
-                <>
-                  <Brain className="w-5 h-5" />
-                  Question History
-                </>
-              ) : (
-                <>
-                  <BookOpen className="w-5 h-5" />
-                  Bookmarked Questions
-                </>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ScrollArea className="h-96">
-              <div className="space-y-2 p-4">
+        {/* Tabs - Mobile Optimized */}
+        <div className="flex flex-col sm:flex-row justify-center mb-6">
+          <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1 p-1 bg-muted rounded-lg w-full sm:w-fit">
+            <Button
+              variant={activeTab === 'doubts' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('doubts')}
+              className="flex items-center gap-2 justify-center w-full sm:w-auto text-xs sm:text-sm"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Doubts ({doubts.length})
+            </Button>
+            <Button
+              variant={activeTab === 'questions' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('questions')}
+              className="flex items-center gap-2 justify-center w-full sm:w-auto text-xs sm:text-sm"
+            >
+              <Brain className="w-4 h-4" />
+              Questions ({questionHistory.length})
+            </Button>
+            <Button
+              variant={activeTab === 'bookmarks' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('bookmarks')}
+              className="flex items-center gap-2 justify-center w-full sm:w-auto text-xs sm:text-sm"
+            >
+              <BookOpen className="w-4 h-4" />
+              Bookmarks ({bookmarks.length})
+            </Button>
+          </div>
+        </div>
+
+        {/* Content - Mobile First Design */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+          {/* Left Panel - List */}
+          <Card className="glass-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
                 {activeTab === 'doubts' ? (
-                  doubts.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p>No doubts asked yet</p>
-                    </div>
-                  ) : (
-                    doubts.map((doubt) => (
-                      <Card 
-                        key={doubt.id} 
-                        className={`cursor-pointer transition-colors ${
-                          selectedDoubt === doubt.id ? 'ring-2 ring-primary' : 'hover:bg-muted/50'
-                        }`}
-                        onClick={() => loadDoubtHistory(doubt.id)}
-                      >
-                        <CardContent className="p-3">
-                          <h4 className="font-medium text-sm mb-1">{doubt.title}</h4>
-                          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                            {doubt.description}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <Badge variant={doubt.status === 'open' ? 'default' : 'secondary'} className="text-xs">
-                              {doubt.status}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {new Date(doubt.created_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  )
+                  <>
+                    <MessageSquare className="w-5 h-5" />
+                    Your Doubts
+                  </>
                 ) : activeTab === 'questions' ? (
-                  questionHistory.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Brain className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p>No questions attempted yet</p>
-                    </div>
-                  ) : (
-                    questionHistory.map((question) => (
-                      <Card key={question.id} className="hover:bg-muted/50">
-                        <CardContent className="p-3">
-                          <p className="text-sm mb-2 line-clamp-2">{question.question_text}</p>
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
+                  <>
+                    <Brain className="w-5 h-5" />
+                    Question History
+                  </>
+                ) : (
+                  <>
+                    <BookOpen className="w-5 h-5" />
+                    Bookmarked Questions
+                  </>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ScrollArea className="h-[400px] lg:h-[500px]">
+                <div className="space-y-2 p-4">
+                  {activeTab === 'doubts' ? (
+                    doubts.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No doubts asked yet</p>
+                      </div>
+                    ) : (
+                      doubts.map((doubt) => (
+                        <Card 
+                          key={doubt.id} 
+                          className={`cursor-pointer transition-colors ${
+                            selectedDoubt === doubt.id ? 'ring-2 ring-primary' : 'hover:bg-muted/50'
+                          }`}
+                          onClick={() => loadDoubtHistory(doubt.id)}
+                        >
+                          <CardContent className="p-3">
+                            <h4 className="font-medium text-sm mb-1 line-clamp-1">{doubt.title}</h4>
+                            <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                              {doubt.description}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <Badge variant={doubt.status === 'open' ? 'default' : 'secondary'} className="text-xs">
+                                {doubt.status}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {new Date(doubt.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )
+                  ) : activeTab === 'questions' ? (
+                    questionHistory.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Brain className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No questions attempted yet</p>
+                      </div>
+                    ) : (
+                      questionHistory.map((question) => (
+                        <Card key={question.id} className="hover:bg-muted/50">
+                          <CardContent className="p-3">
+                            <p className="text-sm mb-2 line-clamp-2">{question.question_text}</p>
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
                               <Badge variant="outline" className="text-xs">
                                 {question.question_type || 'Question'}
                               </Badge>
@@ -210,156 +229,154 @@ const HistoryPage = () => {
                                   Level {question.difficulty_level}
                                 </Badge>
                               )}
+                              {question.is_correct !== null && (
+                                <div className="flex items-center gap-1">
+                                  {question.is_correct ? (
+                                    <CheckCircle className="w-4 h-4 text-green-500" />
+                                  ) : (
+                                    <XCircle className="w-4 h-4 text-red-500" />
+                                  )}
+                                </div>
+                              )}
                             </div>
-                            {question.is_correct !== null && (
-                              <div className="flex items-center gap-1">
-                                {question.is_correct ? (
-                                  <CheckCircle className="w-4 h-4 text-green-500" />
-                                ) : (
-                                  <XCircle className="w-4 h-4 text-red-500" />
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex items-center justify-between">
-                            {question.time_taken && (
-                              <span className="text-xs text-muted-foreground">
-                                Time: {question.time_taken}s
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              {question.time_taken && (
+                                <span>Time: {question.time_taken}s</span>
+                              )}
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {new Date(question.created_at).toLocaleDateString()}
                               </span>
-                            )}
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {new Date(question.created_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  )
-                ) : (
-                  bookmarks.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p>No bookmarks saved yet</p>
-                    </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )
                   ) : (
-                    bookmarks.map((bookmark) => (
-                      <Card key={bookmark.id} className="hover:bg-muted/50">
-                        <CardContent className="p-3">
-                          <p className="text-sm mb-2">{bookmark.questions?.question_text}</p>
-                          <div className="flex items-center justify-between">
-                            <Badge variant="outline" className="text-xs">
-                              {bookmark.questions?.question_type || 'Question'}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {new Date(bookmark.created_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  )
-                )}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-
-        {/* Right Panel - Details */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {activeTab === 'doubts' ? (
-                <>
-                  <MessageSquare className="w-5 h-5" />
-                  Conversation History
-                </>
-              ) : activeTab === 'questions' ? (
-                <>
-                  <Brain className="w-5 h-5" />
-                  Question Details
-                </>
-              ) : (
-                <>
-                  <BookOpen className="w-5 h-5" />
-                  Bookmark Details
-                </>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {activeTab === 'doubts' && selectedDoubt && doubtHistory.length > 0 ? (
-              <ScrollArea className="h-96">
-                <div className="space-y-3 p-4">
-                  {doubtHistory.map((response) => (
-                    <div
-                      key={response.id}
-                      className={`flex items-start gap-3 ${
-                        response.is_ai_response ? '' : 'flex-row-reverse'
-                      }`}
-                    >
-                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                        response.is_ai_response 
-                          ? 'bg-secondary text-secondary-foreground' 
-                          : 'bg-primary text-primary-foreground'
-                      }`}>
-                        {response.is_ai_response ? (
-                          <Bot className="w-4 h-4" />
-                        ) : (
-                          <User className="w-4 h-4" />
-                        )}
+                    bookmarks.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No bookmarks saved yet</p>
                       </div>
-                      
-                      <div className={`flex-1 max-w-[80%] ${
-                        response.is_ai_response ? '' : 'text-right'
-                      }`}>
-                        <div className={`inline-block p-3 rounded-2xl text-sm ${
-                          response.is_ai_response
-                            ? 'bg-secondary/50 text-secondary-foreground border'
-                            : 'bg-primary text-primary-foreground'
-                        }`}>
-                          <div className="whitespace-pre-wrap leading-relaxed">
-                            {response.response_text}
-                          </div>
-                        </div>
-                        <div className={`text-xs text-muted-foreground mt-1 ${
-                          response.is_ai_response ? 'text-left' : 'text-right'
-                        }`}>
-                          {new Date(response.created_at).toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            ) : (
-              <div className="flex items-center justify-center h-96 text-muted-foreground">
-                <div className="text-center">
-                  {activeTab === 'doubts' ? (
-                    <>
-                      <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p>Select a doubt to view conversation</p>
-                    </>
-                  ) : activeTab === 'questions' ? (
-                    <>
-                      <Brain className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p>Question details will appear here</p>
-                    </>
-                  ) : (
-                    <>
-                      <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p>Bookmark details will appear here</p>
-                    </>
+                    ) : (
+                      bookmarks.map((bookmark) => (
+                        <Card key={bookmark.id} className="hover:bg-muted/50">
+                          <CardContent className="p-3">
+                            <p className="text-sm mb-2 line-clamp-2">{bookmark.questions?.question_text}</p>
+                            <div className="flex items-center justify-between">
+                              <Badge variant="outline" className="text-xs">
+                                {bookmark.questions?.question_type || 'Question'}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {new Date(bookmark.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )
                   )}
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          {/* Right Panel - Details */}
+          <Card className="glass-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                {activeTab === 'doubts' ? (
+                  <>
+                    <MessageSquare className="w-5 h-5" />
+                    Conversation History
+                  </>
+                ) : activeTab === 'questions' ? (
+                  <>
+                    <Brain className="w-5 h-5" />
+                    Question Details
+                  </>
+                ) : (
+                  <>
+                    <BookOpen className="w-5 h-5" />
+                    Bookmark Details
+                  </>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {activeTab === 'doubts' && selectedDoubt && doubtHistory.length > 0 ? (
+                <ScrollArea className="h-[400px] lg:h-[500px]">
+                  <div className="space-y-3 p-4">
+                    {doubtHistory.map((response) => (
+                      <div
+                        key={response.id}
+                        className={`flex items-start gap-3 ${
+                          response.is_ai_response ? '' : 'flex-row-reverse'
+                        }`}
+                      >
+                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                          response.is_ai_response 
+                            ? 'bg-secondary text-secondary-foreground' 
+                            : 'bg-primary text-primary-foreground'
+                        }`}>
+                          {response.is_ai_response ? (
+                            <Bot className="w-4 h-4" />
+                          ) : (
+                            <User className="w-4 h-4" />
+                          )}
+                        </div>
+                        
+                        <div className={`flex-1 max-w-[85%] sm:max-w-[80%] ${
+                          response.is_ai_response ? '' : 'text-right'
+                        }`}>
+                          <div className={`inline-block p-3 rounded-2xl text-sm break-words ${
+                            response.is_ai_response
+                              ? 'bg-secondary/50 text-secondary-foreground border'
+                              : 'bg-primary text-primary-foreground'
+                          }`}>
+                            <div className="whitespace-pre-wrap leading-relaxed">
+                              {response.response_text}
+                            </div>
+                          </div>
+                          <div className={`text-xs text-muted-foreground mt-1 ${
+                            response.is_ai_response ? 'text-left' : 'text-right'
+                          }`}>
+                            {new Date(response.created_at).toLocaleTimeString([], { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="flex items-center justify-center h-[400px] lg:h-[500px] text-muted-foreground p-4">
+                  <div className="text-center">
+                    {activeTab === 'doubts' ? (
+                      <>
+                        <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">Select a doubt to view conversation</p>
+                      </>
+                    ) : activeTab === 'questions' ? (
+                      <>
+                        <Brain className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">Question details will appear here</p>
+                      </>
+                    ) : (
+                      <>
+                        <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">Bookmark details will appear here</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
