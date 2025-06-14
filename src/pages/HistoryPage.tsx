@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,14 +32,29 @@ const HistoryPage: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('doubts')
-        .select('id, subject, question, status, created_at')
+        .select(`
+          id, 
+          title, 
+          description, 
+          status, 
+          created_at,
+          subjects(name)
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching doubt history:', error);
       } else {
-        setDoubts(data || []);
+        // Transform the data to match our interface
+        const transformedDoubts = (data || []).map(doubt => ({
+          id: doubt.id,
+          subject: doubt.subjects?.name || 'Unknown Subject',
+          question: doubt.title,
+          status: doubt.status || 'open',
+          created_at: doubt.created_at
+        }));
+        setDoubts(transformedDoubts);
       }
     } catch (error) {
       console.error('Error fetching doubt history:', error);
