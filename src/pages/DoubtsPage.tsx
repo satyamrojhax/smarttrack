@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { DoubtAssistant } from '@/components/DoubtAssistant';
+import { ChatInterface } from '@/components/ChatInterface';
 
 const DoubtsPage: React.FC = () => {
   return (
-    <div className="w-full">
-      <DoubtAssistant />
+    <div className="h-[calc(100vh-8rem)] w-full">
+      <ChatInterface />
     </div>
   );
 };
