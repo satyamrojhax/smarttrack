@@ -13,7 +13,6 @@ export const fetchProfile = async (userId: string) => {
     
     if (error) {
       console.error('Error fetching profile:', error);
-      // Try to create profile from user metadata
       return await createProfileFromUser(userId);
     }
     
@@ -26,7 +25,6 @@ export const fetchProfile = async (userId: string) => {
     return data;
   } catch (error) {
     console.error('Error in fetchProfile:', error);
-    // Try to create profile from user metadata as fallback
     return await createProfileFromUser(userId);
   }
 };
@@ -37,7 +35,7 @@ export const createProfileFromUser = async (userId: string) => {
     
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      console.log('No user found, returning null profile');
+      console.error('No user found for profile creation');
       return null;
     }
 
@@ -60,17 +58,14 @@ export const createProfileFromUser = async (userId: string) => {
 
     if (error) {
       console.error('Error creating profile:', error);
-      // Return the profile data even if insert fails - this allows the app to continue loading
-      console.log('Returning profile data despite insert error');
-      return profileData;
+      throw error;
     }
 
     console.log('Profile created successfully:', data);
     return data;
   } catch (error) {
     console.error('Error creating profile from user:', error);
-    // Return null instead of throwing - this allows the app to continue loading
-    return null;
+    throw error;
   }
 };
 
@@ -80,19 +75,53 @@ export const updateProfileInDB = async (userId: string, updatedProfile: { name: 
       .from('profiles')
       .update({
         name: updatedProfile.name,
-        class: 'class-10' as const,
-        board: 'cbse' as const,
+        class: updatedProfile.class as 'class-10',
+        board: updatedProfile.board as 'cbse',
       })
       .eq('id', userId)
       .select()
       .maybeSingle();
 
     if (error) {
+      console.error('Error updating profile:', error);
       return { success: false, error: error.message };
     }
 
+    console.log('Profile updated successfully:', data);
     return { success: true, data };
   } catch (error) {
+    console.error('Unexpected error updating profile:', error);
     return { success: false, error: 'An unexpected error occurred' };
+  }
+};
+
+// Helper function to ensure user data is properly tracked
+export const ensureUserDataTracking = async (userId: string) => {
+  try {
+    // Check if user has any progress data
+    const { data: progressData } = await supabase
+      .from('user_progress')
+      .select('id')
+      .eq('user_id', userId)
+      .limit(1);
+
+    console.log('User progress data check:', { userId, hasProgress: !!progressData?.length });
+
+    // Check if user has profile
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    console.log('User profile data check:', { userId, hasProfile: !!profileData });
+
+    return {
+      hasProfile: !!profileData,
+      hasProgress: !!progressData?.length
+    };
+  } catch (error) {
+    console.error('Error checking user data:', error);
+    return { hasProfile: false, hasProgress: false };
   }
 };

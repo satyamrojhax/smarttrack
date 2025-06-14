@@ -21,7 +21,26 @@ import BookmarksPage from "./pages/BookmarksPage";
 import DoubtsPage from "./pages/DoubtsPage";
 import MainLayout from "./components/MainLayout";
 
-const queryClient = new QueryClient();
+// Optimize query client for better performance
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+      <p className="mt-4 text-muted-foreground animate-pulse">Loading your study space...</p>
+    </div>
+  </div>
+);
 
 const AppContent = () => {
   const { user, isLoading } = useAuth();
@@ -29,7 +48,7 @@ const AppContent = () => {
   const [showLanding, setShowLanding] = useState(false);
 
   useEffect(() => {
-    console.log('AppContent - Auth state:', { user, isLoading });
+    console.log('AppContent - Auth state:', { user: !!user, isLoading });
     
     if (isLoading) return;
     
@@ -64,27 +83,27 @@ const AppContent = () => {
     setShowOnboarding(false);
   };
 
+  // Show loading spinner with better UX
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
+  // Show landing page
   if (showLanding) {
     return <Landing onGetStarted={handleLandingComplete} />;
   }
 
+  // Show onboarding
   if (showOnboarding) {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
-  // If user exists, show the main app - profile can be null and that's fine
+  // Show auth page if no user
   if (!user) {
     return <Auth onBack={handleBackToLanding} />;
   }
 
+  // Show main app - user is authenticated
   return (
     <SyllabusProvider>
       <MainLayout>

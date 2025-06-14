@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -32,41 +32,48 @@ export const DoubtAssistant = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  // Optimized scroll function with requestAnimationFrame
+  const scrollToBottom = useCallback(() => {
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end'
+      });
+    });
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
-  const formatAIResponse = (text: string): string => {
+  const formatAIResponse = useCallback((text: string): string => {
     return text
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
       .replace(/#{1,6}\s*/g, '')
       .replace(/\n\s*\n/g, '\n\n')
       .replace(/^\s+|\s+$/g, '');
-  };
+  }, []);
 
-  const sendMessage = async () => {
-    if (!inputMessage.trim()) return;
+  const sendMessage = useCallback(async () => {
+    if (!inputMessage.trim() || isLoading) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `user-${Date.now()}`,
       content: inputMessage,
       role: 'user',
       timestamp: Date.now()
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputMessage;
     setInputMessage('');
     setIsLoading(true);
 
     try {
       const prompt = `You are an AI tutor for Class 10 CBSE students. Give SHORT, DIRECT answers only.
 
-Student's question: "${inputMessage}"
+Student's question: "${currentInput}"
 
 IMPORTANT RULES:
 - Keep answers under 100 words
@@ -80,6 +87,9 @@ IMPORTANT RULES:
 
 Answer briefly:`;
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
         method: 'POST',
         headers: {
@@ -91,18 +101,26 @@ Answer briefly:`;
               text: prompt
             }]
           }]
-        })
+        }),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error('Failed to get response from AI');
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
+      
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+        throw new Error('Invalid response format from AI');
+      }
+
       const aiResponse = formatAIResponse(data.candidates[0].content.parts[0].text);
 
       const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: `assistant-${Date.now()}`,
         content: aiResponse,
         role: 'assistant',
         timestamp: Date.now()
@@ -112,31 +130,84 @@ Answer briefly:`;
 
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      let errorMessage = "Sorry, couldn't process that. Try again!";
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMessage = "Request timed out. Please try again with a shorter question.";
+        } else if (error.message.includes('HTTP error')) {
+          errorMessage = "Network error. Please check your connection and try again.";
+        }
+      }
+
       toast({
         title: "Error",
-        description: "Couldn't process your question. Try again!",
+        description: errorMessage,
         variant: "destructive"
       });
 
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "Sorry, couldn't process that. Try again!",
+      const errorResponse: Message = {
+        id: `error-${Date.now()}`,
+        content: errorMessage,
         role: 'assistant',
         timestamp: Date.now()
       };
 
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorResponse]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [inputMessage, isLoading, formatAIResponse, toast]);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
-  };
+  }, [sendMessage]);
+
+  // Memoize message rendering for better performance
+  const MessageComponent = React.memo(({ message }: { message: Message }) => (
+    <div
+      className={`flex items-start gap-2 sm:gap-3 ${
+        message.role === 'user' ? 'flex-row-reverse' : ''
+      }`}
+    >
+      <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center ${
+        message.role === 'user' 
+          ? 'bg-primary text-primary-foreground' 
+          : 'bg-secondary text-secondary-foreground'
+      }`}>
+        {message.role === 'user' ? (
+          <User className="w-3 h-3 sm:w-4 sm:h-4" />
+        ) : (
+          <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
+        )}
+      </div>
+      
+      <div className={`flex-1 max-w-[80%] sm:max-w-[75%] ${
+        message.role === 'user' ? 'text-right' : ''
+      }`}>
+        <div className={`inline-block p-2 sm:p-3 md:p-4 rounded-2xl text-xs sm:text-sm md:text-base break-words ${
+          message.role === 'user'
+            ? 'bg-primary text-primary-foreground'
+            : 'bg-secondary/50 text-secondary-foreground border'
+        }`}>
+          <div className="whitespace-pre-wrap leading-relaxed">
+            {message.content}
+          </div>
+        </div>
+        <div className={`text-xs text-muted-foreground mt-1 ${
+          message.role === 'user' ? 'text-right' : 'text-left'
+        }`}>
+          {new Date(message.timestamp).toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          })}
+        </div>
+      </div>
+    </div>
+  ));
 
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto p-2 sm:p-4">
@@ -160,50 +231,15 @@ Answer briefly:`;
         </CardHeader>
 
         <CardContent className="flex-1 flex flex-col p-0 min-h-0">
-          {/* Messages */}
-          <ScrollArea className="flex-1 px-2 sm:px-4" ref={scrollAreaRef}>
+          {/* Messages with optimized scrolling */}
+          <ScrollArea 
+            className="flex-1 px-2 sm:px-4" 
+            ref={scrollAreaRef}
+            style={{ scrollBehavior: 'smooth' }}
+          >
             <div className="py-3 sm:py-4 space-y-3 sm:space-y-4">
               {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex items-start gap-2 sm:gap-3 ${
-                    message.role === 'user' ? 'flex-row-reverse' : ''
-                  }`}
-                >
-                  <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center ${
-                    message.role === 'user' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-secondary text-secondary-foreground'
-                  }`}>
-                    {message.role === 'user' ? (
-                      <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                    ) : (
-                      <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
-                    )}
-                  </div>
-                  
-                  <div className={`flex-1 max-w-[80%] sm:max-w-[75%] ${
-                    message.role === 'user' ? 'text-right' : ''
-                  }`}>
-                    <div className={`inline-block p-2 sm:p-3 md:p-4 rounded-2xl text-xs sm:text-sm md:text-base ${
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary/50 text-secondary-foreground border'
-                    }`}>
-                      <div className="whitespace-pre-wrap leading-relaxed break-words">
-                        {message.content}
-                      </div>
-                    </div>
-                    <div className={`text-xs text-muted-foreground mt-1 ${
-                      message.role === 'user' ? 'text-right' : 'text-left'
-                    }`}>
-                      {new Date(message.timestamp).toLocaleTimeString([], { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
-                    </div>
-                  </div>
-                </div>
+                <MessageComponent key={message.id} message={message} />
               ))}
               
               {isLoading && (
@@ -226,7 +262,7 @@ Answer briefly:`;
             </div>
           </ScrollArea>
 
-          {/* Input Area */}
+          {/* Optimized Input Area */}
           <div className="border-t p-2 sm:p-3 md:p-4 bg-background/50 flex-shrink-0">
             <div className="flex gap-2">
               <Textarea
@@ -237,6 +273,7 @@ Answer briefly:`;
                 className="flex-1 min-h-[36px] sm:min-h-[40px] max-h-24 sm:max-h-32 resize-none text-xs sm:text-sm md:text-base"
                 disabled={isLoading}
                 rows={1}
+                autoFocus
               />
               <Button
                 onClick={sendMessage}
@@ -252,18 +289,10 @@ Answer briefly:`;
             </div>
             
             <div className="mt-2 flex flex-wrap gap-1 sm:gap-2">
-              <Badge variant="outline" className="text-xs">
-                📚 Study Help
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                🧮 Math Solutions
-              </Badge>
-              <Badge variant="outline" className="text-xs hidden sm:inline-flex">
-                🔬 Science Concepts
-              </Badge>
-              <Badge variant="outline" className="text-xs hidden sm:inline-flex">
-                📖 English Grammar
-              </Badge>
+              <Badge variant="outline" className="text-xs">📚 Study Help</Badge>
+              <Badge variant="outline" className="text-xs">🧮 Math Solutions</Badge>
+              <Badge variant="outline" className="text-xs hidden sm:inline-flex">🔬 Science Concepts</Badge>
+              <Badge variant="outline" className="text-xs hidden sm:inline-flex">📖 English Grammar</Badge>
             </div>
           </div>
         </CardContent>
