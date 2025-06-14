@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Brain, Copy, Download, Share, Loader2, Eye, EyeOff, Sparkles, Play } from 'lucide-react';
 import { QuizMode } from './QuizMode';
 import { saveQuestionResponse, saveQuestionToDatabase } from '@/services/questionResponseService';
+import { saveQuestionToHistory } from '@/services/questionHistoryService';
 
 interface GeneratedQuestion {
   id: string;
@@ -62,37 +63,90 @@ export const QuestionGenerator = () => {
     try {
       const chapterId = selectedChapter;
       let savedCount = 0;
+      let errorCount = 0;
+      
+      console.log('Starting to save questions to database:', questions.length);
       
       for (const question of questions) {
-        // Save the question itself
-        const questionSaveResult = await saveQuestionToDatabase(
-          question.question,
-          question.type,
-          question.difficulty === 'easy' ? 1 : question.difficulty === 'medium' ? 2 : 3,
-          question.options ? String.fromCharCode(97 + (question.correctAnswer || 0)) : undefined,
-          question.options ? question.options : undefined,
-          question.answer,
-          chapterId
-        );
-
-        if (questionSaveResult.success) {
-          // Save the generated question response
-          await saveQuestionResponse(
+        try {
+          console.log('Saving individual question:', question.question.substring(0, 50) + '...');
+          
+          // Get difficulty as number
+          const difficultyNum = question.difficulty === 'easy' ? 1 : question.difficulty === 'medium' ? 2 : 3;
+          
+          // Save the question itself
+          const questionSaveResult = await saveQuestionToDatabase(
             question.question,
-            undefined, // user hasn't answered yet
+            question.type,
+            difficultyNum,
             question.options ? String.fromCharCode(97 + (question.correctAnswer || 0)) : question.answer,
-            undefined, // not answered yet
-            undefined, // no time taken yet
-            questionSaveResult.data?.id
+            question.options ? question.options : undefined,
+            question.answer,
+            chapterId
           );
-          savedCount++;
+
+          if (questionSaveResult.success && questionSaveResult.data) {
+            console.log('Question saved successfully:', questionSaveResult.data.id);
+            
+            // Save to question history
+            const historyResult = await saveQuestionToHistory(
+              question.question,
+              question.type,
+              difficultyNum,
+              undefined, // user hasn't answered yet
+              question.options ? String.fromCharCode(97 + (question.correctAnswer || 0)) : question.answer,
+              undefined, // not answered yet
+              undefined, // no time taken yet
+              questionSaveResult.data.id
+            );
+
+            if (historyResult.success) {
+              console.log('Question saved to history successfully');
+            } else {
+              console.error('Failed to save to history:', historyResult.error);
+            }
+
+            // Save the generated question response
+            const responseResult = await saveQuestionResponse(
+              question.question,
+              undefined, // user hasn't answered yet
+              question.options ? String.fromCharCode(97 + (question.correctAnswer || 0)) : question.answer,
+              undefined, // not answered yet
+              undefined, // no time taken yet
+              questionSaveResult.data.id
+            );
+
+            if (responseResult.success) {
+              console.log('Question response saved successfully');
+              savedCount++;
+            } else {
+              console.error('Failed to save question response:', responseResult.error);
+              errorCount++;
+            }
+          } else {
+            console.error('Failed to save question:', questionSaveResult.error);
+            errorCount++;
+          }
+        } catch (error) {
+          console.error('Error saving individual question:', error);
+          errorCount++;
         }
       }
 
-      toast({
-        title: "Questions Saved! 💾",
-        description: `Successfully saved ${savedCount} questions to database`,
-      });
+      console.log(`Saving complete. Saved: ${savedCount}, Errors: ${errorCount}`);
+
+      if (savedCount > 0) {
+        toast({
+          title: "Questions Saved! 💾",
+          description: `Successfully saved ${savedCount} questions to database${errorCount > 0 ? ` (${errorCount} failed)` : ''}`,
+        });
+      } else {
+        toast({
+          title: "Save Failed",
+          description: "Unable to save questions to database. Please check your connection and try again.",
+          variant: "destructive"
+        });
+      }
 
     } catch (error) {
       console.error('Error saving questions:', error);
