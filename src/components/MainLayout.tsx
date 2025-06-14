@@ -52,15 +52,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     };
 
     return (
-      <Sidebar>
-        <SidebarHeader className="p-4 border-b">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
-              <Brain className="w-5 h-5 text-white" />
+      <Sidebar className="w-64">
+        <SidebarHeader className="p-3 sm:p-4 border-b">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="p-1.5 sm:p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
+              <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <div>
-              <h2 className="font-semibold text-sm">Study Tools</h2>
-              <p className="text-xs text-muted-foreground">Track your progress</p>
+              <h2 className="font-semibold text-xs sm:text-sm">Study Tools</h2>
+              <p className="text-xs text-muted-foreground hidden sm:block">Track your progress</p>
             </div>
           </div>
         </SidebarHeader>
@@ -76,11 +76,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     <SidebarMenuButton asChild isActive={isActive}>
                       <Link 
                         to={item.href} 
-                        className="flex items-center space-x-3 w-full"
+                        className="flex items-center space-x-2 sm:space-x-3 w-full p-2 sm:p-3"
                         onClick={handleSidebarItemClick}
                       >
                         <Icon className="w-4 h-4" />
-                        <span>{item.name}</span>
+                        <span className="text-sm sm:text-base">{item.name}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -97,34 +97,34 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
-        <SidebarInset className="flex-1">
+        <SidebarInset className="flex-1 w-full">
           {/* Header */}
           <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-white/20 dark:border-gray-700/50 sticky top-0 z-50">
-            <div className="flex justify-between items-center h-16 px-4">
-              <div className="flex items-center space-x-3">
+            <div className="flex justify-between items-center h-14 sm:h-16 px-3 sm:px-4 md:px-6">
+              <div className="flex items-center space-x-2 sm:space-x-3">
                 <SidebarTrigger />
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
-                    <Brain className="w-5 h-5 text-white" />
+                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                  <div className="p-1.5 sm:p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
+                    <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <div className="hidden sm:block">
-                    <h1 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    <h1 className="text-sm sm:text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                       Axiom Smart Track
                     </h1>
-                    <p className="text-xs text-muted-foreground">AI Study Assistant</p>
+                    <p className="text-xs text-muted-foreground hidden md:block">AI Study Assistant</p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-muted-foreground hidden sm:block">
+              <div className="flex items-center space-x-2 sm:space-x-4">
+                <span className="text-xs sm:text-sm text-muted-foreground hidden lg:block">
                   Welcome, {profile?.name}!
                 </span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={toggleTheme}
-                  className="p-2"
+                  className="p-1.5 sm:p-2"
                 >
                   {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                 </Button>
@@ -133,15 +133,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 pb-20 lg:pb-6">
-            <div className="p-4 sm:p-6">
+          <main className="flex-1 pb-16 sm:pb-20 lg:pb-6 w-full overflow-x-hidden">
+            <div className="w-full">
               {children}
             </div>
           </main>
 
           {/* Bottom Navigation - Mobile Only */}
           <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border-t border-white/20 dark:border-gray-700/50 lg:hidden z-40">
-            <div className="grid grid-cols-4 py-2">
+            <div className="grid grid-cols-4 py-1 sm:py-2 px-2">
               {bottomNavigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 const Icon = item.icon;
@@ -156,7 +156,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span className="text-xs font-medium truncate">{item.name}</span>
                   </Link>
                 );

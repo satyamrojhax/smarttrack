@@ -7,6 +7,7 @@ import { useSyllabus } from '@/contexts/SyllabusContext';
 import { useToast } from '@/hooks/use-toast';
 import { Brain, Copy, Download, Share, Loader2, Eye, EyeOff, Sparkles, Play } from 'lucide-react';
 import { QuizMode } from './QuizMode';
+import { saveQuestionResponse, saveQuestionToDatabase } from '@/services/questionResponseService';
 
 interface GeneratedQuestion {
   id: string;
@@ -34,6 +35,7 @@ export const QuestionGenerator = () => {
   const [visibleSolutions, setVisibleSolutions] = useState<Set<string>>(new Set());
   const [generatingSolution, setGeneratingSolution] = useState<string | null>(null);
   const [showQuizMode, setShowQuizMode] = useState(false);
+  const [savingQuestions, setSavingQuestions] = useState(false);
 
   const selectedSubjectData = subjects.find(s => s.id === selectedSubject);
   const availableChapters = selectedSubjectData?.chapters || [];
@@ -53,6 +55,55 @@ export const QuestionGenerator = () => {
       .replace(/#{1,6}\s*/g, '')
       .replace(/\n\s*\n/g, '\n\n')
       .replace(/^\s+|\s+$/g, '');
+  };
+
+  const saveQuestionsToDatabase = async (questions: GeneratedQuestion[]) => {
+    setSavingQuestions(true);
+    try {
+      const chapterId = selectedChapter;
+      let savedCount = 0;
+      
+      for (const question of questions) {
+        // Save the question itself
+        const questionSaveResult = await saveQuestionToDatabase(
+          question.question,
+          question.type,
+          question.difficulty === 'easy' ? 1 : question.difficulty === 'medium' ? 2 : 3,
+          question.options ? String.fromCharCode(97 + (question.correctAnswer || 0)) : undefined,
+          question.options ? question.options : undefined,
+          question.answer,
+          chapterId
+        );
+
+        if (questionSaveResult.success) {
+          // Save the generated question response
+          await saveQuestionResponse(
+            question.question,
+            undefined, // user hasn't answered yet
+            question.options ? String.fromCharCode(97 + (question.correctAnswer || 0)) : question.answer,
+            undefined, // not answered yet
+            undefined, // no time taken yet
+            questionSaveResult.data?.id
+          );
+          savedCount++;
+        }
+      }
+
+      toast({
+        title: "Questions Saved! 💾",
+        description: `Successfully saved ${savedCount} questions to database`,
+      });
+
+    } catch (error) {
+      console.error('Error saving questions:', error);
+      toast({
+        title: "Save Failed",
+        description: "Unable to save questions to database",
+        variant: "destructive"
+      });
+    } finally {
+      setSavingQuestions(false);
+    }
   };
 
   const generateQuestions = async () => {
@@ -160,6 +211,9 @@ Write in a friendly, encouraging tone like a helpful tutor. Focus on clarity and
       });
 
       setGeneratedQuestions(questions);
+      
+      // Auto-save questions to database
+      await saveQuestionsToDatabase(questions);
       
       toast({
         title: "Questions Generated Successfully! 🎉",
@@ -309,7 +363,7 @@ Be concise and to the point. No lengthy explanations.`;
       }));
 
     return (
-      <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
+      <div className="min-h-screen w-full p-2 sm:p-4 md:p-6">
         <QuizMode 
           questions={quizQuestions}
           onExit={() => setShowQuizMode(false)}
@@ -319,19 +373,19 @@ Be concise and to the point. No lengthy explanations.`;
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
+    <div className="min-h-screen w-full p-2 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
       <div className="text-center space-y-2 animate-fade-in">
-        <h2 className="text-2xl sm:text-3xl font-bold flex items-center justify-center space-x-2">
-          <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold flex items-center justify-center space-x-2">
+          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-primary" />
           <span>Smart Question Generator</span>
         </h2>
-        <p className="text-muted-foreground text-sm sm:text-lg px-2">Generate personalized CBSE practice questions with AI-powered solutions</p>
+        <p className="text-muted-foreground text-sm sm:text-base md:text-lg px-2">Generate personalized CBSE practice questions with AI-powered solutions</p>
         
         {/* Ask Doubt Button */}
         <div className="pt-2">
           <Button 
             variant="outline" 
-            className="bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0 hover:opacity-90"
+            className="bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0 hover:opacity-90 text-sm sm:text-base"
             onClick={() => window.location.href = '/doubts'}
           >
             <Brain className="w-4 h-4 mr-2" />
@@ -341,19 +395,19 @@ Be concise and to the point. No lengthy explanations.`;
       </div>
 
       {/* Generator Form */}
-      <Card className="glass-card smooth-transition">
+      <Card className="glass-card smooth-transition w-full">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
-            <Brain className="w-5 h-5 sm:w-6 sm:h-6" />
+          <CardTitle className="flex items-center space-x-2 text-base sm:text-lg md:text-xl">
+            <Brain className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
             <span>Create Your Practice Set</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Subject</label>
               <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Choose your subject" />
                 </SelectTrigger>
                 <SelectContent>
@@ -373,7 +427,7 @@ Be concise and to the point. No lengthy explanations.`;
                 onValueChange={setSelectedChapter}
                 disabled={!selectedSubject}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select chapter" />
                 </SelectTrigger>
                 <SelectContent>
@@ -387,11 +441,11 @@ Be concise and to the point. No lengthy explanations.`;
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Difficulty Level</label>
               <Select value={difficulty} onValueChange={setDifficulty}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="How challenging should it be?" />
                 </SelectTrigger>
                 <SelectContent>
@@ -405,7 +459,7 @@ Be concise and to the point. No lengthy explanations.`;
             <div className="space-y-2">
               <label className="text-sm font-medium">Number of Questions</label>
               <Select value={questionCount} onValueChange={setQuestionCount}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="How many questions?" />
                 </SelectTrigger>
                 <SelectContent>
@@ -426,7 +480,7 @@ Be concise and to the point. No lengthy explanations.`;
                 <Badge
                   key={type}
                   variant={questionTypes.includes(type) ? "default" : "outline"}
-                  className="cursor-pointer px-3 py-2 text-xs sm:text-sm smooth-transition hover:scale-105"
+                  className="cursor-pointer px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm smooth-transition hover:scale-105"
                   onClick={() => handleQuestionTypeToggle(type)}
                 >
                   {type}
@@ -437,7 +491,7 @@ Be concise and to the point. No lengthy explanations.`;
 
           <Button 
             onClick={generateQuestions} 
-            disabled={isLoading}
+            disabled={isLoading || savingQuestions}
             className="w-full smooth-transition"
             size="lg"
           >
@@ -445,6 +499,11 @@ Be concise and to the point. No lengthy explanations.`;
               <>
                 <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
                 <span className="text-sm sm:text-base">Generating practice questions...</span>
+              </>
+            ) : savingQuestions ? (
+              <>
+                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
+                <span className="text-sm sm:text-base">Saving to database...</span>
               </>
             ) : (
               <>
@@ -458,14 +517,14 @@ Be concise and to the point. No lengthy explanations.`;
 
       {/* Generated Questions */}
       {generatedQuestions.length > 0 && (
-        <Card className="glass-card smooth-transition">
+        <Card className="glass-card smooth-transition w-full">
           <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
               <div className="flex items-center space-x-2">
-                <span className="text-lg sm:text-xl">🎯 Your Practice Questions</span>
-                <Badge variant="secondary" className="text-sm sm:text-lg">{generatedQuestions.length} questions</Badge>
+                <span className="text-base sm:text-lg md:text-xl">🎯 Your Practice Questions</span>
+                <Badge variant="secondary" className="text-sm">{generatedQuestions.length} questions</Badge>
               </div>
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+              <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
                 {generatedQuestions.some(q => q.options) && (
                   <Button variant="outline" size="sm" onClick={startQuiz} className="bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0 hover:opacity-90 text-xs sm:text-sm">
                     <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
@@ -481,9 +540,9 @@ Be concise and to the point. No lengthy explanations.`;
           </CardHeader>
           <CardContent className="space-y-4 sm:space-y-6">
             {generatedQuestions.map((question, index) => (
-              <div key={question.id} className="border rounded-lg p-4 sm:p-6 space-y-4 smooth-transition bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/10 dark:to-purple-900/10">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-                  <h4 className="font-semibold text-lg sm:text-xl text-primary">Question {index + 1}</h4>
+              <div key={question.id} className="border rounded-lg p-3 sm:p-4 md:p-6 space-y-4 smooth-transition bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/10 dark:to-purple-900/10">
+                <div className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:items-start sm:space-y-0">
+                  <h4 className="font-semibold text-base sm:text-lg md:text-xl text-primary">Question {index + 1}</h4>
                   <div className="flex space-x-2">
                     <Button
                       variant="ghost"
@@ -504,8 +563,8 @@ Be concise and to the point. No lengthy explanations.`;
                   </div>
                 </div>
                 
-                <div className="prose prose-sm sm:prose-lg max-w-none">
-                  <div className="text-base sm:text-lg leading-relaxed bg-white/80 dark:bg-gray-800/80 p-3 sm:p-4 rounded-lg border">
+                <div className="prose prose-sm sm:prose-base max-w-none">
+                  <div className="text-sm sm:text-base md:text-lg leading-relaxed bg-white/80 dark:bg-gray-800/80 p-3 sm:p-4 rounded-lg border">
                     {question.question}
                   </div>
                   
@@ -521,7 +580,7 @@ Be concise and to the point. No lengthy explanations.`;
                   )}
                 </div>
                 
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                <div className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="outline" className="text-xs">{question.type}</Badge>
                     <Badge variant="outline" className="capitalize text-xs">{question.difficulty}</Badge>
@@ -574,12 +633,12 @@ Be concise and to the point. No lengthy explanations.`;
 
                 {/* Solution Display */}
                 {question.answer && visibleSolutions.has(question.id) && (
-                  <div className="mt-4 sm:mt-6 p-4 sm:p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-lg animate-fade-in">
-                    <h5 className="font-semibold mb-4 text-primary flex items-center text-base sm:text-lg">
+                  <div className="mt-4 sm:mt-6 p-3 sm:p-4 md:p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-lg animate-fade-in">
+                    <h5 className="font-semibold mb-4 text-primary flex items-center text-sm sm:text-base md:text-lg">
                       <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                       Quick Solution
                     </h5>
-                    <div className="prose prose-sm sm:prose-lg max-w-none">
+                    <div className="prose prose-sm sm:prose-base max-w-none">
                       <div className="whitespace-pre-wrap leading-relaxed text-sm sm:text-base">
                         {question.answer}
                       </div>
