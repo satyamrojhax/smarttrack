@@ -21,7 +21,7 @@ export const DoubtAssistant = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hi! I'm your AI study assistant. I'm here to help you with any doubts or questions about your Class 10 CBSE subjects. Feel free to ask me anything! 📚✨",
+      content: "Hi! I'm your AI study assistant. Ask me any Class 10 CBSE questions and I'll give you clear, short answers! 📚",
       role: 'assistant',
       timestamp: Date.now()
     }
@@ -62,21 +62,21 @@ export const DoubtAssistant = () => {
     setIsLoading(true);
 
     try {
-      const prompt = `You are a friendly and knowledgeable AI tutor for Class 10 CBSE students. 
+      const prompt = `You are an AI tutor for Class 10 CBSE students. Give SHORT, DIRECT answers only.
 
 Student's question: "${inputMessage}"
 
-Please provide a helpful, clear, and encouraging response. If the question is about a specific subject or chapter, explain the concept step-by-step. If it's a math problem, show the solution process. If it's about other subjects, provide detailed explanations with examples.
+IMPORTANT RULES:
+- Keep answers under 100 words
+- Be direct and to the point
+- Only answer what was asked
+- For math problems: show just the key steps
+- For concepts: give brief explanations only
+- No extra motivational content
+- No long introductions or conclusions
+- Just the answer they need
 
-Guidelines:
-- Be encouraging and supportive
-- Use simple language that a Class 10 student can understand
-- Provide step-by-step explanations for complex topics
-- Include relevant examples or analogies
-- If it's a calculation, show each step clearly
-- End with a motivating note or study tip
-
-Keep your response focused, helpful, and student-friendly!`;
+Answer briefly:`;
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
         method: 'POST',
@@ -111,14 +111,14 @@ Keep your response focused, helpful, and student-friendly!`;
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
-        title: "Oops! Something went wrong",
-        description: "I couldn't process your question right now. Please try again!",
+        title: "Error",
+        description: "Couldn't process your question. Try again!",
         variant: "destructive"
       });
 
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I'm sorry, I couldn't process your question right now. Please try asking again! 😊",
+        content: "Sorry, couldn't process that. Try again!",
         role: 'assistant',
         timestamp: Date.now()
       };
