@@ -24,18 +24,31 @@ export const BookmarksView = () => {
   const { toast } = useToast();
   const [bookmarks, setBookmarks] = useState<BookmarkWithQuestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     loadBookmarks();
   }, []);
 
-  const loadBookmarks = async () => {
+  const loadBookmarks = async (showRefreshToast = false) => {
     try {
-      setIsLoading(true);
-      console.log('Loading bookmarks...');
+      if (showRefreshToast) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+      
+      console.log('Loading bookmarks in BookmarksView...');
       const data = await getUserBookmarks();
-      console.log('Bookmarks loaded:', data);
+      console.log('Bookmarks loaded in BookmarksView:', data);
       setBookmarks(data);
+      
+      if (showRefreshToast) {
+        toast({
+          title: "Refreshed",
+          description: `Found ${data.length} bookmarked questions`,
+        });
+      }
     } catch (error) {
       console.error('Error loading bookmarks:', error);
       toast({
@@ -45,6 +58,7 @@ export const BookmarksView = () => {
       });
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -104,7 +118,6 @@ export const BookmarksView = () => {
 
   const clearAllBookmarks = async () => {
     try {
-      // Remove all bookmarks one by one
       const promises = bookmarks.map(bookmark => 
         removeBookmarkFromDatabase(bookmark.question_id)
       );
@@ -138,7 +151,7 @@ export const BookmarksView = () => {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6">
+    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 p-4">
       {/* Header - Responsive */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div className="text-center sm:text-left space-y-2">
@@ -152,9 +165,15 @@ export const BookmarksView = () => {
         </div>
         
         <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
-          <Button variant="outline" size="sm" onClick={loadBookmarks} className="w-full sm:w-auto">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => loadBookmarks(true)} 
+            disabled={isRefreshing}
+            className="w-full sm:w-auto"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
           {bookmarks.length > 0 && (
             <>
