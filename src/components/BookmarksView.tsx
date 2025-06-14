@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,7 +52,7 @@ export const BookmarksView = () => {
       console.error('Error loading bookmarks:', error);
       toast({
         title: "Error",
-        description: "Failed to load bookmarks",
+        description: "Failed to load bookmarks. Please make sure you're logged in.",
         variant: "destructive"
       });
     } finally {

@@ -5,19 +5,25 @@ export const saveBookmarkToDatabase = async (questionId: string) => {
   try {
     console.log('Starting bookmark save process for question:', questionId);
     
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    // Get current session first
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      console.error('Session error:', sessionError);
+      throw sessionError;
+    }
+    
+    if (!session?.user) {
       console.error('No authenticated user found');
       throw new Error('User not authenticated');
     }
 
-    console.log('User authenticated:', user.id);
+    console.log('User authenticated:', session.user.id);
 
     // First check if bookmark already exists
     const { data: existing, error: checkError } = await supabase
       .from('user_bookmarks')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .eq('question_id', questionId)
       .maybeSingle();
 
@@ -31,14 +37,14 @@ export const saveBookmarkToDatabase = async (questionId: string) => {
       return { success: true, message: 'Already bookmarked', data: existing };
     }
 
-    // Insert new bookmark
+    // Insert new bookmark with explicit user_id
     console.log('Inserting new bookmark...');
     const { data, error } = await supabase
       .from('user_bookmarks')
-      .insert({
-        user_id: user.id,
+      .insert([{
+        user_id: session.user.id,
         question_id: questionId
-      })
+      }])
       .select()
       .single();
 
@@ -62,18 +68,20 @@ export const removeBookmarkFromDatabase = async (questionId: string) => {
   try {
     console.log('Removing bookmark for question:', questionId);
     
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
+    
+    if (!session?.user) {
       console.error('No authenticated user found');
       throw new Error('User not authenticated');
     }
 
-    console.log('User authenticated for removal:', user.id);
+    console.log('User authenticated for removal:', session.user.id);
 
     const { error } = await supabase
       .from('user_bookmarks')
       .delete()
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .eq('question_id', questionId);
 
     if (error) {
@@ -96,13 +104,15 @@ export const getUserBookmarks = async () => {
   try {
     console.log('Fetching user bookmarks...');
     
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
+    
+    if (!session?.user) {
       console.error('No authenticated user found');
-      throw new Error('User not authenticated');
+      return [];
     }
 
-    console.log('Fetching bookmarks for user:', user.id);
+    console.log('Fetching bookmarks for user:', session.user.id);
 
     const { data, error } = await supabase
       .from('user_bookmarks')
@@ -118,7 +128,7 @@ export const getUserBookmarks = async () => {
           chapter_id
         )
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -138,8 +148,13 @@ export const checkIfBookmarked = async (questionId: string) => {
   try {
     console.log('Checking bookmark status for question:', questionId);
     
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      console.error('Session error:', sessionError);
+      return false;
+    }
+    
+    if (!session?.user) {
       console.log('No user authenticated, returning false');
       return false;
     }
@@ -147,7 +162,7 @@ export const checkIfBookmarked = async (questionId: string) => {
     const { data, error } = await supabase
       .from('user_bookmarks')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .eq('question_id', questionId)
       .maybeSingle();
 

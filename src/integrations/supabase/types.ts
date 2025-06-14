@@ -244,6 +244,50 @@ export type Database = {
           },
         ]
       }
+      questions_responses: {
+        Row: {
+          correct_answer: string | null
+          created_at: string
+          generated_question_text: string
+          id: string
+          is_correct: boolean | null
+          question_id: string | null
+          response_time: number | null
+          user_id: string
+          user_response: string | null
+        }
+        Insert: {
+          correct_answer?: string | null
+          created_at?: string
+          generated_question_text: string
+          id?: string
+          is_correct?: boolean | null
+          question_id?: string | null
+          response_time?: number | null
+          user_id: string
+          user_response?: string | null
+        }
+        Update: {
+          correct_answer?: string | null
+          created_at?: string
+          generated_question_text?: string
+          id?: string
+          is_correct?: boolean | null
+          question_id?: string | null
+          response_time?: number | null
+          user_id?: string
+          user_response?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subjects: {
         Row: {
           board: Database["public"]["Enums"]["board_type"]
