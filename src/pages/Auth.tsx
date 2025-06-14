@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, ChevronLeft } from 'lucide-react';
+import { Eye, EyeOff, ChevronLeft, Brain } from 'lucide-react';
 
 interface AuthProps {
   onBack?: () => void;
@@ -85,39 +84,43 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex flex-col">
-      {/* Header */}
+      {/* Enhanced Header with centered logo */}
       <div className="flex items-center justify-between p-6 text-white">
         {onBack && (
-          <button onClick={onBack} className="p-2">
+          <button onClick={onBack} className="p-2 hover:bg-white/10 rounded-full transition-colors">
             <ChevronLeft className="w-6 h-6" />
           </button>
         )}
-        <div className="flex-1 text-center">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3 mr-3">
+            <Brain className="w-6 h-6 text-white" />
+          </div>
           <h1 className="text-xl font-bold">Axiom Smart Track</h1>
         </div>
-        {!isLogin && (
-          <button 
-            onClick={() => setIsLogin(true)}
-            className="text-white/80 hover:text-white text-sm"
-          >
-            {isLogin ? "Don't have an account?" : "Already have an account?"} 
-            <span className="ml-1 font-medium">Sign in</span>
-          </button>
-        )}
-        {isLogin && (
-          <button 
-            onClick={() => setIsLogin(false)}
-            className="text-white/80 hover:text-white text-sm"
-          >
-            Get started
-          </button>
-        )}
+        <div className="w-10 h-10 flex items-center justify-center">
+          {!isLogin && (
+            <button 
+              onClick={() => setIsLogin(true)}
+              className="text-white/80 hover:text-white text-sm hover:bg-white/10 px-3 py-1 rounded-full transition-colors"
+            >
+              Sign in
+            </button>
+          )}
+          {isLogin && (
+            <button 
+              onClick={() => setIsLogin(false)}
+              className="text-white/80 hover:text-white text-sm hover:bg-white/10 px-3 py-1 rounded-full transition-colors"
+            >
+              Sign up
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
-          <Card className="bg-white rounded-3xl border-0 shadow-2xl overflow-hidden">
+          <Card className="bg-white rounded-3xl border-0 shadow-2xl overflow-hidden backdrop-blur-sm">
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-2xl font-bold text-gray-900">
                 {isLogin ? 'Welcome Back' : 'Get started free.'}
@@ -140,7 +143,7 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
                     placeholder="your@email.com"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                    className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 transition-colors"
                     required
                   />
                 </div>
@@ -154,7 +157,7 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
                       placeholder="Your full name"
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
-                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 transition-colors"
                       required={!isLogin}
                     />
                   </div>
@@ -169,13 +172,13 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
                       placeholder="••••••••••••"
                       value={formData.password}
                       onChange={(e) => handleInputChange('password', e.target.value)}
-                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 pr-12"
+                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 pr-12 transition-colors"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -203,7 +206,7 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
                     <div className="space-y-1">
                       <Label htmlFor="class" className="text-sm font-medium text-gray-700">Class</Label>
                       <Select value={formData.className} onValueChange={(value) => handleInputChange('className', value)}>
-                        <SelectTrigger className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500">
+                        <SelectTrigger className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 transition-colors">
                           <SelectValue placeholder="Select your class" />
                         </SelectTrigger>
                         <SelectContent>
@@ -215,7 +218,7 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
                     <div className="space-y-1">
                       <Label htmlFor="board" className="text-sm font-medium text-gray-700">Board</Label>
                       <Select value={formData.board} onValueChange={(value) => handleInputChange('board', value)}>
-                        <SelectTrigger className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500">
+                        <SelectTrigger className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 transition-colors">
                           <SelectValue placeholder="Select your board" />
                         </SelectTrigger>
                         <SelectContent>
@@ -228,7 +231,7 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
 
                 <Button 
                   type="submit" 
-                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg mt-6" 
+                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg mt-6 transform hover:scale-105 transition-all duration-200" 
                   disabled={isLoading}
                 >
                   {isLoading ? 'Please wait...' : (isLogin ? 'Sign in' : 'Sign up')}
@@ -241,7 +244,7 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
                   <button
                     type="button"
                     onClick={() => setIsLogin(!isLogin)}
-                    className="text-purple-600 hover:text-purple-700 font-medium"
+                    className="text-purple-600 hover:text-purple-700 font-medium transition-colors"
                   >
                     {isLogin ? 'Sign up' : 'Sign in'}
                   </button>
