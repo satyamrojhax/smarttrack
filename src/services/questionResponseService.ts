@@ -24,17 +24,17 @@ export const saveQuestionResponse = async (
   try {
     console.log('Saving question response:', { generatedQuestionText, userResponse, correctAnswer, isCorrect });
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError) throw userError;
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
     
-    if (!user) {
+    if (!session?.user) {
       throw new Error('User not authenticated');
     }
 
     const { data, error } = await supabase
       .from('questions_responses')
       .insert([{
-        user_id: user.id,
+        user_id: session.user.id,
         question_id: questionId,
         generated_question_text: generatedQuestionText,
         user_response: userResponse,
@@ -99,17 +99,17 @@ export const saveQuestionToDatabase = async (
 
 export const getUserQuestionResponses = async () => {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError) throw userError;
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
     
-    if (!user) {
+    if (!session?.user) {
       throw new Error('User not authenticated');
     }
 
     const { data, error } = await supabase
       .from('questions_responses')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
