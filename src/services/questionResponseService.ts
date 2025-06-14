@@ -97,6 +97,55 @@ export const saveQuestionToDatabase = async (
   }
 };
 
+export const saveQuestionHistory = async (
+  questionText: string,
+  userAnswer?: string,
+  correctAnswer?: string,
+  isCorrect?: boolean,
+  timeTaken?: number,
+  questionType?: string,
+  difficultyLevel?: number,
+  questionId?: string
+) => {
+  try {
+    console.log('Saving question history:', { questionText, userAnswer, correctAnswer, isCorrect });
+    
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { data, error } = await supabase
+      .from('question_history')
+      .insert([{
+        user_id: user.id,
+        question_id: questionId,
+        question_text: questionText,
+        user_answer: userAnswer,
+        correct_answer: correctAnswer,
+        is_correct: isCorrect,
+        time_taken: timeTaken,
+        question_type: questionType,
+        difficulty_level: difficultyLevel
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error saving question history:', error);
+      throw error;
+    }
+    
+    console.log('Question history saved successfully:', data);
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error in saveQuestionHistory:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
 export const getUserQuestionResponses = async () => {
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
