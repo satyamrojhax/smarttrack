@@ -24,52 +24,24 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Set up auth state listener
   useEffect(() => {
     console.log('Setting up auth state listener');
     
-    // Set up auth state change listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session);
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-          try {
-            const profileData = await fetchProfile(session.user.id);
-            setProfile(profileData);
-          } catch (error) {
-            console.error('Error fetching profile during auth state change:', error);
-            // Don't block the app if profile fetch fails
-            setProfile(null);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          setProfile(null);
-        }
-        
-        // Always ensure loading is set to false after handling auth state change
-        setIsLoading(false);
-      }
-    );
-
-    // THEN get initial session
+    // Get initial session first
     const getInitialSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         console.log('Initial session:', session);
         
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
+        if (session) {
+          setSession(session);
+          setUser(session.user);
+          // Fetch profile after setting user
           try {
             const profileData = await fetchProfile(session.user.id);
             setProfile(profileData);
           } catch (error) {
             console.error('Error fetching profile:', error);
-            // Continue loading the app even if profile fetch fails
             setProfile(null);
           }
         }
@@ -81,6 +53,32 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     };
 
     getInitialSession();
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session);
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          // Fetch profile in a separate async operation
+          fetchProfile(session.user.id)
+            .then(profileData => {
+              setProfile(profileData);
+            })
+            .catch(error => {
+              console.error('Error fetching profile during auth state change:', error);
+              setProfile(null);
+            });
+        } else if (event === 'SIGNED_OUT') {
+          setProfile(null);
+        }
+        
+        setIsLoading(false);
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);

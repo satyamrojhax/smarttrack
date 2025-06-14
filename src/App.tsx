@@ -24,12 +24,12 @@ import MainLayout from "./components/MainLayout";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { user, profile, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showLanding, setShowLanding] = useState(false);
 
   useEffect(() => {
-    console.log('AppContent - Auth state:', { user, profile, isLoading });
+    console.log('AppContent - Auth state:', { user, isLoading });
     
     if (isLoading) return;
     
@@ -47,7 +47,7 @@ const AppContent = () => {
       setShowLanding(false);
       setShowOnboarding(false);
     }
-  }, [user, profile, isLoading]);
+  }, [user, isLoading]);
 
   const handleOnboardingComplete = () => {
     localStorage.setItem('hasSeenOnboarding', 'true');
@@ -80,7 +80,7 @@ const AppContent = () => {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
-  // If user exists but no profile, still show the main app (profile will be created/fetched)
+  // If user exists, show the main app - profile can be null and that's fine
   if (!user) {
     return <Auth onBack={handleBackToLanding} />;
   }

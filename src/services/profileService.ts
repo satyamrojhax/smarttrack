@@ -3,21 +3,29 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const fetchProfile = async (userId: string) => {
   try {
+    console.log('Fetching profile for user:', userId);
+    
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
     
     if (error) {
       console.error('Error fetching profile:', error);
-      // If profile doesn't exist, try to create one from user metadata
+      // Try to create profile from user metadata
       return await createProfileFromUser(userId);
     }
     
+    if (!data) {
+      console.log('No profile found, creating one from user metadata');
+      return await createProfileFromUser(userId);
+    }
+    
+    console.log('Profile found:', data);
     return data;
   } catch (error) {
-    console.error('Error fetching profile:', error);
+    console.error('Error in fetchProfile:', error);
     // Try to create profile from user metadata as fallback
     return await createProfileFromUser(userId);
   }
@@ -25,6 +33,8 @@ export const fetchProfile = async (userId: string) => {
 
 export const createProfileFromUser = async (userId: string) => {
   try {
+    console.log('Creating profile for user:', userId);
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       console.log('No user found, returning null profile');
@@ -40,18 +50,22 @@ export const createProfileFromUser = async (userId: string) => {
       role: 'student' as const
     };
 
+    console.log('Inserting profile data:', profileData);
+
     const { data, error } = await supabase
       .from('profiles')
       .insert(profileData)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error creating profile:', error);
       // Return the profile data even if insert fails - this allows the app to continue loading
+      console.log('Returning profile data despite insert error');
       return profileData;
     }
 
+    console.log('Profile created successfully:', data);
     return data;
   } catch (error) {
     console.error('Error creating profile from user:', error);
@@ -71,7 +85,7 @@ export const updateProfileInDB = async (userId: string, updatedProfile: { name: 
       })
       .eq('id', userId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       return { success: false, error: error.message };
