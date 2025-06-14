@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { History, MessageSquare, Brain, Calendar, User, Bot, CheckCircle, XCircle, RefreshCw, Loader2 } from 'lucide-react';
+import { History, MessageSquare, Brain, Calendar, User, Bot, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { getUserDoubts, getDoubtHistory, type Doubt, type DoubtResponse } from '@/services/doubtService';
 import { getUserQuestionHistory, type QuestionHistory } from '@/services/questionHistoryService';
 import { getUserQuestionResponses, type QuestionResponse } from '@/services/questionResponseService';
@@ -19,7 +19,6 @@ const HistoryPage = () => {
   const [doubtHistory, setDoubtHistory] = useState<DoubtResponse[]>([]);
   const [activeTab, setActiveTab] = useState<'doubts' | 'questions' | 'responses'>('doubts');
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     loadHistoryData();
@@ -28,9 +27,7 @@ const HistoryPage = () => {
   const loadHistoryData = async () => {
     try {
       setIsLoading(true);
-      setIsRefreshing(true);
       console.log('Loading history data...');
-      
       const [doubtsData, questionsData, responsesData] = await Promise.all([
         getUserDoubts(),
         getUserQuestionHistory(),
@@ -38,31 +35,18 @@ const HistoryPage = () => {
       ]);
       
       console.log('History data loaded:', { doubtsData, questionsData, responsesData });
-      console.log('Doubts count:', doubtsData?.length || 0);
-      console.log('Questions count:', questionsData?.length || 0);
-      console.log('Responses count:', responsesData?.length || 0);
-      
-      setDoubts(doubtsData || []);
-      setQuestionHistory(questionsData || []);
-      setQuestionResponses(responsesData || []);
-      
-      if (doubtsData?.length === 0 && questionsData?.length === 0 && responsesData?.length === 0) {
-        toast({
-          title: "No Data Found",
-          description: "No learning history found. Start asking questions or generating practice questions to see your progress here.",
-          variant: "default"
-        });
-      }
+      setDoubts(doubtsData);
+      setQuestionHistory(questionsData);
+      setQuestionResponses(responsesData);
     } catch (error) {
       console.error('Error loading history:', error);
       toast({
         title: "Error",
-        description: "Failed to load history data. Please check your authentication and try again.",
+        description: "Failed to load history data",
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   };
 
@@ -85,8 +69,8 @@ const HistoryPage = () => {
     return (
       <div className="flex items-center justify-center min-h-screen p-4">
         <div className="text-center">
-          <Loader2 className="animate-spin h-8 w-8 text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading your learning history...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-muted-foreground">Loading history...</p>
         </div>
       </div>
     );
@@ -112,41 +96,11 @@ const HistoryPage = () => {
             variant="outline"
             size="sm"
             onClick={loadHistoryData}
-            disabled={isRefreshing}
             className="flex items-center gap-2"
           >
-            {isRefreshing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <RefreshCw className="w-4 h-4" />
-            )}
+            <RefreshCw className="w-4 h-4" />
             Refresh
           </Button>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <Card className="glass-card">
-            <CardContent className="p-4 text-center">
-              <MessageSquare className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-              <p className="text-2xl font-bold">{doubts.length}</p>
-              <p className="text-sm text-muted-foreground">Doubts Asked</p>
-            </CardContent>
-          </Card>
-          <Card className="glass-card">
-            <CardContent className="p-4 text-center">
-              <Brain className="w-8 h-8 text-green-500 mx-auto mb-2" />
-              <p className="text-2xl font-bold">{questionHistory.length}</p>
-              <p className="text-sm text-muted-foreground">Questions Attempted</p>
-            </CardContent>
-          </Card>
-          <Card className="glass-card">
-            <CardContent className="p-4 text-center">
-              <CheckCircle className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-              <p className="text-2xl font-bold">{questionResponses.length}</p>
-              <p className="text-sm text-muted-foreground">Responses Saved</p>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Tabs - Mobile Optimized */}
@@ -214,7 +168,6 @@ const HistoryPage = () => {
                       <div className="text-center py-8 text-muted-foreground">
                         <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
                         <p className="text-sm">No doubts asked yet</p>
-                        <p className="text-xs mt-1">Visit the Doubts page to start asking questions</p>
                       </div>
                     ) : (
                       doubts.map((doubt) => (
@@ -248,7 +201,6 @@ const HistoryPage = () => {
                       <div className="text-center py-8 text-muted-foreground">
                         <Brain className="w-12 h-12 mx-auto mb-2 opacity-50" />
                         <p className="text-sm">No questions attempted yet</p>
-                        <p className="text-xs mt-1">Visit the Questions page to start practicing</p>
                       </div>
                     ) : (
                       questionHistory.map((question) => (
@@ -283,12 +235,6 @@ const HistoryPage = () => {
                                 {new Date(question.created_at).toLocaleDateString()}
                               </span>
                             </div>
-                            {question.user_answer && (
-                              <div className="mt-2 p-2 bg-muted/30 rounded text-xs">
-                                <span className="font-medium">Your answer: </span>
-                                <span className="text-muted-foreground">{question.user_answer}</span>
-                              </div>
-                            )}
                           </CardContent>
                         </Card>
                       ))
@@ -298,7 +244,6 @@ const HistoryPage = () => {
                       <div className="text-center py-8 text-muted-foreground">
                         <CheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
                         <p className="text-sm">No question responses yet</p>
-                        <p className="text-xs mt-1">Generate and answer questions to see responses here</p>
                       </div>
                     ) : (
                       questionResponses.map((response) => (
@@ -330,12 +275,6 @@ const HistoryPage = () => {
                                 {new Date(response.created_at).toLocaleDateString()}
                               </span>
                             </div>
-                            {response.user_response && (
-                              <div className="mt-2 p-2 bg-muted/30 rounded text-xs">
-                                <span className="font-medium">Your answer: </span>
-                                <span className="text-muted-foreground">{response.user_response}</span>
-                              </div>
-                            )}
                           </CardContent>
                         </Card>
                       ))
@@ -428,13 +367,11 @@ const HistoryPage = () => {
                       <>
                         <Brain className="w-12 h-12 mx-auto mb-2 opacity-50" />
                         <p className="text-sm">Question details will appear here</p>
-                        <p className="text-xs mt-1">Practice more questions to see detailed history</p>
                       </>
                     ) : (
                       <>
                         <CheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
                         <p className="text-sm">Response details will appear here</p>
-                        <p className="text-xs mt-1">Answer questions to see detailed responses</p>
                       </>
                     )}
                   </div>
