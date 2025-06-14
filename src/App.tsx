@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -17,7 +16,6 @@ import NotFound from "./pages/NotFound";
 import SyllabusPage from "./pages/SyllabusPage";
 import QuestionsPage from "./pages/QuestionsPage";
 import PredictorPage from "./pages/PredictorPage";
-import BookmarksPage from "./pages/BookmarksPage";
 import DoubtsPage from "./pages/DoubtsPage";
 import HistoryPage from "./pages/HistoryPage";
 import MainLayout from "./components/MainLayout";
@@ -114,7 +112,6 @@ const AppContent = () => {
           <Route path="/questions" element={<QuestionsPage />} />
           <Route path="/doubts" element={<DoubtsPage />} />
           <Route path="/predictor" element={<PredictorPage />} />
-          <Route path="/bookmarks" element={<BookmarksPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
