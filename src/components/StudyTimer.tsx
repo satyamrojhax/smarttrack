@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play, Pause, RotateCcw, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface StudyTimerProps {
   onSessionComplete?: (duration: number) => void;
@@ -17,6 +19,7 @@ const StudyTimer: React.FC<StudyTimerProps> = ({ onSessionComplete }) => {
   const [sessionCount, setSessionCount] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (isActive) {
@@ -45,11 +48,32 @@ const StudyTimer: React.FC<StudyTimerProps> = ({ onSessionComplete }) => {
     };
   }, [isActive, minutes, seconds]);
 
-  const handleTimerComplete = () => {
+  const saveStudySession = async (duration: number, sessionType: 'study' | 'break') => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('study_sessions')
+        .insert({
+          user_id: user.id,
+          duration_seconds: duration,
+          session_type: sessionType
+        });
+
+      if (error) {
+        console.error('Error saving study session:', error);
+      }
+    } catch (error) {
+      console.error('Error saving study session:', error);
+    }
+  };
+
+  const handleTimerComplete = async () => {
     if (!isBreak) {
       // Study session completed
       setSessionCount(prev => prev + 1);
-      onSessionComplete?.(25 * 60); // 25 minutes in seconds
+      await saveStudySession(25 * 60, 'study');
+      onSessionComplete?.(25 * 60);
       toast({
         title: "Study Session Complete!",
         description: "Great job! Time for a break.",
@@ -60,6 +84,7 @@ const StudyTimer: React.FC<StudyTimerProps> = ({ onSessionComplete }) => {
       setSeconds(0);
     } else {
       // Break completed
+      await saveStudySession(5 * 60, 'break');
       toast({
         title: "Break Complete!",
         description: "Ready for another study session?",

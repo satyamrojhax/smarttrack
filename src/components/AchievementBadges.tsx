@@ -2,210 +2,231 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Trophy, Star, Target, Zap, BookOpen, Clock, Award } from 'lucide-react';
+import { Trophy, Star, Clock, Target, Book, Zap } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Achievement {
   id: string;
-  title: string;
+  achievement_type: string;
+  achievement_name: string;
+  achievement_description: string;
+  earned_at: string;
+}
+
+interface AchievementTemplate {
+  type: string;
+  name: string;
   description: string;
   icon: React.ReactNode;
-  progress: number;
-  maxProgress: number;
-  unlocked: boolean;
-  category: 'study' | 'time' | 'streak' | 'milestone';
+  color: string;
 }
 
 const AchievementBadges: React.FC = () => {
-  const [achievements, setAchievements] = useState<Achievement[]>([
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  const achievementTemplates: AchievementTemplate[] = [
     {
-      id: 'first-study',
-      title: 'Getting Started',
+      type: 'first_session',
+      name: 'First Steps',
       description: 'Complete your first study session',
-      icon: <BookOpen className="w-6 h-6" />,
-      progress: 0,
-      maxProgress: 1,
-      unlocked: false,
-      category: 'milestone'
+      icon: <Star className="w-4 h-4" />,
+      color: 'bg-yellow-500'
     },
     {
-      id: 'time-master',
-      title: 'Time Master',
-      description: 'Study for 10 hours total',
-      icon: <Clock className="w-6 h-6" />,
-      progress: 0,
-      maxProgress: 600, // 10 hours in minutes
-      unlocked: false,
-      category: 'time'
+      type: 'study_streak_3',
+      name: 'Getting Started',
+      description: 'Study for 3 days in a row',
+      icon: <Zap className="w-4 h-4" />,
+      color: 'bg-orange-500'
     },
     {
-      id: 'streak-warrior',
-      title: 'Streak Warrior',
+      type: 'study_streak_7',
+      name: 'Week Warrior',
       description: 'Study for 7 days in a row',
-      icon: <Zap className="w-6 h-6" />,
-      progress: 0,
-      maxProgress: 7,
-      unlocked: false,
-      category: 'streak'
+      icon: <Trophy className="w-4 h-4" />,
+      color: 'bg-blue-500'
     },
     {
-      id: 'chapter-champion',
-      title: 'Chapter Champion',
-      description: 'Complete 5 chapters',
-      icon: <Target className="w-6 h-6" />,
-      progress: 0,
-      maxProgress: 5,
-      unlocked: false,
-      category: 'study'
+      type: 'total_time_10h',
+      name: 'Time Master',
+      description: 'Study for 10 total hours',
+      icon: <Clock className="w-4 h-4" />,
+      color: 'bg-green-500'
     },
     {
-      id: 'dedication-master',
-      title: 'Dedication Master',
-      description: 'Study for 50 hours total',
-      icon: <Trophy className="w-6 h-6" />,
-      progress: 0,
-      maxProgress: 3000, // 50 hours in minutes
-      unlocked: false,
-      category: 'time'
+      type: 'notes_created_10',
+      name: 'Note Taker',
+      description: 'Create 10 notes or flashcards',
+      icon: <Book className="w-4 h-4" />,
+      color: 'bg-purple-500'
     },
     {
-      id: 'consistency-king',
-      title: 'Consistency King',
-      description: 'Study for 30 days in a row',
-      icon: <Award className="w-6 h-6" />,
-      progress: 0,
-      maxProgress: 30,
-      unlocked: false,
-      category: 'streak'
+      type: 'sessions_50',
+      name: 'Dedicated Student',
+      description: 'Complete 50 study sessions',
+      icon: <Target className="w-4 h-4" />,
+      color: 'bg-red-500'
     }
-  ]);
+  ];
 
-  // Simulate progress updates (in a real app, this would come from your study tracking)
   useEffect(() => {
-    const interval = setInterval(() => {
-      setAchievements(prev => prev.map(achievement => {
-        // Randomly update progress for demo purposes
-        if (!achievement.unlocked && Math.random() < 0.1) {
-          const newProgress = Math.min(
-            achievement.progress + Math.floor(Math.random() * 5) + 1,
-            achievement.maxProgress
-          );
-          return {
-            ...achievement,
-            progress: newProgress,
-            unlocked: newProgress >= achievement.maxProgress
-          };
+    if (user) {
+      fetchAchievements();
+      checkAndCreateAchievements();
+    }
+  }, [user]);
+
+  const fetchAchievements = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_achievements')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('earned_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching achievements:', error);
+      } else {
+        setAchievements(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching achievements:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkAndCreateAchievements = async () => {
+    if (!user) return;
+
+    try {
+      // Check study statistics
+      const { data: stats } = await supabase
+        .from('study_statistics')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (stats) {
+        // Check for achievements based on stats
+        const achievementsToCreate = [];
+
+        if (stats.total_sessions >= 1) {
+          achievementsToCreate.push({
+            user_id: user.id,
+            achievement_type: 'first_session',
+            achievement_name: 'First Steps',
+            achievement_description: 'Complete your first study session'
+          });
         }
-        return achievement;
-      }));
-    }, 5000);
 
-    return () => clearInterval(interval);
-  }, []);
+        if (stats.total_sessions >= 50) {
+          achievementsToCreate.push({
+            user_id: user.id,
+            achievement_type: 'sessions_50',
+            achievement_name: 'Dedicated Student',
+            achievement_description: 'Complete 50 study sessions'
+          });
+        }
 
-  const getCategoryColor = (category: Achievement['category']) => {
-    switch (category) {
-      case 'study': return 'bg-blue-500';
-      case 'time': return 'bg-green-500';
-      case 'streak': return 'bg-orange-500';
-      case 'milestone': return 'bg-purple-500';
-      default: return 'bg-gray-500';
+        if (stats.total_study_time >= 36000) { // 10 hours in seconds
+          achievementsToCreate.push({
+            user_id: user.id,
+            achievement_type: 'total_time_10h',
+            achievement_name: 'Time Master',
+            achievement_description: 'Study for 10 total hours'
+          });
+        }
+
+        if (stats.notes_created >= 10) {
+          achievementsToCreate.push({
+            user_id: user.id,
+            achievement_type: 'notes_created_10',
+            achievement_name: 'Note Taker',
+            achievement_description: 'Create 10 notes or flashcards'
+          });
+        }
+
+        // Insert achievements (ignore conflicts for already earned achievements)
+        if (achievementsToCreate.length > 0) {
+          await supabase
+            .from('user_achievements')
+            .upsert(achievementsToCreate, {
+              onConflict: 'user_id,achievement_type',
+              ignoreDuplicates: true
+            });
+        }
+      }
+    } catch (error) {
+      console.error('Error checking achievements:', error);
     }
   };
 
-  const getCategoryName = (category: Achievement['category']) => {
-    switch (category) {
-      case 'study': return 'Study';
-      case 'time': return 'Time';
-      case 'streak': return 'Streak';
-      case 'milestone': return 'Milestone';
-      default: return 'General';
-    }
+  const getAchievementTemplate = (type: string) => {
+    return achievementTemplates.find(template => template.type === type);
   };
 
-  const unlockedCount = achievements.filter(a => a.unlocked).length;
-
-  return (
-    <div className="w-full max-w-6xl mx-auto">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-yellow-500" />
-            Achievement Progress
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <div className="flex justify-between text-sm mb-2">
-                <span>Achievements Unlocked</span>
-                <span>{unlockedCount}/{achievements.length}</span>
-              </div>
-              <Progress value={(unlockedCount / achievements.length) * 100} className="h-3" />
-            </div>
-            <div className="text-2xl font-bold text-yellow-500">
-              {unlockedCount}
-            </div>
-          </div>
+  if (loading) {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardContent className="p-6">
+          <div className="text-center">Loading achievements...</div>
         </CardContent>
       </Card>
+    );
+  }
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {achievements.map((achievement) => (
-          <Card 
-            key={achievement.id} 
-            className={`transition-all duration-300 ${
-              achievement.unlocked 
-                ? 'ring-2 ring-yellow-500 shadow-lg transform scale-105' 
-                : 'opacity-75 hover:opacity-100'
-            }`}
-          >
-            <CardHeader className="pb-4">
-              <div className="flex items-start justify-between">
-                <div className={`p-3 rounded-full ${getCategoryColor(achievement.category)} text-white`}>
-                  {achievement.icon}
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <Badge variant="outline">
-                    {getCategoryName(achievement.category)}
-                  </Badge>
-                  {achievement.unlocked && (
-                    <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <h3 className="font-semibold text-lg mb-2">{achievement.title}</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {achievement.description}
-              </p>
-              
-              {!achievement.unlocked && (
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Progress</span>
-                    <span>{achievement.progress}/{achievement.maxProgress}</span>
+  return (
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Trophy className="w-5 h-5" />
+          Achievement Badges
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {achievementTemplates.map((template) => {
+            const earned = achievements.find(a => a.achievement_type === template.type);
+            const isEarned = !!earned;
+
+            return (
+              <Card key={template.type} className={`${isEarned ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20' : 'opacity-60'}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full ${isEarned ? template.color : 'bg-gray-300'} flex items-center justify-center text-white`}>
+                      {template.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{template.name}</h4>
+                      <p className="text-sm text-muted-foreground">{template.description}</p>
+                      {isEarned && (
+                        <Badge variant="secondary" className="mt-1">
+                          Earned {new Date(earned.earned_at).toLocaleDateString()}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                  <Progress 
-                    value={(achievement.progress / achievement.maxProgress) * 100} 
-                    className="h-2"
-                  />
-                </div>
-              )}
-              
-              {achievement.unlocked && (
-                <div className="text-center">
-                  <Badge className="bg-yellow-500 text-white">
-                    🎉 Unlocked!
-                  </Badge>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {achievements.length === 0 && (
+          <div className="text-center py-8">
+            <Trophy className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Achievements Yet</h3>
+            <p className="text-muted-foreground">Start studying to unlock your first achievement!</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

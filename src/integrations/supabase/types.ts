@@ -194,6 +194,87 @@ export type Database = {
         }
         Relationships: []
       }
+      study_sessions: {
+        Row: {
+          chapter_id: string | null
+          created_at: string
+          duration_seconds: number
+          id: string
+          session_type: string | null
+          subject_id: string | null
+          user_id: string
+        }
+        Insert: {
+          chapter_id?: string | null
+          created_at?: string
+          duration_seconds: number
+          id?: string
+          session_type?: string | null
+          subject_id?: string | null
+          user_id: string
+        }
+        Update: {
+          chapter_id?: string | null
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          session_type?: string | null
+          subject_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_sessions_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "study_sessions_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_statistics: {
+        Row: {
+          chapters_completed: number | null
+          id: string
+          last_study_date: string | null
+          notes_created: number | null
+          study_streak: number | null
+          total_sessions: number | null
+          total_study_time: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chapters_completed?: number | null
+          id?: string
+          last_study_date?: string | null
+          notes_created?: number | null
+          study_streak?: number | null
+          total_sessions?: number | null
+          total_study_time?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chapters_completed?: number | null
+          id?: string
+          last_study_date?: string | null
+          notes_created?: number | null
+          study_streak?: number | null
+          total_sessions?: number | null
+          total_study_time?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subjects: {
         Row: {
           board: Database["public"]["Enums"]["board_type"]
@@ -226,6 +307,87 @@ export type Database = {
           subject_type?: Database["public"]["Enums"]["subject_type"]
         }
         Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_description: string | null
+          achievement_name: string
+          achievement_type: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_description?: string | null
+          achievement_name: string
+          achievement_type: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_description?: string | null
+          achievement_name?: string
+          achievement_type?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_notes: {
+        Row: {
+          chapter_id: string | null
+          content: string | null
+          created_at: string
+          flashcard_answer: string | null
+          id: string
+          note_type: string | null
+          subject_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chapter_id?: string | null
+          content?: string | null
+          created_at?: string
+          flashcard_answer?: string | null
+          id?: string
+          note_type?: string | null
+          subject_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chapter_id?: string | null
+          content?: string | null
+          created_at?: string
+          flashcard_answer?: string | null
+          id?: string
+          note_type?: string | null
+          subject_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notes_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_notes_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_progress: {
         Row: {
