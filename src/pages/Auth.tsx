@@ -7,9 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, GraduationCap } from 'lucide-react';
+import { Eye, EyeOff, ChevronLeft } from 'lucide-react';
 
-const Auth: React.FC = () => {
+interface AuthProps {
+  onBack?: () => void;
+}
+
+const Auth: React.FC<AuthProps> = ({ onBack }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -71,132 +75,180 @@ const Auth: React.FC = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const getPasswordStrength = (password: string) => {
+    if (password.length < 4) return { strength: 'weak', color: 'text-red-500' };
+    if (password.length < 8) return { strength: 'medium', color: 'text-yellow-500' };
+    return { strength: 'strong', color: 'text-green-500' };
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full">
-              <GraduationCap className="w-8 h-8 text-white" />
-            </div>
-          </div>
-          <h1 className="text-3xl font-bold gradient-text">Axiom Smart Track</h1>
-          <p className="text-muted-foreground">AI Study Assistant</p>
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between p-6 text-white">
+        {onBack && (
+          <button onClick={onBack} className="p-2">
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+        )}
+        <div className="flex-1 text-center">
+          <h1 className="text-xl font-bold">Axiom Smart Track</h1>
         </div>
+        {!isLogin && (
+          <button 
+            onClick={() => setIsLogin(true)}
+            className="text-white/80 hover:text-white text-sm"
+          >
+            {isLogin ? "Don't have an account?" : "Already have an account?"} 
+            <span className="ml-1 font-medium">Sign in</span>
+          </button>
+        )}
+        {isLogin && (
+          <button 
+            onClick={() => setIsLogin(false)}
+            className="text-white/80 hover:text-white text-sm"
+          >
+            Get started
+          </button>
+        )}
+      </div>
 
-        {/* Auth Form */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle>{isLogin ? 'Welcome Back' : 'Create Account'}</CardTitle>
-            <CardDescription>
-              {isLogin 
-                ? 'Sign in to continue your learning journey' 
-                : 'Join thousands of students excelling with AI-powered learning'
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-sm">
+          <Card className="bg-white rounded-3xl border-0 shadow-2xl overflow-hidden">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-2xl font-bold text-gray-900">
+                {isLogin ? 'Welcome Back' : 'Get started free.'}
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                {isLogin 
+                  ? 'Enter your details below' 
+                  : 'Free forever. No credit card needed.'
+                }
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="px-6 pb-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-1">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
                   <Input
-                    id="name"
-                    type="text"
-                    placeholder="Enter your full name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    required={!isLogin}
-                  />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500"
                     required
                   />
+                </div>
+
+                {!isLogin && (
+                  <div className="space-y-1">
+                    <Label htmlFor="name" className="text-sm font-medium text-gray-700">Name</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="Your full name"
+                      value={formData.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                      required={!isLogin}
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••••••"
+                      value={formData.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 pr-12"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  {!isLogin && formData.password && (
+                    <div className="flex items-center space-x-2 mt-1">
+                      <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full transition-all duration-300 ${
+                            passwordStrength.strength === 'weak' ? 'w-1/3 bg-red-500' :
+                            passwordStrength.strength === 'medium' ? 'w-2/3 bg-yellow-500' :
+                            'w-full bg-green-500'
+                          }`}
+                        />
+                      </div>
+                      <span className={`text-xs font-medium ${passwordStrength.color}`}>
+                        {passwordStrength.strength}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {!isLogin && (
+                  <>
+                    <div className="space-y-1">
+                      <Label htmlFor="class" className="text-sm font-medium text-gray-700">Class</Label>
+                      <Select value={formData.className} onValueChange={(value) => handleInputChange('className', value)}>
+                        <SelectTrigger className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500">
+                          <SelectValue placeholder="Select your class" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="class-10">Class 10</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="board" className="text-sm font-medium text-gray-700">Board</Label>
+                      <Select value={formData.board} onValueChange={(value) => handleInputChange('board', value)}>
+                        <SelectTrigger className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500">
+                          <SelectValue placeholder="Select your board" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cbse">CBSE</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
+
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg mt-6" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Please wait...' : (isLogin ? 'Sign in' : 'Sign up')}
+                </Button>
+              </form>
+
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-600">
+                  {isLogin ? "Don't have an account? " : "Already have an account? "}
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    onClick={() => setIsLogin(!isLogin)}
+                    className="text-purple-600 hover:text-purple-700 font-medium"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {isLogin ? 'Sign up' : 'Sign in'}
                   </button>
-                </div>
+                </p>
               </div>
-
-              {!isLogin && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="class">Class</Label>
-                    <Select value={formData.className} onValueChange={(value) => handleInputChange('className', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your class" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="class-10">Class 10</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="board">Board</Label>
-                    <Select value={formData.board} onValueChange={(value) => handleInputChange('board', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your board" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cbse">CBSE</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              )}
-
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                {isLogin ? "Don't have an account? " : "Already have an account? "}
-                <button
-                  type="button"
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-primary hover:underline font-medium"
-                >
-                  {isLogin ? 'Sign up' : 'Sign in'}
-                </button>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Footer */}
-        <div className="text-center text-xs text-muted-foreground">
-          <p>Powered by Axioms Product</p>
-          <p>Designed & Developed by Satyam Rojha</p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

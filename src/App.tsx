@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -9,6 +10,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SyllabusProvider } from "@/contexts/SyllabusContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Landing from "./pages/Landing";
 import Profile from "./pages/Profile";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
@@ -24,10 +26,15 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const { user, isLoading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showLanding, setShowLanding] = useState(false);
 
   useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
-    if (!hasSeenOnboarding && !user) {
+    const hasSeenLanding = localStorage.getItem('hasSeenLanding');
+    
+    if (!hasSeenLanding && !user) {
+      setShowLanding(true);
+    } else if (!hasSeenOnboarding && !user) {
       setShowOnboarding(true);
     }
   }, [user]);
@@ -35,6 +42,15 @@ const AppContent = () => {
   const handleOnboardingComplete = () => {
     localStorage.setItem('hasSeenOnboarding', 'true');
     setShowOnboarding(false);
+  };
+
+  const handleLandingComplete = () => {
+    localStorage.setItem('hasSeenLanding', 'true');
+    setShowLanding(false);
+  };
+
+  const handleBackToLanding = () => {
+    setShowLanding(true);
   };
 
   if (isLoading) {
@@ -45,12 +61,16 @@ const AppContent = () => {
     );
   }
 
+  if (showLanding) {
+    return <Landing onGetStarted={handleLandingComplete} />;
+  }
+
   if (showOnboarding) {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
   if (!user) {
-    return <Auth />;
+    return <Auth onBack={handleBackToLanding} />;
   }
 
   return (
