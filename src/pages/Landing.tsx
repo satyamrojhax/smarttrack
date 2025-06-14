@@ -2,15 +2,12 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Brain, Sparkles } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
-const Landing: React.FC = () => {
-  const navigate = useNavigate();
+interface LandingProps {
+  onGetStarted: () => void;
+}
 
-  const handleGetStarted = () => {
-    navigate('/auth');
-  };
-
+const Landing: React.FC<LandingProps> = ({ onGetStarted }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
       {/* Animated background elements */}
@@ -47,7 +44,7 @@ const Landing: React.FC = () => {
         {/* CTA Button */}
         <div className="space-y-4">
           <Button 
-            onClick={handleGetStarted}
+            onClick={onGetStarted}
             className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-12 py-4 text-lg font-semibold rounded-2xl shadow-2xl transform hover:scale-105 transition-all duration-300 border-0"
           >
             <Sparkles className="w-6 h-6 mr-2" />
