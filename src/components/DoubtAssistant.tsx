@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSyllabus } from '@/contexts/SyllabusContext';
 import { useToast } from '@/hooks/use-toast';
 import { Send, Bot, User, Loader2, BookOpen, Brain, Sparkles } from 'lucide-react';
-import { saveDoubtToDatabase, saveDoubtResponseToDatabase } from '@/services/doubtService';
+import { createConversation, saveDoubtResponseToDatabase } from '@/services/doubtService';
 
 interface Message {
   id: string;
@@ -29,7 +29,7 @@ export const DoubtAssistant = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentDoubtId, setCurrentDoubtId] = useState<string | null>(null);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -79,16 +79,16 @@ export const DoubtAssistant = () => {
     }
 
     try {
-      // Optimized doubt saving with less database calls
-      if (!currentDoubtId && messages.length === 1) {
+      // Create conversation if this is the first message
+      if (!currentConversationId && messages.length === 1) {
         try {
-          const doubt = await saveDoubtToDatabase(
-            currentInput.length > 50 ? currentInput.substring(0, 50) + '...' : currentInput,
-            currentInput
+          const conversation = await createConversation(
+            currentInput.length > 50 ? currentInput.substring(0, 50) + '...' : currentInput
           );
-          setCurrentDoubtId(doubt.id);
+          setCurrentConversationId(conversation.id);
+          console.log('Created conversation:', conversation.id);
         } catch (error) {
-          console.error('Error saving doubt:', error);
+          console.error('Error creating conversation:', error);
         }
       }
 
@@ -107,7 +107,7 @@ Rules:
 Answer:`;
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 25000); // Reduced timeout
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
         method: 'POST',
@@ -121,8 +121,8 @@ Answer:`;
             }]
           }],
           generationConfig: {
-            maxOutputTokens: 200, // Limit response length for speed
-            temperature: 0.3 // Lower temperature for faster, more focused responses
+            maxOutputTokens: 200,
+            temperature: 0.3
           }
         }),
         signal: controller.signal
@@ -151,12 +151,17 @@ Answer:`;
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Background database saving for better performance
-      if (currentDoubtId) {
-        Promise.all([
-          saveDoubtResponseToDatabase(currentDoubtId, currentInput, false),
-          saveDoubtResponseToDatabase(currentDoubtId, aiResponse, true)
-        ]).catch(error => console.error('Error saving responses:', error));
+      // Save responses to conversation
+      if (currentConversationId) {
+        try {
+          // Save user message
+          await saveDoubtResponseToDatabase(currentConversationId, currentInput, false);
+          // Save AI response
+          await saveDoubtResponseToDatabase(currentConversationId, aiResponse, true);
+          console.log('Saved responses to conversation:', currentConversationId);
+        } catch (error) {
+          console.error('Error saving responses to conversation:', error);
+        }
       }
 
     } catch (error) {
@@ -188,7 +193,7 @@ Answer:`;
     } finally {
       setIsLoading(false);
     }
-  }, [inputMessage, isLoading, formatAIResponse, toast, currentDoubtId, messages.length]);
+  }, [inputMessage, isLoading, formatAIResponse, toast, currentConversationId, messages.length]);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -197,7 +202,6 @@ Answer:`;
     }
   }, [sendMessage]);
 
-  // Auto-resize textarea for better UX
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputMessage(e.target.value);
     const textarea = e.target;
@@ -205,7 +209,6 @@ Answer:`;
     textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
   }, []);
 
-  // Memoized message component for better performance
   const MessageComponent = React.memo(({ message }: { message: Message }) => (
     <div
       className={`flex items-start gap-3 mb-4 ${
@@ -248,7 +251,6 @@ Answer:`;
     </div>
   ));
 
-  // Memoized quick prompts for better performance
   const quickPrompts = useMemo(() => [
     "Explain photosynthesis",
     "Solve quadratic equation",

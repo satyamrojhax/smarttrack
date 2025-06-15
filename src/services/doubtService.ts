@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
@@ -21,6 +20,52 @@ export interface DoubtResponse {
   is_ai_response: boolean;
   created_at: string;
 }
+
+export interface DoubtConversation {
+  id: string;
+  title: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const createConversation = async (title: string) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "Please log in to create a conversation.",
+        variant: "destructive",
+      });
+      throw new Error('User not authenticated');
+    }
+
+    const { data, error } = await supabase
+      .from('doubt_conversations')
+      .insert({
+        title,
+        user_id: user.id
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Database error creating conversation:', error);
+      toast({
+        title: "Error Creating Conversation",
+        description: "Failed to create conversation. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error creating conversation:', error);
+    throw error;
+  }
+};
 
 export const saveDoubtToDatabase = async (title: string, description: string, subjectId?: string) => {
   try {
@@ -69,10 +114,9 @@ export const saveDoubtToDatabase = async (title: string, description: string, su
 };
 
 export const saveDoubtResponseToDatabase = async (
-  doubtId: string, 
+  conversationId: string,
   responseText: string, 
-  isAiResponse: boolean = true,
-  conversationId?: string
+  isAiResponse: boolean = true
 ) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -88,7 +132,6 @@ export const saveDoubtResponseToDatabase = async (
     const { data, error } = await supabase
       .from('doubt_responses')
       .insert({
-        doubt_id: doubtId,
         conversation_id: conversationId,
         user_id: user.id,
         response_text: responseText,
@@ -173,30 +216,48 @@ export const getDoubtHistory = async (doubtId: string) => {
   }
 };
 
-export const createConversation = async (title: string) => {
+export const getConversationHistory = async (conversationId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('doubt_responses')
+      .select('*')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Database error fetching conversation history:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching conversation history:', error);
+    return [];
+  }
+};
+
+export const getUserConversations = async () => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      throw new Error('User not authenticated');
+      console.warn('No authenticated user found');
+      return [];
     }
 
     const { data, error } = await supabase
       .from('doubt_conversations')
-      .insert({
-        title,
-        user_id: user.id
-      })
-      .select()
-      .single();
+      .select('*')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false });
 
     if (error) {
-      console.error('Database error creating conversation:', error);
-      throw error;
+      console.error('Database error fetching conversations:', error);
+      return [];
     }
 
-    return data;
+    return data || [];
   } catch (error) {
-    console.error('Error creating conversation:', error);
-    throw error;
+    console.error('Error fetching conversations:', error);
+    return [];
   }
 };
