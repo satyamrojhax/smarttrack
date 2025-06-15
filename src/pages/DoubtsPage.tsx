@@ -4,7 +4,7 @@ import { DoubtAssistant } from '@/components/DoubtAssistant';
 
 const DoubtsPage: React.FC = () => {
   return (
-    <div className="fixed inset-0 bg-background">
+    <div className="h-full w-full">
       <DoubtAssistant />
     </div>
   );
