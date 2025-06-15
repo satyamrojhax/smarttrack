@@ -128,23 +128,25 @@ const AppContent = () => {
   return (
     <ErrorBoundary>
       <SyllabusProvider>
-        <MainLayout>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/syllabus" element={<SyllabusPage />} />
-            <Route path="/questions" element={<QuestionsPage />} />
-            <Route path="/doubts" element={<DoubtsPage />} />
-            <Route path="/predictor" element={<PredictorPage />} />
-            <Route path="/history" element={<HistoryPage />} />
-            <Route path="/timer" element={<TimerPage />} />
-            <Route path="/notes" element={<NotesPage />} />
-            <Route path="/badges" element={<BadgesPage />} />
-            <Route path="/export" element={<ExportPage />} />
-            <Route path="/theme" element={<ThemePage />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </MainLayout>
+        <TimerProvider>
+          <MainLayout>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/syllabus" element={<SyllabusPage />} />
+              <Route path="/questions" element={<QuestionsPage />} />
+              <Route path="/doubts" element={<DoubtsPage />} />
+              <Route path="/predictor" element={<PredictorPage />} />
+              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/timer" element={<TimerPage />} />
+              <Route path="/notes" element={<NotesPage />} />
+              <Route path="/badges" element={<BadgesPage />} />
+              <Route path="/export" element={<ExportPage />} />
+              <Route path="/theme" element={<ThemePage />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </MainLayout>
+        </TimerProvider>
       </SyllabusProvider>
     </ErrorBoundary>
   );
