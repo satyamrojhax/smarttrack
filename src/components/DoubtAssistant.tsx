@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSyllabus } from '@/contexts/SyllabusContext';
 import { useToast } from '@/hooks/use-toast';
-import { Send, Bot, User, Loader2, BookOpen, Brain } from 'lucide-react';
+import { Send, Bot, User, Loader2, BookOpen, Brain, Sparkles } from 'lucide-react';
 import { saveDoubtToDatabase, saveDoubtResponseToDatabase } from '@/services/doubtService';
 
 interface Message {
@@ -33,28 +33,30 @@ export const DoubtAssistant = () => {
   const [currentDoubtId, setCurrentDoubtId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Optimized scroll function with requestAnimationFrame
+  // Optimized scroll function with direct DOM manipulation for speed
   const scrollToBottom = useCallback(() => {
-    requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ 
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
         behavior: 'smooth',
         block: 'end'
       });
-    });
+    }
   }, []);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
+  // Memoized format function for better performance
   const formatAIResponse = useCallback((text: string): string => {
     return text
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
       .replace(/#{1,6}\s*/g, '')
       .replace(/\n\s*\n/g, '\n\n')
-      .replace(/^\s+|\s+$/g, '');
+      .trim();
   }, []);
 
   const sendMessage = useCallback(async () => {
@@ -72,8 +74,13 @@ export const DoubtAssistant = () => {
     setInputMessage('');
     setIsLoading(true);
 
+    // Auto-resize textarea back to single line
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+    }
+
     try {
-      // Save doubt to database if it's the first message
+      // Optimized doubt saving with less database calls
       if (!currentDoubtId && messages.length === 1) {
         try {
           const doubt = await saveDoubtToDatabase(
@@ -81,31 +88,27 @@ export const DoubtAssistant = () => {
             currentInput
           );
           setCurrentDoubtId(doubt.id);
-          console.log('Doubt saved to database:', doubt.id);
         } catch (error) {
-          console.error('Error saving doubt to database:', error);
-          // Continue with AI response even if saving fails
+          console.error('Error saving doubt:', error);
         }
       }
 
-      const prompt = `You are an AI tutor for Class 10 CBSE students. Give SHORT, DIRECT answers only.
+      // Optimized prompt for faster responses
+      const prompt = `You are a Class 10 CBSE AI tutor. Give SHORT, DIRECT answers (max 80 words).
 
-Student's question: "${currentInput}"
+Question: "${currentInput}"
 
-IMPORTANT RULES:
-- Keep answers under 100 words
-- Be direct and to the point
-- Only answer what was asked
-- For math problems: show just the key steps
-- For concepts: give brief explanations only
-- No extra motivational content
-- No long introductions or conclusions
-- Just the answer they need
+Rules:
+- Be concise and direct
+- Show key steps only for math
+- Brief explanations for concepts
+- No extra text or motivation
+- Just the essential answer
 
-Answer briefly:`;
+Answer:`;
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // Reduced timeout
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
         method: 'POST',
@@ -117,7 +120,11 @@ Answer briefly:`;
             parts: [{
               text: prompt
             }]
-          }]
+          }],
+          generationConfig: {
+            maxOutputTokens: 200, // Limit response length for speed
+            temperature: 0.3 // Lower temperature for faster, more focused responses
+          }
         }),
         signal: controller.signal
       });
@@ -130,8 +137,8 @@ Answer briefly:`;
 
       const data = await response.json();
       
-      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-        throw new Error('Invalid response format from AI');
+      if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+        throw new Error('Invalid response format');
       }
 
       const aiResponse = formatAIResponse(data.candidates[0].content.parts[0].text);
@@ -145,17 +152,12 @@ Answer briefly:`;
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Save responses to database
+      // Background database saving for better performance
       if (currentDoubtId) {
-        try {
-          await Promise.all([
-            saveDoubtResponseToDatabase(currentDoubtId, currentInput, false), // User message
-            saveDoubtResponseToDatabase(currentDoubtId, aiResponse, true)     // AI response
-          ]);
-          console.log('Responses saved to database');
-        } catch (error) {
-          console.error('Error saving responses to database:', error);
-        }
+        Promise.all([
+          saveDoubtResponseToDatabase(currentDoubtId, currentInput, false),
+          saveDoubtResponseToDatabase(currentDoubtId, aiResponse, true)
+        ]).catch(error => console.error('Error saving responses:', error));
       }
 
     } catch (error) {
@@ -164,9 +166,9 @@ Answer briefly:`;
       let errorMessage = "Sorry, couldn't process that. Try again!";
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          errorMessage = "Request timed out. Please try again with a shorter question.";
+          errorMessage = "Request timed out. Please try a shorter question.";
         } else if (error.message.includes('HTTP error')) {
-          errorMessage = "Network error. Please check your connection and try again.";
+          errorMessage = "Network error. Please check connection.";
         }
       }
 
@@ -196,38 +198,46 @@ Answer briefly:`;
     }
   }, [sendMessage]);
 
-  // Memoize message rendering for better performance
+  // Auto-resize textarea for better UX
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputMessage(e.target.value);
+    const textarea = e.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+  }, []);
+
+  // Memoized message component for better performance
   const MessageComponent = React.memo(({ message }: { message: Message }) => (
     <div
-      className={`flex items-start gap-2 sm:gap-3 ${
+      className={`flex items-start gap-3 mb-4 ${
         message.role === 'user' ? 'flex-row-reverse' : ''
       }`}
     >
-      <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center ${
+      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
         message.role === 'user' 
-          ? 'bg-primary text-primary-foreground' 
-          : 'bg-secondary text-secondary-foreground'
+          ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white' 
+          : 'bg-gradient-to-r from-green-500 to-teal-500 text-white'
       }`}>
         {message.role === 'user' ? (
-          <User className="w-3 h-3 sm:w-4 sm:h-4" />
+          <User className="w-4 h-4" />
         ) : (
-          <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
+          <Bot className="w-4 h-4" />
         )}
       </div>
       
-      <div className={`flex-1 max-w-[80%] sm:max-w-[75%] ${
+      <div className={`flex-1 max-w-[85%] ${
         message.role === 'user' ? 'text-right' : ''
       }`}>
-        <div className={`inline-block p-2 sm:p-3 md:p-4 rounded-2xl text-xs sm:text-sm md:text-base break-words ${
+        <div className={`inline-block p-4 rounded-2xl text-sm break-words ${
           message.role === 'user'
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-secondary/50 text-secondary-foreground border'
+            ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
+            : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border shadow-sm'
         }`}>
           <div className="whitespace-pre-wrap leading-relaxed">
             {message.content}
           </div>
         </div>
-        <div className={`text-xs text-muted-foreground mt-1 ${
+        <div className={`text-xs text-gray-500 mt-1 ${
           message.role === 'user' ? 'text-right' : 'text-left'
         }`}>
           {new Date(message.timestamp).toLocaleTimeString([], { 
@@ -239,94 +249,119 @@ Answer briefly:`;
     </div>
   ));
 
+  // Memoized quick prompts for better performance
+  const quickPrompts = useMemo(() => [
+    "Explain photosynthesis",
+    "Solve quadratic equation",
+    "What is democracy?",
+    "Chemical bonding basics"
+  ], []);
+
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto p-2 sm:p-4">
-      {/* Header */}
-      <div className="text-center mb-4 animate-fade-in">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold flex items-center justify-center gap-2 mb-2">
-          <Brain className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-primary" />
-          <span>AI Doubt Assistant</span>
-        </h2>
-        <p className="text-muted-foreground text-xs sm:text-sm md:text-base">Ask your study doubts and get instant help! 🤖📚</p>
+    <div className="h-full flex flex-col bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Compact Header */}
+      <div className="flex-shrink-0 p-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50">
+        <div className="flex items-center justify-center gap-3">
+          <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl">
+            <Brain className="w-6 h-6 text-white" />
+          </div>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              AI Study Assistant
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Ask anything about Class 10 CBSE</p>
+          </div>
+          <div className="p-2 bg-gradient-to-r from-green-500 to-teal-500 rounded-xl">
+            <Sparkles className="w-6 h-6 text-white" />
+          </div>
+        </div>
       </div>
 
-      {/* Chat Container */}
-      <Card className="glass-card flex-1 flex flex-col min-h-0">
-        <CardHeader className="border-b py-2 sm:py-3 flex-shrink-0">
-          <CardTitle className="flex items-center gap-2 text-sm sm:text-base md:text-lg">
-            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span>Study Chat</span>
-            <Badge variant="secondary" className="text-xs">Online</Badge>
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent className="flex-1 flex flex-col p-0 min-h-0">
-          {/* Messages with optimized scrolling */}
-          <ScrollArea 
-            className="flex-1 px-2 sm:px-4" 
-            ref={scrollAreaRef}
-            style={{ scrollBehavior: 'smooth' }}
-          >
-            <div className="py-3 sm:py-4 space-y-3 sm:space-y-4">
-              {messages.map((message) => (
-                <MessageComponent key={message.id} message={message} />
-              ))}
-              
-              {isLoading && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center">
-                    <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="inline-block p-2 sm:p-3 md:p-4 rounded-2xl bg-secondary/50 border">
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
-                        <span className="text-xs sm:text-sm">Thinking...</span>
-                      </div>
+      {/* Optimized Chat Area */}
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* Messages with optimized scrolling */}
+        <ScrollArea 
+          className="flex-1 px-4"
+          ref={scrollAreaRef}
+        >
+          <div className="py-6 max-w-4xl mx-auto">
+            {messages.map((message) => (
+              <MessageComponent key={message.id} message={message} />
+            ))}
+            
+            {isLoading && (
+              <div className="flex items-start gap-3 mb-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-teal-500 text-white flex items-center justify-center">
+                  <Bot className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="inline-block p-4 rounded-2xl bg-white dark:bg-gray-800 border shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Thinking...</span>
                     </div>
                   </div>
                 </div>
-              )}
-              
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
 
-          {/* Optimized Input Area */}
-          <div className="border-t p-2 sm:p-3 md:p-4 bg-background/50 flex-shrink-0">
-            <div className="flex gap-2">
-              <Textarea
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask your doubt here... (Press Enter to send)"
-                className="flex-1 min-h-[36px] sm:min-h-[40px] max-h-24 sm:max-h-32 resize-none text-xs sm:text-sm md:text-base"
-                disabled={isLoading}
-                rows={1}
-                autoFocus
-              />
+        {/* Optimized Input Area */}
+        <div className="flex-shrink-0 p-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border-t border-gray-200/50 dark:border-gray-700/50">
+          <div className="max-w-4xl mx-auto">
+            {/* Quick Prompts */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {quickPrompts.map((prompt) => (
+                <button
+                  key={prompt}
+                  onClick={() => setInputMessage(prompt)}
+                  className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+
+            {/* Input */}
+            <div className="flex gap-3 items-end">
+              <div className="flex-1 relative">
+                <Textarea
+                  ref={inputRef}
+                  value={inputMessage}
+                  onChange={handleInputChange}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask your doubt here... (Press Enter to send)"
+                  className="min-h-[48px] max-h-[120px] resize-none text-sm border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-800"
+                  disabled={isLoading}
+                  rows={1}
+                  autoFocus
+                />
+              </div>
               <Button
                 onClick={sendMessage}
                 disabled={!inputMessage.trim() || isLoading}
-                className="px-2 sm:px-3 md:px-4 h-9 sm:h-10 flex-shrink-0"
+                className="h-12 w-12 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
               >
                 {isLoading ? (
-                  <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <Send className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <Send className="w-5 h-5" />
                 )}
               </Button>
             </div>
             
-            <div className="mt-2 flex flex-wrap gap-1 sm:gap-2">
-              <Badge variant="outline" className="text-xs">📚 Study Help</Badge>
-              <Badge variant="outline" className="text-xs">🧮 Math Solutions</Badge>
-              <Badge variant="outline" className="text-xs hidden sm:inline-flex">🔬 Science Concepts</Badge>
-              <Badge variant="outline" className="text-xs hidden sm:inline-flex">📖 English Grammar</Badge>
+            <div className="mt-2 flex flex-wrap gap-2 justify-center">
+              <Badge variant="outline" className="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">📚 Study Help</Badge>
+              <Badge variant="outline" className="text-xs bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300">🧮 Math Solutions</Badge>
+              <Badge variant="outline" className="text-xs bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300">🔬 Science Concepts</Badge>
+              <Badge variant="outline" className="text-xs bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300">📖 English Grammar</Badge>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
