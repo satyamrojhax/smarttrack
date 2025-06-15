@@ -8,6 +8,7 @@
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
+  "scope": "/",
   "icons": [
     {
       "src": "/placeholder.svg",
@@ -23,5 +24,27 @@
     }
   ],
   "categories": ["education", "productivity"],
-  "lang": "en"
+  "lang": "en",
+  "shortcuts": [
+    {
+      "name": "Ask Doubts",
+      "short_name": "Doubts",
+      "description": "Get AI help with your questions",
+      "url": "/doubts",
+      "icons": [{ "src": "/placeholder.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Practice Questions",
+      "short_name": "Questions",
+      "description": "Generate practice questions",
+      "url": "/questions",
+      "icons": [{ "src": "/placeholder.svg", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "display_override": ["window-controls-overlay", "standalone"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }
