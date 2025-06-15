@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { History, MessageCircle, HelpCircle, Clock, ChevronRight, Bot, User } from 'lucide-react';
+import { History, MessageCircle, HelpCircle, Clock, ChevronRight, Bot, User, FileText } from 'lucide-react';
 
 interface DoubtHistory {
   id: string;
@@ -32,9 +32,21 @@ interface ChatMessage {
   created_at: string;
 }
 
+interface GeneratedQuestion {
+  id: string;
+  question_text: string;
+  question_type: string;
+  difficulty_level: number;
+  correct_answer: string;
+  created_at: string;
+  subjects?: { name: string };
+  chapters?: { name: string };
+}
+
 const HistoryPage: React.FC = () => {
   const [doubts, setDoubts] = useState<DoubtHistory[]>([]);
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
+  const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,10 +55,18 @@ const HistoryPage: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      fetchDoubtHistory();
-      fetchChatHistory();
+      fetchAllHistory();
     }
   }, [user]);
+
+  const fetchAllHistory = async () => {
+    await Promise.all([
+      fetchDoubtHistory(),
+      fetchChatHistory(),
+      fetchGeneratedQuestions()
+    ]);
+    setLoading(false);
+  };
 
   const fetchDoubtHistory = async () => {
     if (!user) return;
@@ -68,7 +88,6 @@ const HistoryPage: React.FC = () => {
       if (error) {
         console.error('Error fetching doubt history:', error);
       } else {
-        // Transform the data to match our interface
         const transformedDoubts = (data || []).map(doubt => ({
           id: doubt.id,
           subject: doubt.subjects?.name || 'Unknown Subject',
@@ -101,7 +120,6 @@ const HistoryPage: React.FC = () => {
       if (error) {
         console.error('Error fetching chat history:', error);
       } else {
-        // For each conversation, count the messages
         const conversationsWithCount = await Promise.all(
           (data || []).map(async (conv) => {
             const { count } = await supabase
@@ -120,8 +138,36 @@ const HistoryPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching chat history:', error);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchGeneratedQuestions = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_generated_questions')
+        .select(`
+          id,
+          question_text,
+          question_type,
+          difficulty_level,
+          correct_answer,
+          created_at,
+          subjects(name),
+          chapters(name)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) {
+        console.error('Error fetching generated questions:', error);
+      } else {
+        setGeneratedQuestions(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching generated questions:', error);
     }
   };
 
@@ -136,17 +182,20 @@ const HistoryPage: React.FC = () => {
 
       if (error) {
         console.error('Error fetching conversation messages:', error);
+        setMessages([]);
       } else {
         setMessages(data || []);
       }
     } catch (error) {
       console.error('Error fetching conversation messages:', error);
+      setMessages([]);
     } finally {
       setMessagesLoading(false);
     }
   };
 
   const handleConversationClick = (conversationId: string) => {
+    console.log('Selecting conversation:', conversationId);
     setSelectedConversation(conversationId);
     fetchConversationMessages(conversationId);
   };
@@ -175,6 +224,19 @@ const HistoryPage: React.FC = () => {
     });
   };
 
+  const getDifficultyColor = (level: number) => {
+    switch (level) {
+      case 1:
+        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+      case 2:
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
+      case 3:
+        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto p-4">
@@ -191,14 +253,14 @@ const HistoryPage: React.FC = () => {
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold gradient-text flex items-center justify-center gap-2">
           <History className="w-8 h-8" />
-          Chat & Doubt History
+          Learning History
         </h1>
         <p className="text-muted-foreground">
-          View your past conversations and doubt submissions
+          View your past conversations, doubts, and generated questions
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-3">
         {/* Chat History */}
         <Card>
           <CardHeader>
@@ -212,23 +274,24 @@ const HistoryPage: React.FC = () => {
               <div className="text-center py-8">
                 <MessageCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Chats Yet</h3>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   Start a conversation to see your chat history here!
                 </p>
               </div>
             ) : (
-              <ScrollArea className="h-[400px]">
+              <ScrollArea className="h-[300px]">
                 <div className="space-y-2">
                   {conversations.map((conversation) => (
-                    <div
+                    <Button
                       key={conversation.id}
-                      className={`p-3 rounded-lg border cursor-pointer transition-colors hover:bg-accent ${
+                      variant="ghost"
+                      className={`w-full justify-start p-3 h-auto ${
                         selectedConversation === conversation.id ? 'bg-accent' : ''
                       }`}
                       onClick={() => handleConversationClick(conversation.id)}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex-1 text-left">
                           <h4 className="font-medium text-sm line-clamp-1">
                             {conversation.title}
                           </h4>
@@ -242,9 +305,9 @@ const HistoryPage: React.FC = () => {
                             </span>
                           </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                       </div>
-                    </div>
+                    </Button>
                   ))}
                 </div>
               </ScrollArea>
@@ -257,7 +320,7 @@ const HistoryPage: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5" />
-              {selectedConversation ? 'Conversation Messages' : 'Select a Chat'}
+              {selectedConversation ? 'Conversation' : 'Select a Chat'}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -265,7 +328,7 @@ const HistoryPage: React.FC = () => {
               <div className="text-center py-8">
                 <MessageCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Select a Chat</h3>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   Click on a chat from the history to view the conversation
                 </p>
               </div>
@@ -274,8 +337,13 @@ const HistoryPage: React.FC = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 <p className="mt-2 text-muted-foreground">Loading messages...</p>
               </div>
+            ) : messages.length === 0 ? (
+              <div className="text-center py-8">
+                <MessageCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground text-sm">No messages found in this conversation</p>
+              </div>
             ) : (
-              <ScrollArea className="h-[400px]">
+              <ScrollArea className="h-[300px]">
                 <div className="space-y-4">
                   {messages.map((message) => (
                     <div
@@ -312,6 +380,63 @@ const HistoryPage: React.FC = () => {
                           !message.is_ai_response ? 'text-right' : 'text-left'
                         }`}>
                           {formatDate(message.created_at)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Generated Questions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Generated Questions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {generatedQuestions.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Questions Yet</h3>
+                <p className="text-muted-foreground text-sm">
+                  Generate questions to see them here!
+                </p>
+              </div>
+            ) : (
+              <ScrollArea className="h-[300px]">
+                <div className="space-y-3">
+                  {generatedQuestions.map((question) => (
+                    <div key={question.id} className="p-3 rounded-lg border bg-card">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline" className="text-xs">
+                            {question.subjects?.name || 'Unknown Subject'}
+                          </Badge>
+                          {question.chapters?.name && (
+                            <Badge variant="outline" className="text-xs">
+                              {question.chapters.name}
+                            </Badge>
+                          )}
+                          <Badge className={`text-xs ${getDifficultyColor(question.difficulty_level)}`}>
+                            Level {question.difficulty_level}
+                          </Badge>
+                          {question.question_type && (
+                            <Badge variant="outline" className="text-xs">
+                              {question.question_type}
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm font-medium leading-relaxed line-clamp-3">
+                          {question.question_text}
+                        </p>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          {formatDate(question.created_at)}
                         </div>
                       </div>
                     </div>

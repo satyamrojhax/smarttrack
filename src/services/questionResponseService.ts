@@ -27,50 +27,6 @@ export const saveQuestionResponse = async (
     // Note: questions_responses table doesn't exist yet, returning mock success for now
     console.log('Question responses functionality not implemented - table does not exist');
     return { success: true, data: { id: 'mock-id' } };
-    
-    /* Commented out until questions_responses table is created
-    // Try to get session first, then fall back to getUser if needed
-    let userId: string | null = null;
-    
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (session?.user) {
-      userId = session.user.id;
-    } else {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (user) {
-        userId = user.id;
-      } else {
-        console.error('Auth errors:', { sessionError, userError });
-        throw new Error('User not authenticated - please log in');
-      }
-    }
-
-    if (!userId) {
-      throw new Error('Unable to get user ID');
-    }
-
-    const { data, error } = await supabase
-      .from('questions_responses')
-      .insert([{
-        user_id: userId,
-        question_id: questionId,
-        generated_question_text: generatedQuestionText,
-        user_response: userResponse,
-        correct_answer: correctAnswer,
-        is_correct: isCorrect,
-        response_time: responseTime
-      }])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error saving question response:', error);
-      throw error;
-    }
-    
-    console.log('Question response saved successfully:', data);
-    return { success: true, data };
-    */
   } catch (error) {
     console.error('Error in saveQuestionResponse:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
@@ -89,21 +45,36 @@ export const saveQuestionToDatabase = async (
   try {
     console.log('Saving question to database:', { questionText, questionType, difficultyLevel });
     
-    // Note: questions table doesn't exist yet, returning mock success for now
-    console.log('Questions functionality not implemented - table does not exist');
-    return { success: true, data: { id: 'mock-id' } };
-    
-    /* Commented out until questions table is created
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    // Get subject_id from chapter_id
+    let subjectId = null;
+    if (chapterId) {
+      const { data: chapterData } = await supabase
+        .from('chapters')
+        .select('subject_id')
+        .eq('id', chapterId)
+        .single();
+      
+      subjectId = chapterData?.subject_id;
+    }
+
     const { data, error } = await supabase
-      .from('questions')
+      .from('user_generated_questions')
       .insert([{
+        user_id: user.id,
         question_text: questionText,
         question_type: questionType,
         difficulty_level: difficultyLevel,
         correct_answer: correctAnswer,
         options: options,
         explanation: explanation,
-        chapter_id: chapterId
+        chapter_id: chapterId,
+        subject_id: subjectId
       }])
       .select()
       .single();
@@ -115,7 +86,6 @@ export const saveQuestionToDatabase = async (
     
     console.log('Question saved successfully:', data);
     return { success: true, data };
-    */
   } catch (error) {
     console.error('Error in saveQuestionToDatabase:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
@@ -124,35 +94,19 @@ export const saveQuestionToDatabase = async (
 
 export const getUserQuestionResponses = async () => {
   try {
-    // Note: questions_responses table doesn't exist yet, returning empty array for now
-    console.log('Question responses functionality not implemented - table does not exist');
-    return [];
-    
-    /* Commented out until questions_responses table is created
-    // Try to get session first, then fall back to getUser if needed
-    let userId: string | null = null;
-    
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (session?.user) {
-      userId = session.user.id;
-    } else {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (user) {
-        userId = user.id;
-      } else {
-        console.error('Auth errors:', { sessionError, userError });
-        throw new Error('User not authenticated');
-      }
-    }
-
-    if (!userId) {
-      throw new Error('Unable to get user ID');
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
     }
 
     const { data, error } = await supabase
-      .from('questions_responses')
-      .select('*')
-      .eq('user_id', userId)
+      .from('user_generated_questions')
+      .select(`
+        *,
+        subjects(name),
+        chapters(name)
+      `)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -162,7 +116,6 @@ export const getUserQuestionResponses = async () => {
     
     console.log('Question responses fetched successfully:', data);
     return data || [];
-    */
   } catch (error) {
     console.error('Error in getUserQuestionResponses:', error);
     return [];

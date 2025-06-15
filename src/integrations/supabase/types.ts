@@ -335,6 +335,66 @@ export type Database = {
         }
         Relationships: []
       }
+      user_generated_questions: {
+        Row: {
+          chapter_id: string | null
+          correct_answer: string | null
+          created_at: string
+          difficulty_level: number | null
+          explanation: string | null
+          id: string
+          options: Json | null
+          question_text: string
+          question_type: string | null
+          subject_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chapter_id?: string | null
+          correct_answer?: string | null
+          created_at?: string
+          difficulty_level?: number | null
+          explanation?: string | null
+          id?: string
+          options?: Json | null
+          question_text: string
+          question_type?: string | null
+          subject_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chapter_id?: string | null
+          correct_answer?: string | null
+          created_at?: string
+          difficulty_level?: number | null
+          explanation?: string | null
+          id?: string
+          options?: Json | null
+          question_text?: string
+          question_type?: string | null
+          subject_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_generated_questions_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_generated_questions_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_notes: {
         Row: {
           chapter_id: string | null
