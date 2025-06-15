@@ -39,6 +39,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   // Sidebar items
   const sidebarItems = [
+    { name: 'Questions', href: '/questions', icon: Brain },
+    { name: 'Doubts', href: '/doubts', icon: HelpCircle },
+    { name: 'Profile', href: '/profile', icon: User },
     { name: 'Syllabus', href: '/syllabus', icon: BookOpen },
     { name: 'Predictor', href: '/predictor', icon: TrendingUp },
     { name: 'History', href: '/history', icon: History },
