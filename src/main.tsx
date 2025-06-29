@@ -10,7 +10,11 @@ const performanceObserver = new PerformanceObserver((list) => {
       console.log('LCP:', entry.startTime);
     }
     if (entry.entryType === 'first-input') {
-      console.log('FID:', entry.processingStart - entry.startTime);
+      // Type guard to ensure we have a PerformanceEventTiming entry
+      const eventTiming = entry as PerformanceEventTiming;
+      if (eventTiming.processingStart !== undefined) {
+        console.log('FID:', eventTiming.processingStart - eventTiming.startTime);
+      }
     }
   }
 });
