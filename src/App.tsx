@@ -1,4 +1,3 @@
-
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -31,6 +30,7 @@ const NotesPage = lazy(() => import("./pages/NotesPage"));
 const BadgesPage = lazy(() => import("./pages/BadgesPage"));
 const ExportPage = lazy(() => import("./pages/ExportPage"));
 const ThemePage = lazy(() => import("./pages/ThemePage"));
+const ToDoPage = lazy(() => import("./pages/ToDoPage"));
 
 // Optimize query client for better performance
 const queryClient = new QueryClient({
@@ -146,6 +146,7 @@ const AppContent = () => {
             <Suspense fallback={<PageLoadingSpinner />}>
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/todo" element={<ToDoPage />} />
                 <Route path="/syllabus" element={<SyllabusPage />} />
                 <Route path="/questions" element={<QuestionsPage />} />
                 <Route path="/doubts" element={<DoubtsPage />} />

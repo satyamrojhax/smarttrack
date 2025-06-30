@@ -15,9 +15,11 @@ import {
   SidebarProvider, 
   SidebarTrigger,
   SidebarInset,
-  useSidebar
+  useSidebar,
+  SidebarFooter
 } from '@/components/ui/sidebar';
-import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Download, Palette } from 'lucide-react';
+import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Download, Palette, CheckSquare } from 'lucide-react';
+import PWADownload from '@/components/PWADownload';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -37,9 +39,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'Profile', href: '/profile', icon: User },
   ];
 
-  // Sidebar items with Dashboard included
+  // Sidebar items with Dashboard and ToDo included
   const sidebarItems = [
     { name: 'Dashboard', href: '/', icon: Home },
+    { name: 'ToDo Tasks', href: '/todo', icon: CheckSquare },
     { name: 'Questions', href: '/questions', icon: Brain },
     { name: 'Doubts', href: '/doubts', icon: HelpCircle },
     { name: 'Profile', href: '/profile', icon: User },
@@ -104,6 +107,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </SidebarMenu>
           </div>
         </SidebarContent>
+        <SidebarFooter className="p-3 border-t">
+          <div className="flex justify-center">
+            <PWADownload />
+          </div>
+        </SidebarFooter>
       </Sidebar>
     );
   };
@@ -135,6 +143,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <span className="text-xs sm:text-sm text-muted-foreground hidden lg:block font-medium">
                   Welcome, {profile?.name}! 👋
                 </span>
+                <div className="hidden sm:block">
+                  <PWADownload />
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
