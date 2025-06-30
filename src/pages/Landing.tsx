@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import Logo from '@/components/Logo';
-import { Sparkles } from 'lucide-react';
+import { Brain, Sparkles } from 'lucide-react';
 
 interface LandingProps {
   onGetStarted: () => void;
@@ -19,16 +18,16 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted }) => {
 
       {/* Navigation */}
       <nav className="relative z-10 flex justify-between items-center p-6">
-        <Logo size="lg" className="text-white" />
+        <div className="flex items-center">
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2 mr-3">
+            <Brain className="w-6 h-6 text-white" />
+          </div>
+          <span className="text-white font-bold text-lg">Axiom Smart Track</span>
+        </div>
       </nav>
 
       {/* Hero Section */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-[80vh] px-6 text-center">
-        {/* Logo in hero section */}
-        <div className="mb-8">
-          <Logo size="xl" className="text-white justify-center" />
-        </div>
-
         {/* Main Heading */}
         <div className="mb-12">
           <h1 className="text-6xl md:text-7xl font-bold text-white mb-6 leading-tight">

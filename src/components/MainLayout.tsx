@@ -1,10 +1,10 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDeviceCapabilities } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
-import Logo from '@/components/Logo';
 import { 
   Sidebar, 
   SidebarContent, 
@@ -64,7 +64,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return (
       <Sidebar className="w-64">
         <SidebarHeader className="p-3 sm:p-4 border-b">
-          <Logo size="md" />
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="p-1.5 sm:p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
+              <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-xs sm:text-sm">Study Tools</h2>
+              <p className="text-xs text-muted-foreground hidden sm:block">Track your progress</p>
+            </div>
+          </div>
         </SidebarHeader>
         <SidebarContent>
           <div className="p-2">
@@ -105,7 +113,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <div className="flex justify-between items-center h-14 sm:h-16 px-3 sm:px-4 md:px-6">
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <SidebarTrigger />
-                <Logo size="md" />
+                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                  <div className="p-1.5 sm:p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
+                    <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  </div>
+                  <div className="hidden sm:block">
+                    <h1 className="text-sm sm:text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                      Axiom Smart Track
+                    </h1>
+                    <p className="text-xs text-muted-foreground hidden md:block">AI Study Assistant</p>
+                  </div>
+                </div>
               </div>
 
               <div className="flex items-center space-x-2 sm:space-x-4">
