@@ -1,5 +1,5 @@
 
-import { useState, useEffect, Suspense, lazy } from "react";
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,33 +10,30 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SyllabusProvider } from "@/contexts/SyllabusContext";
 import { TimerProvider } from "@/contexts/TimerContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import QuickLoader from "@/components/QuickLoader";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Landing from "./pages/Landing";
+import Profile from "./pages/Profile";
+import Onboarding from "./pages/Onboarding";
+import NotFound from "./pages/NotFound";
+import SyllabusPage from "./pages/SyllabusPage";
+import QuestionsPage from "./pages/QuestionsPage";
+import PredictorPage from "./pages/PredictorPage";
+import DoubtsPage from "./pages/DoubtsPage";
+import HistoryPage from "./pages/HistoryPage";
+import TimerPage from "./pages/TimerPage";
+import NotesPage from "./pages/NotesPage";
+import BadgesPage from "./pages/BadgesPage";
+import ExportPage from "./pages/ExportPage";
+import ThemePage from "./pages/ThemePage";
 import MainLayout from "./components/MainLayout";
-
-// Lazy load components for better performance
-const Index = lazy(() => import("./pages/Index"));
-const Auth = lazy(() => import("./pages/Auth"));
-const Landing = lazy(() => import("./pages/Landing"));
-const Profile = lazy(() => import("./pages/Profile"));
-const Onboarding = lazy(() => import("./pages/Onboarding"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const SyllabusPage = lazy(() => import("./pages/SyllabusPage"));
-const QuestionsPage = lazy(() => import("./pages/QuestionsPage"));
-const PredictorPage = lazy(() => import("./pages/PredictorPage"));
-const DoubtsPage = lazy(() => import("./pages/DoubtsPage"));
-const HistoryPage = lazy(() => import("./pages/HistoryPage"));
-const TimerPage = lazy(() => import("./pages/TimerPage"));
-const NotesPage = lazy(() => import("./pages/NotesPage"));
-const BadgesPage = lazy(() => import("./pages/BadgesPage"));
-const ExportPage = lazy(() => import("./pages/ExportPage"));
-const ThemePage = lazy(() => import("./pages/ThemePage"));
 
 // Optimize query client for better performance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -75,6 +72,7 @@ const AppContent = () => {
         setShowOnboarding(true);
       }
     } else {
+      // User is authenticated, clear any onboarding/landing flags
       setShowLanding(false);
       setShowOnboarding(false);
     }
@@ -95,62 +93,59 @@ const AppContent = () => {
     setShowOnboarding(false);
   };
 
+  // Show loading spinner with better UX
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
+  // Show landing page
   if (showLanding) {
     return (
       <ErrorBoundary>
-        <Suspense fallback={<QuickLoader />}>
-          <Landing onGetStarted={handleLandingComplete} />
-        </Suspense>
+        <Landing onGetStarted={handleLandingComplete} />
       </ErrorBoundary>
     );
   }
 
+  // Show onboarding
   if (showOnboarding) {
     return (
       <ErrorBoundary>
-        <Suspense fallback={<QuickLoader />}>
-          <Onboarding onComplete={handleOnboardingComplete} />
-        </Suspense>
+        <Onboarding onComplete={handleOnboardingComplete} />
       </ErrorBoundary>
     );
   }
 
+  // Show auth page if no user
   if (!user) {
     return (
       <ErrorBoundary>
-        <Suspense fallback={<QuickLoader />}>
-          <Auth onBack={handleBackToLanding} />
-        </Suspense>
+        <Auth onBack={handleBackToLanding} />
       </ErrorBoundary>
     );
   }
 
+  // Show main app - user is authenticated
   return (
     <ErrorBoundary>
       <SyllabusProvider>
         <TimerProvider>
           <MainLayout>
-            <Suspense fallback={<QuickLoader />}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/syllabus" element={<SyllabusPage />} />
-                <Route path="/questions" element={<QuestionsPage />} />
-                <Route path="/doubts" element={<DoubtsPage />} />
-                <Route path="/predictor" element={<PredictorPage />} />
-                <Route path="/history" element={<HistoryPage />} />
-                <Route path="/timer" element={<TimerPage />} />
-                <Route path="/notes" element={<NotesPage />} />
-                <Route path="/badges" element={<BadgesPage />} />
-                <Route path="/export" element={<ExportPage />} />
-                <Route path="/theme" element={<ThemePage />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/syllabus" element={<SyllabusPage />} />
+              <Route path="/questions" element={<QuestionsPage />} />
+              <Route path="/doubts" element={<DoubtsPage />} />
+              <Route path="/predictor" element={<PredictorPage />} />
+              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/timer" element={<TimerPage />} />
+              <Route path="/notes" element={<NotesPage />} />
+              <Route path="/badges" element={<BadgesPage />} />
+              <Route path="/export" element={<ExportPage />} />
+              <Route path="/theme" element={<ThemePage />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </MainLayout>
         </TimerProvider>
       </SyllabusProvider>
