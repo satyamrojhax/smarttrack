@@ -15,6 +15,7 @@ const AuthContext = createContext<AuthContextProps>({
   logout: () => {},
   updateProfile: async () => ({ success: false }),
   isLoading: true,
+  loading: true,
 });
 
 const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -149,7 +150,8 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       signup, 
       logout, 
       updateProfile, 
-      isLoading 
+      isLoading,
+      loading: isLoading
     }}>
       {children}
     </AuthContext.Provider>
