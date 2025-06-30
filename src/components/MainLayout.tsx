@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -63,11 +62,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     };
 
     return (
-      <Sidebar className="w-64 hardware-acceleration">
+      <Sidebar className="w-64">
         <SidebarHeader className="p-3 sm:p-4 border-b">
           <Logo size="md" />
         </SidebarHeader>
-        <SidebarContent className="scroll-container">
+        <SidebarContent>
           <div className="p-2">
             <SidebarMenu>
               {sidebarItems.map((item) => {
@@ -79,7 +78,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     <SidebarMenuButton asChild isActive={isActive}>
                       <Link 
                         to={item.href} 
-                        className="flex items-center space-x-2 sm:space-x-3 w-full p-2 sm:p-3 smooth-transition"
+                        className="flex items-center space-x-2 sm:space-x-3 w-full p-2 sm:p-3"
                         onClick={handleSidebarItemClick}
                       >
                         <Icon className="w-4 h-4" />
@@ -98,11 +97,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full hardware-acceleration">
+      <div className="min-h-screen flex w-full">
         <AppSidebar />
         <SidebarInset className="flex-1 w-full">
-          {/* Enhanced sticky header with better performance */}
-          <header className={`bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-b border-white/20 dark:border-gray-700/50 sticky top-0 z-50 hardware-acceleration ${isStandalone ? 'pt-safe-area-inset-top' : ''}`}>
+          {/* Header with enhanced mobile styling */}
+          <header className={`bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-white/20 dark:border-gray-700/50 sticky top-0 z-50 ${isStandalone ? 'pt-safe-area-inset-top' : ''}`}>
             <div className="flex justify-between items-center h-14 sm:h-16 px-3 sm:px-4 md:px-6">
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <SidebarTrigger />
@@ -117,7 +116,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   variant="ghost"
                   size="sm"
                   onClick={toggleTheme}
-                  className="p-1.5 sm:p-2 smooth-transition"
+                  className="p-1.5 sm:p-2"
                 >
                   {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                 </Button>
@@ -125,15 +124,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </div>
           </header>
 
-          {/* Optimized main content with smooth scrolling */}
-          <main className={`flex-1 pb-16 sm:pb-20 lg:pb-6 w-full overflow-x-hidden scroll-container ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
-            <div className="w-full hardware-acceleration">
+          {/* Main Content with safe areas for mobile */}
+          <main className={`flex-1 pb-16 sm:pb-20 lg:pb-6 w-full overflow-x-hidden ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
+            <div className="w-full">
               {children}
             </div>
           </main>
 
-          {/* Enhanced sticky bottom navigation */}
-          <nav className={`fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-t border-white/20 dark:border-gray-700/50 lg:hidden z-50 hardware-acceleration ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
+          {/* Bottom Navigation - Mobile Only with safe area */}
+          <nav className={`fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border-t border-white/20 dark:border-gray-700/50 lg:hidden z-40 ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
             <div className="grid grid-cols-4 py-1 sm:py-2 px-2">
               {bottomNavigation.map((item) => {
                 const isActive = location.pathname === item.href;
@@ -143,9 +142,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`flex flex-col items-center space-y-1 py-2 px-1 smooth-transition touch-manipulation ${
+                    className={`flex flex-col items-center space-y-1 py-2 px-1 transition-colors touch-manipulation ${
                       isActive 
-                        ? 'text-primary scale-105' 
+                        ? 'text-primary' 
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >

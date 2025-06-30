@@ -1,3 +1,4 @@
+
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
@@ -15,38 +16,29 @@ const performanceObserver = new PerformanceObserver((list) => {
         console.log('FID:', eventTiming.processingStart - eventTiming.startTime);
       }
     }
-    if (entry.entryType === 'navigation') {
-      console.log('Navigation timing:', entry);
-    }
   }
 });
 
-performanceObserver.observe({ 
-  entryTypes: ['largest-contentful-paint', 'first-input', 'navigation', 'paint'] 
-});
+performanceObserver.observe({ entryTypes: ['largest-contentful-paint', 'first-input'] });
 
 // Register service worker for PWA functionality with improved error handling
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
       const registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/',
-        updateViaCache: 'none' // Always check for updates
+        scope: '/'
       });
       
       console.log('SW registered successfully:', registration);
       
-      // Faster update checks
+      // Check for updates
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               console.log('New service worker available');
-              // Auto-reload for faster updates
-              if (confirm('New version available! Reload to update?')) {
-                window.location.reload();
-              }
+              // Could show update notification to user here
             }
           });
         }
@@ -57,17 +49,13 @@ if ('serviceWorker' in navigator) {
     }
   });
   
-  // Handle service worker messages for faster communication
+  // Handle service worker messages
   navigator.serviceWorker.addEventListener('message', (event) => {
     console.log('Message from SW:', event.data);
-    if (event.data.type === 'CACHE_UPDATED') {
-      // Handle cache updates for faster loading
-      console.log('Cache updated for faster performance');
-    }
   });
 }
 
-// Optimize root rendering with concurrent features
+// Optimize root rendering with error boundary
 const container = document.getElementById("root");
 if (!container) {
   throw new Error('Root container not found');
@@ -75,12 +63,12 @@ if (!container) {
 
 const root = createRoot(container);
 
-// Enable concurrent features and optimizations
+// Enable concurrent features for better performance
 root.render(<App />);
 
-// Enhanced performance optimizations
+// Performance optimizations
 if (typeof window !== 'undefined') {
-  // Aggressive resource preloading
+  // Preload critical resources
   const preloadLink = document.createElement('link');
   preloadLink.rel = 'preload';
   preloadLink.as = 'font';
@@ -88,70 +76,28 @@ if (typeof window !== 'undefined') {
   preloadLink.crossOrigin = 'anonymous';
   document.head.appendChild(preloadLink);
   
-  // Enable hardware acceleration globally
+  // Enable GPU acceleration
   document.documentElement.style.transform = 'translateZ(0)';
-  document.documentElement.style.willChange = 'transform';
   
-  // Optimize scrolling performance with passive listeners
-  let ticking = false;
-  function updateScrolling() {
-    // Optimized scroll handling
-    ticking = false;
-  }
-  
-  document.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(updateScrolling);
-      ticking = true;
-    }
-  }, { passive: true });
-  
-  // Enhanced smooth scrolling
+  // Optimize scrolling performance
   if ('scrollBehavior' in document.documentElement.style) {
     document.documentElement.style.scrollBehavior = 'smooth';
   }
   
-  // Improved viewport meta for better mobile performance
+  // Add viewport meta for better mobile performance
   const viewport = document.querySelector('meta[name="viewport"]');
   if (viewport) {
-    viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover, shrink-to-fit=no');
+    viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover');
   }
-  
-  // Preload critical routes for faster navigation
-  const criticalRoutes = ['/', '/questions', '/doubts', '/profile'];
-  criticalRoutes.forEach(route => {
-    const link = document.createElement('link');
-    link.rel = 'prefetch';
-    link.href = route;
-    document.head.appendChild(link);
-  });
 }
 
-// Enhanced online/offline handling
+// Handle online/offline status
 window.addEventListener('online', () => {
-  console.log('App is online - enabling full functionality');
+  console.log('App is online');
   document.body.classList.remove('offline');
-  // Sync any pending data
-}, { passive: true });
+});
 
 window.addEventListener('offline', () => {
-  console.log('App is offline - enabling offline mode');
+  console.log('App is offline');
   document.body.classList.add('offline');
-  // Enable offline mode
-}, { passive: true });
-
-// Performance monitoring for debugging
-if (process.env.NODE_ENV === 'development') {
-  // Monitor long tasks
-  const longTaskObserver = new PerformanceObserver((list) => {
-    for (const entry of list.getEntries()) {
-      console.warn('Long task detected:', entry.duration, 'ms');
-    }
-  });
-  
-  try {
-    longTaskObserver.observe({ entryTypes: ['longtask'] });
-  } catch (e) {
-    // Long task API not supported
-  }
-}
+});

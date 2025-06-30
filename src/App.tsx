@@ -1,134 +1,174 @@
 
-import { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/sonner';
-import { ThemeProvider } from '@/contexts/ThemeContext';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { SyllabusProvider } from '@/contexts/SyllabusContext';
-import { TimerProvider } from '@/contexts/TimerContext';
-import MainLayout from '@/components/MainLayout';
-import ExitPopup from '@/components/ExitPopup';
-import QuickLoader from '@/components/QuickLoader';
-import Landing from '@/pages/Landing';
-import Auth from '@/pages/Auth';
-import Onboarding from '@/pages/Onboarding';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { useAuth } from '@/contexts/AuthContext';
-import { useState, useEffect } from 'react';
-import './App.css';
+import { useState, useEffect } from "react";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { SyllabusProvider } from "@/contexts/SyllabusContext";
+import { TimerProvider } from "@/contexts/TimerContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Landing from "./pages/Landing";
+import Profile from "./pages/Profile";
+import Onboarding from "./pages/Onboarding";
+import NotFound from "./pages/NotFound";
+import SyllabusPage from "./pages/SyllabusPage";
+import QuestionsPage from "./pages/QuestionsPage";
+import PredictorPage from "./pages/PredictorPage";
+import DoubtsPage from "./pages/DoubtsPage";
+import HistoryPage from "./pages/HistoryPage";
+import TimerPage from "./pages/TimerPage";
+import NotesPage from "./pages/NotesPage";
+import BadgesPage from "./pages/BadgesPage";
+import ExportPage from "./pages/ExportPage";
+import ThemePage from "./pages/ThemePage";
+import MainLayout from "./components/MainLayout";
 
-// Lazy load pages for better performance
-const Index = lazy(() => import('@/pages/Index'));
-const QuestionsPage = lazy(() => import('@/pages/QuestionsPage'));
-const DoubtsPage = lazy(() => import('@/pages/DoubtsPage'));
-const Profile = lazy(() => import('@/pages/Profile'));
-const SyllabusPage = lazy(() => import('@/pages/SyllabusPage'));
-const PredictorPage = lazy(() => import('@/pages/PredictorPage'));
-const HistoryPage = lazy(() => import('@/pages/HistoryPage'));
-const TimerPage = lazy(() => import('@/pages/TimerPage'));
-const NotesPage = lazy(() => import('@/pages/NotesPage'));
-const BadgesPage = lazy(() => import('@/pages/BadgesPage'));
-const ExportPage = lazy(() => import('@/pages/ExportPage'));
-const ThemePage = lazy(() => import('@/pages/ThemePage'));
-const NotFound = lazy(() => import('@/pages/NotFound'));
-
-// Optimized QueryClient with better caching
+// Optimize query client for better performance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
       retry: 1,
       refetchOnWindowFocus: false,
+    },
+    mutations: {
+      retry: 1,
     },
   },
 });
 
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+      <p className="mt-4 text-muted-foreground animate-pulse">Loading your study space...</p>
+    </div>
+  </div>
+);
+
 const AppContent = () => {
-  const { user, loading } = useAuth();
-  const [showLanding, setShowLanding] = useState(!user);
+  const { user, isLoading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showLanding, setShowLanding] = useState(false);
 
   useEffect(() => {
-    if (user && !localStorage.getItem('onboarding_completed')) {
-      setShowOnboarding(true);
+    console.log('AppContent - Auth state:', { user: !!user, isLoading });
+    
+    if (isLoading) return;
+    
+    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+    const hasSeenLanding = localStorage.getItem('hasSeenLanding');
+    
+    if (!user) {
+      if (!hasSeenLanding) {
+        setShowLanding(true);
+      } else if (!hasSeenOnboarding) {
+        setShowOnboarding(true);
+      }
+    } else {
+      // User is authenticated, clear any onboarding/landing flags
+      setShowLanding(false);
+      setShowOnboarding(false);
     }
-  }, [user]);
-
-  const handleGetStarted = () => {
-    setShowLanding(false);
-  };
+  }, [user, isLoading]);
 
   const handleOnboardingComplete = () => {
-    localStorage.setItem('onboarding_completed', 'true');
+    localStorage.setItem('hasSeenOnboarding', 'true');
     setShowOnboarding(false);
   };
 
-  if (loading) {
+  const handleLandingComplete = () => {
+    localStorage.setItem('hasSeenLanding', 'true');
+    setShowLanding(false);
+  };
+
+  const handleBackToLanding = () => {
+    setShowLanding(true);
+    setShowOnboarding(false);
+  };
+
+  // Show loading spinner with better UX
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  // Show landing page
+  if (showLanding) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <QuickLoader size="lg" text="Loading Axiom Smart Track..." />
-      </div>
+      <ErrorBoundary>
+        <Landing onGetStarted={handleLandingComplete} />
+      </ErrorBoundary>
     );
   }
 
-  if (showLanding) {
-    return <Landing onGetStarted={handleGetStarted} />;
-  }
-
-  if (!user) {
-    return <Auth />;
-  }
-
+  // Show onboarding
   if (showOnboarding) {
-    return <Onboarding onComplete={handleOnboardingComplete} />;
+    return (
+      <ErrorBoundary>
+        <Onboarding onComplete={handleOnboardingComplete} />
+      </ErrorBoundary>
+    );
   }
 
+  // Show auth page if no user
+  if (!user) {
+    return (
+      <ErrorBoundary>
+        <Auth onBack={handleBackToLanding} />
+      </ErrorBoundary>
+    );
+  }
+
+  // Show main app - user is authenticated
   return (
-    <MainLayout>
-      <ExitPopup />
-      <Suspense fallback={<QuickLoader className="p-4" />}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/questions" element={<QuestionsPage />} />
-          <Route path="/doubts" element={<DoubtsPage />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/syllabus" element={<SyllabusPage />} />
-          <Route path="/predictor" element={<PredictorPage />} />
-          <Route path="/history" element={<HistoryPage />} />
-          <Route path="/timer" element={<TimerPage />} />
-          <Route path="/notes" element={<NotesPage />} />
-          <Route path="/badges" element={<BadgesPage />} />
-          <Route path="/export" element={<ExportPage />} />
-          <Route path="/theme" element={<ThemePage />} />
-          <Route path="/404" element={<NotFound />} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
-        </Routes>
-      </Suspense>
-    </MainLayout>
+    <ErrorBoundary>
+      <SyllabusProvider>
+        <TimerProvider>
+          <MainLayout>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/syllabus" element={<SyllabusPage />} />
+              <Route path="/questions" element={<QuestionsPage />} />
+              <Route path="/doubts" element={<DoubtsPage />} />
+              <Route path="/predictor" element={<PredictorPage />} />
+              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/timer" element={<TimerPage />} />
+              <Route path="/notes" element={<NotesPage />} />
+              <Route path="/badges" element={<BadgesPage />} />
+              <Route path="/export" element={<ExportPage />} />
+              <Route path="/theme" element={<ThemePage />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </MainLayout>
+        </TimerProvider>
+      </SyllabusProvider>
+    </ErrorBoundary>
   );
 };
 
-function App() {
-  return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-          <AuthProvider>
-            <SyllabusProvider>
-              <TimerProvider>
-                <Router>
-                  <AppContent />
-                  <Toaster />
-                </Router>
-              </TimerProvider>
-            </SyllabusProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
-  );
-}
+const App = () => (
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
+);
 
 export default App;
