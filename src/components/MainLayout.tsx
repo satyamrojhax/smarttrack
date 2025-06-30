@@ -33,7 +33,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { isMobile, isStandalone } = useDeviceCapabilities();
   const [showExitPopup, setShowExitPopup] = useState(false);
 
-  // Handle browser back button and exit
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
       if (window.history.length <= 2) {
@@ -51,7 +50,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('beforeunload', handleBeforeUnload);
     
-    // Push initial state
     window.history.pushState(null, '', window.location.pathname);
 
     return () => {
@@ -77,8 +75,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'Profile', href: '/profile', icon: User },
   ];
 
-  // Sidebar items
+  // Sidebar items with Dashboard added
   const sidebarItems = [
+    { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Questions', href: '/questions', icon: Brain },
     { name: 'Doubts', href: '/doubts', icon: HelpCircle },
     { name: 'Profile', href: '/profile', icon: User },
@@ -164,16 +163,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </div>
           </header>
 
-          {/* Main Content with optimized scrolling */}
-          <main className={`flex-1 pb-20 sm:pb-24 lg:pb-6 w-full overflow-x-hidden scroll-smooth ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
+          {/* Main Content with proper bottom padding for fixed navigation */}
+          <main className={`flex-1 w-full overflow-x-hidden scroll-smooth ${isStandalone ? 'pb-safe-area-inset-bottom' : ''} pb-20 lg:pb-6`}>
             <div className="w-full">
               {children}
             </div>
           </main>
 
-          {/* Sticky Bottom Navigation - Mobile Only */}
-          <nav className={`fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-t border-white/20 dark:border-gray-700/50 lg:hidden z-40 ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
-            <div className="grid grid-cols-4 py-2 px-2">
+          {/* Fixed Bottom Navigation - Mobile Only */}
+          <nav className={`fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-t border-white/20 dark:border-gray-700/50 lg:hidden z-50 ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
+            <div className="grid grid-cols-4 py-2 px-2 safe-area-inset-bottom">
               {bottomNavigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 const Icon = item.icon;
