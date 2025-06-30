@@ -10,7 +10,6 @@ const performanceObserver = new PerformanceObserver((list) => {
       console.log('LCP:', entry.startTime);
     }
     if (entry.entryType === 'first-input') {
-      // Type guard to ensure we have a PerformanceEventTiming entry
       const eventTiming = entry as PerformanceEventTiming;
       if (eventTiming.processingStart !== undefined) {
         console.log('FID:', eventTiming.processingStart - eventTiming.startTime);
@@ -21,7 +20,7 @@ const performanceObserver = new PerformanceObserver((list) => {
 
 performanceObserver.observe({ entryTypes: ['largest-contentful-paint', 'first-input'] });
 
-// Register service worker for PWA functionality with improved error handling
+// Register service worker for PWA functionality
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
@@ -31,14 +30,12 @@ if ('serviceWorker' in navigator) {
       
       console.log('SW registered successfully:', registration);
       
-      // Check for updates
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               console.log('New service worker available');
-              // Could show update notification to user here
             }
           });
         }
@@ -49,22 +46,17 @@ if ('serviceWorker' in navigator) {
     }
   });
   
-  // Handle service worker messages
   navigator.serviceWorker.addEventListener('message', (event) => {
     console.log('Message from SW:', event.data);
   });
 }
 
-// Optimize root rendering with error boundary
 const container = document.getElementById("root");
 if (!container) {
   throw new Error('Root container not found');
 }
 
 const root = createRoot(container);
-
-// Enable concurrent features for better performance
-root.render(<App />);
 
 // Performance optimizations
 if (typeof window !== 'undefined') {
@@ -101,3 +93,5 @@ window.addEventListener('offline', () => {
   console.log('App is offline');
   document.body.classList.add('offline');
 });
+
+root.render(<App />);
