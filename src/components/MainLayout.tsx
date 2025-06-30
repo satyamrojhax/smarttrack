@@ -164,15 +164,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </header>
 
           {/* Main Content with proper bottom padding for fixed navigation */}
-          <main className={`flex-1 w-full overflow-x-hidden scroll-smooth ${isStandalone ? 'pb-safe-area-inset-bottom' : ''} pb-20 lg:pb-6`}>
-            <div className="w-full">
+          <main className={`flex-1 w-full overflow-x-hidden scroll-smooth pb-24 lg:pb-6 ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
+            <div className="w-full min-h-[calc(100vh-8rem)]">
               {children}
             </div>
           </main>
 
           {/* Fixed Bottom Navigation - Mobile Only */}
           <nav className={`fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-t border-white/20 dark:border-gray-700/50 lg:hidden z-50 ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
-            <div className="grid grid-cols-4 py-2 px-2 safe-area-inset-bottom">
+            <div className={`grid grid-cols-4 py-3 px-2 ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
               {bottomNavigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 const Icon = item.icon;
