@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,32 +10,37 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SyllabusProvider } from "@/contexts/SyllabusContext";
 import { TimerProvider } from "@/contexts/TimerContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import ExitPopup from "@/components/ExitPopup";
 import Landing from "./pages/Landing";
-import Profile from "./pages/Profile";
-import Onboarding from "./pages/Onboarding";
-import NotFound from "./pages/NotFound";
-import SyllabusPage from "./pages/SyllabusPage";
-import QuestionsPage from "./pages/QuestionsPage";
-import PredictorPage from "./pages/PredictorPage";
-import DoubtsPage from "./pages/DoubtsPage";
-import HistoryPage from "./pages/HistoryPage";
-import TimerPage from "./pages/TimerPage";
-import NotesPage from "./pages/NotesPage";
-import BadgesPage from "./pages/BadgesPage";
-import ExportPage from "./pages/ExportPage";
-import ThemePage from "./pages/ThemePage";
 import MainLayout from "./components/MainLayout";
+
+// Lazy load pages for better performance
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const SyllabusPage = lazy(() => import("./pages/SyllabusPage"));
+const QuestionsPage = lazy(() => import("./pages/QuestionsPage"));
+const PredictorPage = lazy(() => import("./pages/PredictorPage"));
+const DoubtsPage = lazy(() => import("./pages/DoubtsPage"));
+const HistoryPage = lazy(() => import("./pages/HistoryPage"));
+const TimerPage = lazy(() => import("./pages/TimerPage"));
+const NotesPage = lazy(() => import("./pages/NotesPage"));
+const BadgesPage = lazy(() => import("./pages/BadgesPage"));
+const ExportPage = lazy(() => import("./pages/ExportPage"));
+const ThemePage = lazy(() => import("./pages/ThemePage"));
 
 // Optimize query client for better performance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
+      gcTime: 10 * 60 * 1000, // 10 minutes
       retry: 1,
       refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     },
     mutations: {
       retry: 1,
@@ -43,12 +48,15 @@ const queryClient = new QueryClient({
   },
 });
 
-const LoadingSpinner = () => (
+const AppLoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-      <p className="mt-4 text-muted-foreground animate-pulse">Loading your study space...</p>
-    </div>
+    <LoadingSpinner message="Initializing your study space..." size="lg" />
+  </div>
+);
+
+const PageLoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-[50vh]">
+    <LoadingSpinner message="Loading page..." />
   </div>
 );
 
@@ -95,7 +103,7 @@ const AppContent = () => {
 
   // Show loading spinner with better UX
   if (isLoading) {
-    return <LoadingSpinner />;
+    return <AppLoadingSpinner />;
   }
 
   // Show landing page
@@ -111,7 +119,9 @@ const AppContent = () => {
   if (showOnboarding) {
     return (
       <ErrorBoundary>
-        <Onboarding onComplete={handleOnboardingComplete} />
+        <Suspense fallback={<AppLoadingSpinner />}>
+          <Onboarding onComplete={handleOnboardingComplete} />
+        </Suspense>
       </ErrorBoundary>
     );
   }
@@ -120,7 +130,9 @@ const AppContent = () => {
   if (!user) {
     return (
       <ErrorBoundary>
-        <Auth onBack={handleBackToLanding} />
+        <Suspense fallback={<AppLoadingSpinner />}>
+          <Auth onBack={handleBackToLanding} />
+        </Suspense>
       </ErrorBoundary>
     );
   }
@@ -131,22 +143,25 @@ const AppContent = () => {
       <SyllabusProvider>
         <TimerProvider>
           <MainLayout>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/syllabus" element={<SyllabusPage />} />
-              <Route path="/questions" element={<QuestionsPage />} />
-              <Route path="/doubts" element={<DoubtsPage />} />
-              <Route path="/predictor" element={<PredictorPage />} />
-              <Route path="/history" element={<HistoryPage />} />
-              <Route path="/timer" element={<TimerPage />} />
-              <Route path="/notes" element={<NotesPage />} />
-              <Route path="/badges" element={<BadgesPage />} />
-              <Route path="/export" element={<ExportPage />} />
-              <Route path="/theme" element={<ThemePage />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Suspense fallback={<PageLoadingSpinner />}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/syllabus" element={<SyllabusPage />} />
+                <Route path="/questions" element={<QuestionsPage />} />
+                <Route path="/doubts" element={<DoubtsPage />} />
+                <Route path="/predictor" element={<PredictorPage />} />
+                <Route path="/history" element={<HistoryPage />} />
+                <Route path="/timer" element={<TimerPage />} />
+                <Route path="/notes" element={<NotesPage />} />
+                <Route path="/badges" element={<BadgesPage />} />
+                <Route path="/export" element={<ExportPage />} />
+                <Route path="/theme" element={<ThemePage />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
           </MainLayout>
+          <ExitPopup />
         </TimerProvider>
       </SyllabusProvider>
     </ErrorBoundary>

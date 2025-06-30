@@ -37,8 +37,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'Profile', href: '/profile', icon: User },
   ];
 
-  // Sidebar items
+  // Sidebar items with Dashboard included
   const sidebarItems = [
+    { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Questions', href: '/questions', icon: Brain },
     { name: 'Doubts', href: '/doubts', icon: HelpCircle },
     { name: 'Profile', href: '/profile', icon: User },
@@ -62,19 +63,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     };
 
     return (
-      <Sidebar className="w-64">
-        <SidebarHeader className="p-3 sm:p-4 border-b">
+      <Sidebar className="w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <SidebarHeader className="p-3 sm:p-4 border-b bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
           <div className="flex items-center space-x-2 sm:space-x-3">
-            <div className="p-1.5 sm:p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
+            <div className="p-1.5 sm:p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg shadow-lg">
               <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <div>
-              <h2 className="font-semibold text-xs sm:text-sm">Study Tools</h2>
-              <p className="text-xs text-muted-foreground hidden sm:block">Track your progress</p>
+              <h2 className="font-semibold text-xs sm:text-sm text-foreground">Axiom Smart Track</h2>
+              <p className="text-xs text-muted-foreground hidden sm:block">AI Study Assistant</p>
             </div>
           </div>
         </SidebarHeader>
-        <SidebarContent>
+        <SidebarContent className="scrollbar-hide">
           <div className="p-2">
             <SidebarMenu>
               {sidebarItems.map((item) => {
@@ -86,11 +87,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     <SidebarMenuButton asChild isActive={isActive}>
                       <Link 
                         to={item.href} 
-                        className="flex items-center space-x-2 sm:space-x-3 w-full p-2 sm:p-3"
+                        className={`flex items-center space-x-2 sm:space-x-3 w-full p-2 sm:p-3 rounded-lg transition-all duration-200 ${
+                          isActive 
+                            ? 'bg-primary text-primary-foreground shadow-md scale-105' 
+                            : 'hover:bg-accent hover:text-accent-foreground hover:scale-102'
+                        }`}
                         onClick={handleSidebarItemClick}
                       >
-                        <Icon className="w-4 h-4" />
-                        <span className="text-sm sm:text-base">{item.name}</span>
+                        <Icon className="w-4 h-4 flex-shrink-0" />
+                        <span className="text-sm sm:text-base font-medium">{item.name}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -105,16 +110,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <SidebarInset className="flex-1 w-full">
-          {/* Header with enhanced mobile styling */}
-          <header className={`bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-white/20 dark:border-gray-700/50 sticky top-0 z-50 ${isStandalone ? 'pt-safe-area-inset-top' : ''}`}>
+          {/* Enhanced Header */}
+          <header className={`sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${isStandalone ? 'pt-safe-area-inset-top' : ''}`}>
             <div className="flex justify-between items-center h-14 sm:h-16 px-3 sm:px-4 md:px-6">
               <div className="flex items-center space-x-2 sm:space-x-3">
-                <SidebarTrigger />
+                <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground transition-colors" />
                 <div className="flex items-center space-x-1.5 sm:space-x-2">
-                  <div className="p-1.5 sm:p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
+                  <div className="p-1.5 sm:p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg shadow-lg">
                     <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <div className="hidden sm:block">
@@ -127,14 +132,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </div>
 
               <div className="flex items-center space-x-2 sm:space-x-4">
-                <span className="text-xs sm:text-sm text-muted-foreground hidden lg:block">
-                  Welcome, {profile?.name}!
+                <span className="text-xs sm:text-sm text-muted-foreground hidden lg:block font-medium">
+                  Welcome, {profile?.name}! 👋
                 </span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={toggleTheme}
-                  className="p-1.5 sm:p-2"
+                  className="p-1.5 sm:p-2 hover:bg-accent hover:text-accent-foreground transition-all duration-200 hover:scale-110"
                 >
                   {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                 </Button>
@@ -142,16 +147,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </div>
           </header>
 
-          {/* Main Content with safe areas for mobile */}
-          <main className={`flex-1 pb-16 sm:pb-20 lg:pb-6 w-full overflow-x-hidden ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
-            <div className="w-full">
+          {/* Main Content with optimized scrolling */}
+          <main className={`flex-1 overflow-auto scrollbar-hide pb-20 lg:pb-6 ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
+            <div className="w-full min-h-full">
               {children}
             </div>
           </main>
 
-          {/* Bottom Navigation - Mobile Only with safe area */}
-          <nav className={`fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border-t border-white/20 dark:border-gray-700/50 lg:hidden z-40 ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
-            <div className="grid grid-cols-4 py-1 sm:py-2 px-2">
+          {/* Enhanced Bottom Navigation - Mobile Only */}
+          <nav className={`fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t shadow-lg ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
+            <div className="grid grid-cols-4 py-2 px-1">
               {bottomNavigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 const Icon = item.icon;
@@ -160,14 +165,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`flex flex-col items-center space-y-1 py-2 px-1 transition-colors touch-manipulation ${
+                    className={`flex flex-col items-center space-y-1 py-2 px-1 rounded-lg transition-all duration-200 touch-manipulation ${
                       isActive 
-                        ? 'text-primary' 
-                        : 'text-muted-foreground hover:text-foreground'
+                        ? 'text-primary bg-primary/10 scale-105 shadow-sm' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                     }`}
                   >
-                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <Icon className="w-5 h-5 flex-shrink-0" />
                     <span className="text-xs font-medium truncate">{item.name}</span>
+                    {isActive && <div className="w-1 h-1 bg-primary rounded-full"></div>}
                   </Link>
                 );
               })}
