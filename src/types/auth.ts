@@ -19,7 +19,6 @@ export interface AuthContextProps {
   logout: () => void;
   updateProfile: (updatedProfile: { name: string; class: string; board: string }) => Promise<{ success: boolean; error?: string }>;
   isLoading: boolean;
-  loading: boolean; // Add this missing property
 }
 
 export interface SignupData {
