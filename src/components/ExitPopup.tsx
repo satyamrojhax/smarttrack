@@ -25,22 +25,49 @@ const ExitPopup: React.FC = () => {
       }
     };
 
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+      return '';
+    };
+
     // Add a dummy history entry to catch back button
     window.history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', handleBackButton);
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       window.removeEventListener('popstate', handleBackButton);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
       if (timer) clearTimeout(timer);
     };
   }, [backPressCount]);
 
   const handleExit = () => {
-    // Close the app or navigate to a safe page
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      window.close();
+    try {
+      // For PWA apps
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(() => {
+          window.close();
+        });
+      }
+      
+      // For regular browsers
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        // Try to close the window/tab
+        window.close();
+      }
+      
+      // If nothing works, redirect to a blank page
+      setTimeout(() => {
+        window.location.href = 'about:blank';
+      }, 1000);
+    } catch (error) {
+      console.log('Exit failed:', error);
+      // Fallback: navigate to home
+      window.location.href = '/';
     }
   };
 

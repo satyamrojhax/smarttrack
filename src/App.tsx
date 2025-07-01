@@ -46,50 +46,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Disable right-click context menu globally
-useEffect(() => {
-  const handleContextMenu = (e: MouseEvent) => {
-    e.preventDefault();
-    return false;
-  };
-
-  const handleSelectStart = (e: Event) => {
-    e.preventDefault();
-    return false;
-  };
-
-  const handleDragStart = (e: DragEvent) => {
-    e.preventDefault();
-    return false;
-  };
-
-  // Disable right-click, text selection, and drag
-  document.addEventListener('contextmenu', handleContextMenu);
-  document.addEventListener('selectstart', handleSelectStart);
-  document.addEventListener('dragstart', handleDragStart);
-
-  // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (
-      e.key === 'F12' ||
-      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
-      (e.ctrlKey && e.key === 'U')
-    ) {
-      e.preventDefault();
-      return false;
-    }
-  };
-
-  document.addEventListener('keydown', handleKeyDown);
-
-  return () => {
-    document.removeEventListener('contextmenu', handleContextMenu);
-    document.removeEventListener('selectstart', handleSelectStart);
-    document.removeEventListener('dragstart', handleDragStart);
-    document.removeEventListener('keydown', handleKeyDown);
-  };
-}, []);
-
 const AppLoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
     <LoadingSpinner message="Initializing your study space..." size="lg" />
@@ -106,6 +62,76 @@ const AppContent = () => {
   const { user, isLoading } = useAuth();
 
   console.log('AppContent - Auth state:', { user: !!user, isLoading });
+
+  // Disable right-click context menu, text selection, and dev tools
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      return false;
+    };
+
+    const handleSelectStart = (e: Event) => {
+      e.preventDefault();
+      return false;
+    };
+
+    const handleDragStart = (e: DragEvent) => {
+      e.preventDefault();
+      return false;
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+Shift+C
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+        (e.ctrlKey && e.key === 'U') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'K')
+      ) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    const handleCopy = (e: ClipboardEvent) => {
+      e.preventDefault();
+      return false;
+    };
+
+    const handlePrint = (e: Event) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Add event listeners
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('selectstart', handleSelectStart);
+    document.addEventListener('dragstart', handleDragStart);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('copy', handleCopy);
+    document.addEventListener('beforeprint', handlePrint);
+
+    // Disable text selection via CSS
+    document.body.style.userSelect = 'none';
+    document.body.style.webkitUserSelect = 'none';
+    document.body.style.mozUserSelect = 'none';
+    document.body.style.msUserSelect = 'none';
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('selectstart', handleSelectStart);
+      document.removeEventListener('dragstart', handleDragStart);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('copy', handleCopy);
+      document.removeEventListener('beforeprint', handlePrint);
+      
+      // Reset text selection
+      document.body.style.userSelect = '';
+      document.body.style.webkitUserSelect = '';
+      document.body.style.mozUserSelect = '';
+      document.body.style.msUserSelect = '';
+    };
+  }, []);
 
   if (isLoading) {
     return <AppLoadingSpinner />;

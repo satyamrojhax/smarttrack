@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Download, Smartphone, CheckCircle, Install, Globe } from 'lucide-react';
+import { Download, Smartphone, CheckCircle, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -20,7 +20,6 @@ const PWADownload: React.FC = () => {
   const [isStandalone, setIsStandalone] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
-  const [installSupported, setInstallSupported] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -30,34 +29,13 @@ const PWADownload: React.FC = () => {
              document.referrer.includes('android-app://');
     };
 
-    const checkInstallSupport = () => {
-      return 'serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window;
-    };
-
     setIsStandalone(checkStandalone());
-    setInstallSupported(checkInstallSupport());
 
-    // Register service worker for better PWA support
+    // Register service worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js', { scope: '/' })
         .then((registration) => {
-          console.log('[PWA] Service Worker registered successfully:', registration.scope);
-          
-          // Check for updates
-          registration.addEventListener('updatefound', () => {
-            console.log('[PWA] New service worker available');
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  toast({
-                    title: "App Updated! 🎉",
-                    description: "New features available. Refresh to update.",
-                  });
-                }
-              });
-            }
-          });
+          console.log('[PWA] Service Worker registered:', registration.scope);
         })
         .catch((error) => {
           console.error('[PWA] Service Worker registration failed:', error);
@@ -70,7 +48,6 @@ const PWADownload: React.FC = () => {
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
       
-      // Show a subtle notification that the app can be installed
       toast({
         title: "App Ready to Install! 📱",
         description: "Click the Download App button to install Axiom Smart Track",
@@ -185,7 +162,7 @@ const PWADownload: React.FC = () => {
           <div className="space-y-6">
             <div className="text-center space-y-4 p-6 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl">
               <div className="w-20 h-20 mx-auto bg-gradient-to-r from-purple-500 to-blue-500 rounded-3xl flex items-center justify-center shadow-lg">
-                <Install className="w-10 h-10 text-white" />
+                <Download className="w-10 h-10 text-white" />
               </div>
               <div>
                 <h3 className="font-bold text-lg">Axiom Smart Track</h3>
