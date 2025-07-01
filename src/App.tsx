@@ -46,6 +46,50 @@ const queryClient = new QueryClient({
   },
 });
 
+// Disable right-click context menu globally
+useEffect(() => {
+  const handleContextMenu = (e: MouseEvent) => {
+    e.preventDefault();
+    return false;
+  };
+
+  const handleSelectStart = (e: Event) => {
+    e.preventDefault();
+    return false;
+  };
+
+  const handleDragStart = (e: DragEvent) => {
+    e.preventDefault();
+    return false;
+  };
+
+  // Disable right-click, text selection, and drag
+  document.addEventListener('contextmenu', handleContextMenu);
+  document.addEventListener('selectstart', handleSelectStart);
+  document.addEventListener('dragstart', handleDragStart);
+
+  // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
+      (e.ctrlKey && e.key === 'U')
+    ) {
+      e.preventDefault();
+      return false;
+    }
+  };
+
+  document.addEventListener('keydown', handleKeyDown);
+
+  return () => {
+    document.removeEventListener('contextmenu', handleContextMenu);
+    document.removeEventListener('selectstart', handleSelectStart);
+    document.removeEventListener('dragstart', handleDragStart);
+    document.removeEventListener('keydown', handleKeyDown);
+  };
+}, []);
+
 const AppLoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
     <LoadingSpinner message="Initializing your study space..." size="lg" />

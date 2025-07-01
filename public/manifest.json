@@ -1,6 +1,6 @@
 
 {
-  "name": "Axiom Smart Track",
+  "name": "Axiom Smart Track - AI Study Assistant",
   "short_name": "Smart Track",
   "description": "AI-powered study assistant for CBSE Class 10 students with question generation, progress tracking, and marks prediction",
   "start_url": "/",
@@ -11,13 +11,13 @@
   "scope": "/",
   "icons": [
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA3LjUgOC41SDlDOS4xMzgwNyA7LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA3LjUgOC41SDlDOS4xMzgwNyA3LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA3LjUgOC41SDlDOS4xMzgwNyA7LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA3LjUgOC41SDlDOS4xMzgwNyA3LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
@@ -29,5 +29,31 @@
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "launch_handler": {
     "client_mode": "navigate-existing"
-  }
+  },
+  "shortcuts": [
+    {
+      "name": "AI Doubts",
+      "short_name": "Doubts",
+      "description": "Ask AI study questions",
+      "url": "/doubts",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA3LjUgOC41SDlDOS4xMzgwNyA3LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Generate Questions",
+      "short_name": "Questions",
+      "description": "Generate practice questions",
+      "url": "/questions",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA7LjUgOC41SDlDOS4xMzgwNyA3LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
 }
