@@ -18,7 +18,6 @@ import MainLayout from "./components/MainLayout";
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Profile = lazy(() => import("./pages/Profile"));
-const Onboarding = lazy(() => import("./pages/Onboarding"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SyllabusPage = lazy(() => import("./pages/SyllabusPage"));
 const QuestionsPage = lazy(() => import("./pages/QuestionsPage"));
@@ -32,12 +31,11 @@ const ExportPage = lazy(() => import("./pages/ExportPage"));
 const ThemePage = lazy(() => import("./pages/ThemePage"));
 const ToDoPage = lazy(() => import("./pages/ToDoPage"));
 
-// Optimize query client for better performance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       retry: 1,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
@@ -62,55 +60,23 @@ const PageLoadingSpinner = () => (
 
 const AppContent = () => {
   const { user, isLoading } = useAuth();
-  const [showOnboarding, setShowOnboarding] = useState(false);
 
-  useEffect(() => {
-    console.log('AppContent - Auth state:', { user: !!user, isLoading });
-    
-    if (isLoading) return;
-    
-    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
-    
-    if (!user && !hasSeenOnboarding) {
-      setShowOnboarding(true);
-    } else {
-      setShowOnboarding(false);
-    }
-  }, [user, isLoading]);
+  console.log('AppContent - Auth state:', { user: !!user, isLoading });
 
-  const handleOnboardingComplete = () => {
-    localStorage.setItem('hasSeenOnboarding', 'true');
-    setShowOnboarding(false);
-  };
-
-  // Show loading spinner with better UX
   if (isLoading) {
     return <AppLoadingSpinner />;
   }
 
-  // Show onboarding for new users only
-  if (showOnboarding && !user) {
-    return (
-      <ErrorBoundary>
-        <Suspense fallback={<AppLoadingSpinner />}>
-          <Onboarding onComplete={handleOnboardingComplete} />
-        </Suspense>
-      </ErrorBoundary>
-    );
-  }
-
-  // Show auth page if no user
   if (!user) {
     return (
       <ErrorBoundary>
         <Suspense fallback={<AppLoadingSpinner />}>
-          <Auth onBack={() => setShowOnboarding(true)} />
+          <Auth />
         </Suspense>
       </ErrorBoundary>
     );
   }
 
-  // Show main app - user is authenticated
   return (
     <ErrorBoundary>
       <SyllabusProvider>

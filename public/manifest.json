@@ -11,13 +11,13 @@
   "scope": "/",
   "icons": [
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA3LjUgOC41SDlDOS4xMzgwNyA3LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA3LjUgOC41SDlDOS4xMzgwNyA7LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA7LjUgOC41SDlDOS4xMzgwNyA3LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA3LjUgOC41SDlDOS4xMzgwNyA7LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
@@ -25,54 +25,8 @@
   ],
   "categories": ["education", "productivity", "lifestyle"],
   "lang": "en",
-  "shortcuts": [
-    {
-      "name": "Generate Questions",
-      "short_name": "Questions",
-      "description": "Generate AI-powered practice questions",
-      "url": "/questions",
-      "icons": [{ 
-        "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNiIgZmlsbD0iIzYzNjZmMSIvPgo8cGF0aCBkPSJNOS41IDZIMTJIMTMuNUMxNi41Mzc2IDYgMTkgOC40NjI0NCAxOSAxMS41QzE5IDEyLjYxMjYgMTguNjg4MyAxMy42NDMgMTcuMTAxNyAxNC4zMTEzQzE3LjIyMjUgMTUuMjY0MyAxNy41IDE2LjM1MzMgMTcuNSAxOC41QzE3LjE0NzggMTcuNzM3OSAxNi41NDM3IDE5LjYwOTIgMTcgMjFDMTcuNDU2MyAyMi4zOTA4IDE2LjM5MjggMjMuNSAxNC41IDIzLjVIOC41QzMuNDM5MyAyMy41IDIgMjEuMDYwNyAyIDE2QzIgMTAuOTM5MzYgNC40MzkzNiA4LjUgNy41IDguNUg5QzkuMTM4MDcgNy4wMzMwNyAxMC4zODMxIDYgOS41IDZaIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiLz4KPC9zdmc+", 
-        "sizes": "96x96" 
-      }]
-    },
-    {
-      "name": "Ask Doubts",
-      "short_name": "Doubts",
-      "description": "Get AI help with your questions",
-      "url": "/doubts",
-      "icons": [{ 
-        "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNiIgZmlsbD0iIzYzNjZmMSIvPgo8cGF0aCBkPSJNOS41IDZIMTJIMTMuNUMxNi41Mzc2IDYgMTkgOC40NjI0NCAxOSAxMS41QzE5IDEyLjYxMjYgMTguNjg4MyAxMy42NDMgMTcuMTAxNyAxNC4zMTEzQzE3LjIyMjUgMTUuMjY0MyAxNy41IDE2LjM1MzMgMTcuNSAxOC41QzE3LjE0NzggMTcuNzM3OSAxNi41NDM3IDE5LjYwOTIgMTcgMjFDMTcuNDU2MyAyMi4zOTA4IDE2LjM5MjggMjMuNSAxNC41IDIzLjVIOC41QzMuNDM5MyAyMy41IDIgMjEuMDYwNyAyIDE2QzIgMTAuOTM5MzYgNC40MzkzNiA4LjUgNy41IDguNUg5QzkuMTM4MDcgNy4wMzMwNyAxMC4zODMxIDYgOS41IDZaIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiLz4KPC9zdmc+", 
-        "sizes": "96x96" 
-      }]
-    },
-    {
-      "name": "Manage Tasks",
-      "short_name": "Tasks",
-      "description": "Organize your study tasks",
-      "url": "/todo",
-      "icons": [{ 
-        "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNiIgZmlsbD0iIzYzNjZmMSIvPgo8cGF0aCBkPSJNOS41IDZIMTJIMTMuNUMxNi41Mzc2IDYgMTkgOC40NjI0NCAxOSAxMS41QzE5IDEyLjYxMjYgMTguNjg4MyAxMy42NDMgMTcuMTAxNyAxNC4zMTEzQzE3LjIyMjUgMTUuMjY0MyAxNy41IDE2LjM1MzMgMTcuNSAxOC41QzE3LjE0NzggMTcuNzM3OSAxNi41NDM3IDE5LjYwOTIgMTcgMjFDMTcuNDU2MyAyMi4zOTA4IDE2LjM5MjggMjMuNSAxNC41IDIzLjVIOC41QzMuNDM5MyAyMy41IDIgMjEuMDYwNyAyIDE2QzIgMTAuOTM5MzYgNC40MzkzNiA4LjUgNy41IDguNUg5QzkuMTM4MDcgNy4wMzMwNyAxMC4zODMxIDYgOS41IDZaIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiLz4KPC9zdmc+", 
-        "sizes": "96x96" 
-      }]
-    },
-    {
-      "name": "Track Progress",
-      "short_name": "Progress",
-      "description": "View your learning progress",
-      "url": "/syllabus",
-      "icons": [{ 
-        "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNiIgZmlsbD0iIzYzNjZmMSIvPgo8cGF0aCBkPSJNOS41IDZIMTJIMTMuNUMxNi41Mzc2IDYgMTkgOC40NjI0NCAxOSAxMS41QzE5IDEyLjYxMjYgMTguNjg4MyAxMy42NDMgMTcuMTAxNyAxNC4zMTEzQzE3LjIyMjUgMTUuMjY0MyAxNy41IDE2LjM1MzMgMTcuNSAxOC41QzE3LjE0NzggMTcuNzM3OSAxNi41NDM3IDE5LjYwOTIgMTcgMjFDMTcuNDU2MyAyMi4zOTA4IDE2LjM5MjggMjMuNSAxNC41IDIzLjVIOC41QzMuNDM5MyAyMy41IDIgMjEuMDYwNyAyIDE2QzIgMTAuOTM5MzYgNC40MzkzNiA4LjUgNy41IDguNUg5QzkuMTM4MDcgNy4wMzMwNyAxMC4zODMxIDYgOS41IDZaIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiLz4KPC9zdmc+", 
-        "sizes": "96x96" 
-      }]
-    }
-  ],
   "prefer_related_applications": false,
-  "related_applications": [],
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-  "edge_side_panel": {
-    "preferred_width": 400
-  },
   "launch_handler": {
     "client_mode": "navigate-existing"
   }

@@ -18,7 +18,8 @@ import {
   useSidebar,
   SidebarFooter
 } from '@/components/ui/sidebar';
-import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Download, Palette, CheckSquare } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Download, Palette, CheckSquare, Instagram, Github, Linkedin } from 'lucide-react';
 import PWADownload from '@/components/PWADownload';
 
 interface MainLayoutProps {
@@ -31,7 +32,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const { isMobile, isStandalone } = useDeviceCapabilities();
 
-  // Bottom navigation items (mobile)
   const bottomNavigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Questions', href: '/questions', icon: Brain },
@@ -39,7 +39,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'Profile', href: '/profile', icon: User },
   ];
 
-  // Sidebar items with Dashboard and ToDo included
   const sidebarItems = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'ToDo Tasks', href: '/todo', icon: CheckSquare },
@@ -107,9 +106,47 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </SidebarMenu>
           </div>
         </SidebarContent>
-        <SidebarFooter className="p-3 border-t">
+        <SidebarFooter className="p-3 border-t space-y-3">
           <div className="flex justify-center">
             <PWADownload />
+          </div>
+          
+          <Separator />
+          
+          <div className="space-y-3 text-center">
+            <div className="flex justify-center space-x-4">
+              <a 
+                href="https://instagram.com/satyamrojhax" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 hover:bg-accent rounded-lg transition-colors"
+              >
+                <Instagram className="w-4 h-4 text-pink-500" />
+              </a>
+              <a 
+                href="https://github.com/satyamrojhax" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 hover:bg-accent rounded-lg transition-colors"
+              >
+                <Github className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              </a>
+              <a 
+                href="https://linkedin.com/in/satyamrojhax" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 hover:bg-accent rounded-lg transition-colors"
+              >
+                <Linkedin className="w-4 h-4 text-blue-600" />
+              </a>
+            </div>
+            
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p className="font-semibold text-orange-600">🇮🇳 Made in India</p>
+              <p>Designed & Developed By</p>
+              <p className="font-medium">Satyam Rojha</p>
+              <p className="text-xs opacity-75">v2.2.12</p>
+            </div>
           </div>
         </SidebarFooter>
       </Sidebar>
@@ -121,7 +158,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <SidebarInset className="flex-1 w-full">
-          {/* Enhanced Header */}
           <header className={`sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${isStandalone ? 'pt-safe-area-inset-top' : ''}`}>
             <div className="flex justify-between items-center h-14 sm:h-16 px-3 sm:px-4 md:px-6">
               <div className="flex items-center space-x-2 sm:space-x-3">
@@ -158,14 +194,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </div>
           </header>
 
-          {/* Main Content with optimized scrolling */}
           <main className={`flex-1 overflow-auto scrollbar-hide pb-20 lg:pb-6 ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
             <div className="w-full min-h-full">
               {children}
             </div>
           </main>
 
-          {/* Enhanced Bottom Navigation - Mobile Only */}
           <nav className={`fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t shadow-lg ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
             <div className="grid grid-cols-4 py-2 px-1">
               {bottomNavigation.map((item) => {

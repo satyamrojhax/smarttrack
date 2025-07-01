@@ -23,7 +23,6 @@ const PWADownload: React.FC = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if app is already installed (standalone mode)
     const checkStandalone = () => {
       return window.matchMedia('(display-mode: standalone)').matches ||
              (window.navigator as any).standalone ||
@@ -32,15 +31,15 @@ const PWADownload: React.FC = () => {
 
     setIsStandalone(checkStandalone());
 
-    // Listen for the beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('PWA Install prompt available');
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
     };
 
-    // Listen for successful app installation
     const handleAppInstalled = () => {
+      console.log('PWA was installed');
       setIsInstallable(false);
       setDeferredPrompt(null);
       setIsInstalling(false);
@@ -61,17 +60,18 @@ const PWADownload: React.FC = () => {
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
-      // For iOS or browsers that don't support auto-install
       setShowDialog(true);
       return;
     }
 
     try {
       setIsInstalling(true);
+      console.log('Triggering PWA install prompt');
       
-      // Automatically trigger the install prompt
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
+      
+      console.log('PWA install outcome:', outcome);
       
       if (outcome === 'accepted') {
         toast({
@@ -82,76 +82,19 @@ const PWADownload: React.FC = () => {
         setIsInstalling(false);
         toast({
           title: "Installation Cancelled",
-          description: "You can install the app later from this button",
+          description: "You can install the app later using this button",
         });
       }
       
       setDeferredPrompt(null);
       setIsInstallable(false);
     } catch (error) {
-      console.error('Installation failed:', error);
+      console.error('PWA installation failed:', error);
       setIsInstalling(false);
       setShowDialog(true);
     }
   };
 
-  const getBrowserIcon = () => {
-    const userAgent = navigator.userAgent.toLowerCase();
-    if (userAgent.includes('chrome')) return Chrome;
-    if (userAgent.includes('safari')) return Globe;
-    if (userAgent.includes('firefox')) return Monitor;
-    return Monitor;
-  };
-
-  const getBrowserName = () => {
-    const userAgent = navigator.userAgent.toLowerCase();
-    if (userAgent.includes('chrome')) return 'Chrome';
-    if (userAgent.includes('safari')) return 'Safari';
-    if (userAgent.includes('firefox')) return 'Firefox';
-    return 'your browser';
-  };
-
-  const getInstallInstructions = () => {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isIOS = /iphone|ipad|ipod/.test(userAgent);
-    const isAndroid = /android/.test(userAgent);
-
-    if (isIOS) {
-      return {
-        icon: Globe,
-        steps: [
-          "1. Tap the Share button at the bottom of Safari",
-          "2. Scroll down and tap 'Add to Home Screen'",
-          "3. Tap 'Add' to confirm",
-          "4. The app will appear on your home screen"
-        ]
-      };
-    }
-
-    if (isAndroid) {
-      return {
-        icon: Chrome,
-        steps: [
-          "1. Tap the three dots (⋮) in the top right corner",
-          "2. Select 'Add to Home screen' or 'Install app'",
-          "3. Tap 'Add' or 'Install' to confirm",
-          "4. The app will appear on your home screen"
-        ]
-      };
-    }
-
-    return {
-      icon: Monitor,
-      steps: [
-        "1. Look for the install icon in your address bar",
-        "2. Click the install button when it appears",
-        "3. Follow the prompts to install the app",
-        "4. The app will be added to your applications"
-      ]
-    };
-  };
-
-  // Don't show the button if already installed
   if (isStandalone) {
     return (
       <Button
@@ -165,10 +108,6 @@ const PWADownload: React.FC = () => {
     );
   }
 
-  const BrowserIcon = getBrowserIcon();
-  const instructions = getInstallInstructions();
-  const InstructionIcon = instructions.icon;
-
   return (
     <>
       <Button
@@ -178,7 +117,7 @@ const PWADownload: React.FC = () => {
         disabled={isInstalling}
       >
         <Download className="w-4 h-4" />
-        {isInstalling ? 'Installing...' : 'Download Now'}
+        {isInstalling ? 'Installing...' : 'Download App'}
       </Button>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
@@ -189,43 +128,49 @@ const PWADownload: React.FC = () => {
               Install Axiom Smart Track
             </DialogTitle>
             <DialogDescription>
-              Install our app for the best experience with offline access and faster loading.
+              Install our app for offline access and better performance.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="flex items-center justify-center p-6 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg">
-              <div className="text-center space-y-2">
-                <div className="w-16 h-16 mx-auto bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Download className="w-8 h-8 text-white" />
-                </div>
+            <div className="text-center space-y-4 p-4 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <Download className="w-8 h-8 text-white" />
+              </div>
+              <div>
                 <h3 className="font-semibold">Axiom Smart Track</h3>
                 <p className="text-sm text-muted-foreground">AI Study Assistant</p>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <InstructionIcon className="w-4 h-4" />
-                How to install in {getBrowserName()}:
-              </div>
-              
+            <div className="space-y-3 text-sm">
+              <p className="font-medium">How to install:</p>
               <div className="space-y-2">
-                {instructions.steps.map((step, index) => (
-                  <div key={index} className="flex items-start gap-3 text-sm">
-                    <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-medium text-primary">{index + 1}</span>
-                    </div>
-                    <span className="text-muted-foreground">{step.replace(/^\d+\.\s/, '')}</span>
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-medium text-primary">1</span>
                   </div>
-                ))}
+                  <span className="text-muted-foreground">Look for "Install" or "Add to Home Screen" in your browser menu</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-medium text-primary">2</span>
+                  </div>
+                  <span className="text-muted-foreground">Tap "Install" or "Add" when prompted</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-medium text-primary">3</span>
+                  </div>
+                  <span className="text-muted-foreground">The app will appear on your home screen</span>
+                </div>
               </div>
             </div>
 
             <div className="pt-4 border-t">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Plus className="w-3 h-3" />
-                <span>Free • No app store required • Works offline</span>
+                <span>Free • Works offline • No app store required</span>
               </div>
             </div>
           </div>
