@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Download, Smartphone, Monitor, Chrome, Safari, Firefox, Plus } from 'lucide-react';
+import { Download, Smartphone, Monitor, Chrome, Globe, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -85,8 +85,8 @@ const PWADownload: React.FC = () => {
   const getBrowserIcon = () => {
     const userAgent = navigator.userAgent.toLowerCase();
     if (userAgent.includes('chrome')) return Chrome;
-    if (userAgent.includes('safari')) return Safari;
-    if (userAgent.includes('firefox')) return Firefox;
+    if (userAgent.includes('safari')) return Globe;
+    if (userAgent.includes('firefox')) return Monitor;
     return Monitor;
   };
 
@@ -105,7 +105,7 @@ const PWADownload: React.FC = () => {
 
     if (isIOS) {
       return {
-        icon: Safari,
+        icon: Globe,
         steps: [
           "1. Tap the Share button at the bottom of Safari",
           "2. Scroll down and tap 'Add to Home Screen'",
