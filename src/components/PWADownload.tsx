@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Download, Smartphone, Monitor, Chrome, Globe, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Download, Smartphone, Monitor, Chrome, Globe, Plus, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -19,6 +19,7 @@ const PWADownload: React.FC = () => {
   const [isInstallable, setIsInstallable] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
+  const [isInstalling, setIsInstalling] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -42,6 +43,7 @@ const PWADownload: React.FC = () => {
     const handleAppInstalled = () => {
       setIsInstallable(false);
       setDeferredPrompt(null);
+      setIsInstalling(false);
       toast({
         title: "App Installed Successfully! 🎉",
         description: "Axiom Smart Track has been added to your device",
@@ -59,18 +61,28 @@ const PWADownload: React.FC = () => {
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
+      // For iOS or browsers that don't support auto-install
       setShowDialog(true);
       return;
     }
 
     try {
-      deferredPrompt.prompt();
+      setIsInstalling(true);
+      
+      // Automatically trigger the install prompt
+      await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       
       if (outcome === 'accepted') {
         toast({
           title: "Installing App...",
-          description: "Axiom Smart Track is being installed on your device",
+          description: "Axiom Smart Track is being installed automatically",
+        });
+      } else {
+        setIsInstalling(false);
+        toast({
+          title: "Installation Cancelled",
+          description: "You can install the app later from this button",
         });
       }
       
@@ -78,6 +90,7 @@ const PWADownload: React.FC = () => {
       setIsInstallable(false);
     } catch (error) {
       console.error('Installation failed:', error);
+      setIsInstalling(false);
       setShowDialog(true);
     }
   };
@@ -140,7 +153,16 @@ const PWADownload: React.FC = () => {
 
   // Don't show the button if already installed
   if (isStandalone) {
-    return null;
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        className="flex items-center gap-2 text-green-600 cursor-default"
+      >
+        <CheckCircle className="w-4 h-4" />
+        <span className="hidden sm:inline">App Installed</span>
+      </Button>
+    );
   }
 
   const BrowserIcon = getBrowserIcon();
@@ -151,11 +173,12 @@ const PWADownload: React.FC = () => {
     <>
       <Button
         onClick={handleInstallClick}
-        className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg"
+        className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105"
         size="sm"
+        disabled={isInstalling}
       >
         <Download className="w-4 h-4" />
-        Download App
+        {isInstalling ? 'Installing...' : 'Download Now'}
       </Button>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>

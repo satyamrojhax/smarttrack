@@ -10,12 +10,19 @@ export const loginUser = async (userData: LoginData) => {
     });
 
     if (error) {
-      return { success: false, error: error.message };
+      // Provide more user-friendly error messages
+      let friendlyMessage = error.message;
+      if (error.message.includes('Invalid login credentials')) {
+        friendlyMessage = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (error.message.includes('Email not confirmed')) {
+        friendlyMessage = 'Please check your email and click the confirmation link before signing in.';
+      }
+      return { success: false, error: friendlyMessage };
     }
 
     return { success: true };
   } catch (error) {
-    return { success: false, error: 'An unexpected error occurred' };
+    return { success: false, error: 'Network error. Please check your connection and try again.' };
   }
 };
 
@@ -38,12 +45,21 @@ export const signupUser = async (userData: SignupData) => {
     });
 
     if (error) {
-      return { success: false, error: error.message };
+      // Provide more user-friendly error messages
+      let friendlyMessage = error.message;
+      if (error.message.includes('User already registered')) {
+        friendlyMessage = 'An account with this email already exists. Please sign in instead.';
+      } else if (error.message.includes('Password should be at least')) {
+        friendlyMessage = 'Password must be at least 6 characters long.';
+      } else if (error.message.includes('Invalid email')) {
+        friendlyMessage = 'Please enter a valid email address.';
+      }
+      return { success: false, error: friendlyMessage };
     }
 
     return { success: true };
   } catch (error) {
-    return { success: false, error: 'An unexpected error occurred' };
+    return { success: false, error: 'Network error. Please check your connection and try again.' };
   }
 };
 

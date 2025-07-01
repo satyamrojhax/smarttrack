@@ -1,22 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Plus, CheckCircle2, Circle, Calendar, BookOpen, Briefcase, Home, Star } from 'lucide-react';
+import { Trash2, Plus, Calendar, BookOpen, Briefcase, Home, Star, Circle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import LoadingSpinner from '@/components/LoadingSpinner';
-
-interface Task {
-  id: string;
-  title: string;
-  category: string;
-  completed: boolean;
-  createdAt: Date;
-}
+import { todoService, TodoTask } from '@/services/todoService';
 
 const categories = [
   { value: 'personal', label: 'Personal', icon: Home, color: 'bg-blue-500' },
@@ -27,32 +21,72 @@ const categories = [
 ];
 
 const ToDoPage: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('general');
   const [filterCategory, setFilterCategory] = useState('all');
-  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    // Load tasks from localStorage
-    const savedTasks = localStorage.getItem('axiom-tasks');
-    if (savedTasks) {
-      const parsed = JSON.parse(savedTasks);
-      setTasks(parsed.map((task: any) => ({
-        ...task,
-        createdAt: new Date(task.createdAt)
-      })));
-    }
-    setIsLoading(false);
-  }, []);
+  // Fetch tasks using React Query
+  const { data: tasks = [], isLoading } = useQuery({
+    queryKey: ['todos'],
+    queryFn: todoService.getTasks,
+  });
 
-  useEffect(() => {
-    // Save tasks to localStorage
-    if (!isLoading) {
-      localStorage.setItem('axiom-tasks', JSON.stringify(tasks));
+  // Create task mutation
+  const createTaskMutation = useMutation({
+    mutationFn: ({ title, category }: { title: string; category: string }) => 
+      todoService.createTask(title, category),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+      toast({
+        title: "Task Added",
+        description: `Task added to ${categories.find(c => c.value === selectedCategory)?.label} category`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add task",
+        variant: "destructive"
+      });
     }
-  }, [tasks, isLoading]);
+  });
+
+  // Update task mutation
+  const updateTaskMutation = useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<TodoTask> }) => 
+      todoService.updateTask(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update task",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete task mutation
+  const deleteTaskMutation = useMutation({
+    mutationFn: todoService.deleteTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+      toast({
+        title: "Task Deleted",
+        description: "Task has been removed successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete task",
+        variant: "destructive"
+      });
+    }
+  });
 
   const addTask = () => {
     if (!newTask.trim()) {
@@ -64,34 +98,19 @@ const ToDoPage: React.FC = () => {
       return;
     }
 
-    const task: Task = {
-      id: Date.now().toString(),
-      title: newTask.trim(),
-      category: selectedCategory,
-      completed: false,
-      createdAt: new Date()
-    };
-
-    setTasks(prev => [task, ...prev]);
+    createTaskMutation.mutate({ title: newTask.trim(), category: selectedCategory });
     setNewTask('');
-    toast({
-      title: "Task Added",
-      description: `Task added to ${categories.find(c => c.value === selectedCategory)?.label} category`,
-    });
   };
 
-  const toggleTask = (id: string) => {
-    setTasks(prev => prev.map(task => 
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
+  const toggleTask = (task: TodoTask) => {
+    updateTaskMutation.mutate({
+      id: task.id,
+      updates: { completed: !task.completed }
+    });
   };
 
   const deleteTask = (id: string) => {
-    setTasks(prev => prev.filter(task => task.id !== id));
-    toast({
-      title: "Task Deleted",
-      description: "Task has been removed successfully",
-    });
+    deleteTaskMutation.mutate(id);
   };
 
   const filteredTasks = tasks.filter(task => 
@@ -158,9 +177,13 @@ const ToDoPage: React.FC = () => {
                 })}
               </SelectContent>
             </Select>
-            <Button onClick={addTask} className="w-full sm:w-auto">
+            <Button 
+              onClick={addTask} 
+              className="w-full sm:w-auto"
+              disabled={createTaskMutation.isPending}
+            >
               <Plus className="w-4 h-4 mr-2" />
-              Add Task
+              {createTaskMutation.isPending ? 'Adding...' : 'Add Task'}
             </Button>
           </div>
         </CardContent>
@@ -224,8 +247,9 @@ const ToDoPage: React.FC = () => {
                   <div className="flex items-start gap-3">
                     <Checkbox
                       checked={task.completed}
-                      onCheckedChange={() => toggleTask(task.id)}
+                      onCheckedChange={() => toggleTask(task)}
                       className="mt-1"
+                      disabled={updateTaskMutation.isPending}
                     />
                     <div className="flex-1 space-y-2">
                       <div className="flex items-start justify-between gap-2">
@@ -237,6 +261,7 @@ const ToDoPage: React.FC = () => {
                           size="sm"
                           onClick={() => deleteTask(task.id)}
                           className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
+                          disabled={deleteTaskMutation.isPending}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -248,7 +273,7 @@ const ToDoPage: React.FC = () => {
                           {categoryLabel}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          {task.createdAt.toLocaleDateString()}
+                          {new Date(task.created_at).toLocaleDateString()}
                         </span>
                       </div>
                     </div>

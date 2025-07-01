@@ -308,6 +308,36 @@ export type Database = {
         }
         Relationships: []
       }
+      todo_tasks: {
+        Row: {
+          category: string
+          completed: boolean
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_description: string | null

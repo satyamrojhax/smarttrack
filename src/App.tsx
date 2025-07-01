@@ -1,3 +1,4 @@
+
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,7 +12,6 @@ import { TimerProvider } from "@/contexts/TimerContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ExitPopup from "@/components/ExitPopup";
-import Landing from "./pages/Landing";
 import MainLayout from "./components/MainLayout";
 
 // Lazy load pages for better performance
@@ -63,7 +63,6 @@ const PageLoadingSpinner = () => (
 const AppContent = () => {
   const { user, isLoading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showLanding, setShowLanding] = useState(false);
 
   useEffect(() => {
     console.log('AppContent - Auth state:', { user: !!user, isLoading });
@@ -71,17 +70,10 @@ const AppContent = () => {
     if (isLoading) return;
     
     const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
-    const hasSeenLanding = localStorage.getItem('hasSeenLanding');
     
-    if (!user) {
-      if (!hasSeenLanding) {
-        setShowLanding(true);
-      } else if (!hasSeenOnboarding) {
-        setShowOnboarding(true);
-      }
+    if (!user && !hasSeenOnboarding) {
+      setShowOnboarding(true);
     } else {
-      // User is authenticated, clear any onboarding/landing flags
-      setShowLanding(false);
       setShowOnboarding(false);
     }
   }, [user, isLoading]);
@@ -91,32 +83,13 @@ const AppContent = () => {
     setShowOnboarding(false);
   };
 
-  const handleLandingComplete = () => {
-    localStorage.setItem('hasSeenLanding', 'true');
-    setShowLanding(false);
-  };
-
-  const handleBackToLanding = () => {
-    setShowLanding(true);
-    setShowOnboarding(false);
-  };
-
   // Show loading spinner with better UX
   if (isLoading) {
     return <AppLoadingSpinner />;
   }
 
-  // Show landing page
-  if (showLanding) {
-    return (
-      <ErrorBoundary>
-        <Landing onGetStarted={handleLandingComplete} />
-      </ErrorBoundary>
-    );
-  }
-
-  // Show onboarding
-  if (showOnboarding) {
+  // Show onboarding for new users only
+  if (showOnboarding && !user) {
     return (
       <ErrorBoundary>
         <Suspense fallback={<AppLoadingSpinner />}>
@@ -131,7 +104,7 @@ const AppContent = () => {
     return (
       <ErrorBoundary>
         <Suspense fallback={<AppLoadingSpinner />}>
-          <Auth onBack={handleBackToLanding} />
+          <Auth onBack={() => setShowOnboarding(true)} />
         </Suspense>
       </ErrorBoundary>
     );
