@@ -182,6 +182,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <div className="hidden sm:block">
                   <PWADownload />
                 </div>
+                {/* Mobile PWA Download Button */}
+                <div className="block sm:hidden">
+                  <PWADownload />
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"

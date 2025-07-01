@@ -14,7 +14,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import ExitPopup from "@/components/ExitPopup";
 import MainLayout from "./components/MainLayout";
 
-// Lazy load pages for better performance
+// Optimized lazy loading with prefetching for better performance
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -31,29 +31,32 @@ const ExportPage = lazy(() => import("./pages/ExportPage"));
 const ThemePage = lazy(() => import("./pages/ThemePage"));
 const ToDoPage = lazy(() => import("./pages/ToDoPage"));
 
+// Optimized QueryClient with better performance settings
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
-      retry: 1,
+      staleTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 15 * 60 * 1000, // 15 minutes
+      retry: 2,
       refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
+      refetchOnReconnect: true,
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
     mutations: {
-      retry: 1,
+      retry: 2,
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
   },
 });
 
 const AppLoadingSpinner = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-    <LoadingSpinner message="Initializing your study space..." size="lg" />
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900">
+    <LoadingSpinner message="Loading your smart study space..." size="lg" />
   </div>
 );
 
 const PageLoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-[50vh]">
+  <div className="flex items-center justify-center min-h-[60vh]">
     <LoadingSpinner message="Loading page..." />
   </div>
 );
@@ -63,7 +66,7 @@ const AppContent = () => {
 
   console.log('AppContent - Auth state:', { user: !!user, isLoading });
 
-  // Disable right-click context menu, text selection, and dev tools
+  // Enhanced security features with performance optimization
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
@@ -81,12 +84,11 @@ const AppContent = () => {
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+Shift+C
+      // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+Shift+C, Ctrl+Shift+K
       if (
         e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
-        (e.ctrlKey && e.key === 'U') ||
-        (e.ctrlKey && e.shiftKey && e.key === 'K')
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'K')) ||
+        (e.ctrlKey && e.key === 'U')
       ) {
         e.preventDefault();
         return false;
@@ -103,13 +105,19 @@ const AppContent = () => {
       return false;
     };
 
-    // Add event listeners
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('selectstart', handleSelectStart);
-    document.addEventListener('dragstart', handleDragStart);
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('copy', handleCopy);
-    document.addEventListener('beforeprint', handlePrint);
+    // Optimized event listener setup
+    const events = [
+      ['contextmenu', handleContextMenu],
+      ['selectstart', handleSelectStart],
+      ['dragstart', handleDragStart],
+      ['keydown', handleKeyDown],
+      ['copy', handleCopy],
+      ['beforeprint', handlePrint]
+    ] as const;
+
+    events.forEach(([event, handler]) => {
+      document.addEventListener(event, handler as EventListener, { passive: false });
+    });
 
     // Disable text selection via CSS - properly typed
     const bodyStyle = document.body.style as any;
@@ -119,12 +127,9 @@ const AppContent = () => {
     bodyStyle.msUserSelect = 'none';
 
     return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('selectstart', handleSelectStart);
-      document.removeEventListener('dragstart', handleDragStart);
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('copy', handleCopy);
-      document.removeEventListener('beforeprint', handlePrint);
+      events.forEach(([event, handler]) => {
+        document.removeEventListener(event, handler as EventListener);
+      });
       
       // Reset text selection - properly typed
       const bodyStyle = document.body.style as any;
@@ -134,6 +139,15 @@ const AppContent = () => {
       bodyStyle.msUserSelect = '';
     };
   }, []);
+
+  // Performance optimization: prefetch critical routes
+  useEffect(() => {
+    if (user) {
+      // Prefetch commonly used routes
+      import("./pages/DoubtsPage");
+      import("./pages/QuestionsPage");
+    }
+  }, [user]);
 
   if (isLoading) {
     return <AppLoadingSpinner />;
