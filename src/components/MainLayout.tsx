@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -25,6 +24,87 @@ import PWADownload from '@/components/PWADownload';
 interface MainLayoutProps {
   children: React.ReactNode;
 }
+
+// Mobile PWA Download Icon Component
+const MobilePWADownload = () => {
+  const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null);
+  const [isStandalone, setIsStandalone] = React.useState(false);
+  const [isInstalling, setIsInstalling] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkStandalone = () => {
+      return window.matchMedia('(display-mode: standalone)').matches ||
+             (window.navigator as any).standalone ||
+             document.referrer.includes('android-app://');
+    };
+
+    setIsStandalone(checkStandalone());
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    const handleAppInstalled = () => {
+      setIsStandalone(true);
+      setIsInstalling(false);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+
+    try {
+      setIsInstalling(true);
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'dismissed') {
+        setIsInstalling(false);
+      }
+      
+      setDeferredPrompt(null);
+    } catch (error) {
+      setIsInstalling(false);
+    }
+  };
+
+  if (isStandalone) {
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        className="p-1.5 text-green-600 dark:text-green-400 cursor-default hover:bg-green-50 dark:hover:bg-green-900/20"
+      >
+        <Download className="w-4 h-4" />
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      onClick={handleInstallClick}
+      variant="ghost"
+      size="sm"
+      className="p-1.5 hover:bg-accent hover:text-accent-foreground transition-all duration-200 hover:scale-110"
+      disabled={isInstalling || !deferredPrompt}
+    >
+      {isInstalling ? (
+        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+      ) : (
+        <Download className="w-4 h-4" />
+      )}
+    </Button>
+  );
+};
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { theme, toggleTheme } = useTheme();
@@ -182,9 +262,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <div className="hidden sm:block">
                   <PWADownload />
                 </div>
-                {/* Mobile PWA Download Button */}
+                {/* Mobile PWA Download Icon */}
                 <div className="block sm:hidden">
-                  <PWADownload />
+                  <MobilePWADownload />
                 </div>
                 <Button
                   variant="ghost"
