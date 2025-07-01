@@ -8,6 +8,7 @@ export interface TodoTask {
   completed: boolean;
   created_at: string;
   updated_at: string;
+  user_id: string;
 }
 
 export const todoService = {
@@ -22,9 +23,20 @@ export const todoService = {
   },
 
   async createTask(title: string, category: string): Promise<TodoTask> {
+    // Get the current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      throw new Error('User must be authenticated to create tasks');
+    }
+
     const { data, error } = await supabase
       .from('todo_tasks')
-      .insert({ title, category })
+      .insert({ 
+        title, 
+        category, 
+        user_id: user.id 
+      })
       .select()
       .single();
     
