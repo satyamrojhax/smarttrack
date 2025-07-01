@@ -111,11 +111,12 @@ const AppContent = () => {
     document.addEventListener('copy', handleCopy);
     document.addEventListener('beforeprint', handlePrint);
 
-    // Disable text selection via CSS
-    document.body.style.userSelect = 'none';
-    document.body.style.webkitUserSelect = 'none';
-    document.body.style.mozUserSelect = 'none';
-    document.body.style.msUserSelect = 'none';
+    // Disable text selection via CSS - properly typed
+    const bodyStyle = document.body.style as any;
+    bodyStyle.userSelect = 'none';
+    bodyStyle.webkitUserSelect = 'none';
+    bodyStyle.mozUserSelect = 'none';
+    bodyStyle.msUserSelect = 'none';
 
     return () => {
       document.removeEventListener('contextmenu', handleContextMenu);
@@ -125,11 +126,12 @@ const AppContent = () => {
       document.removeEventListener('copy', handleCopy);
       document.removeEventListener('beforeprint', handlePrint);
       
-      // Reset text selection
-      document.body.style.userSelect = '';
-      document.body.style.webkitUserSelect = '';
-      document.body.style.mozUserSelect = '';
-      document.body.style.msUserSelect = '';
+      // Reset text selection - properly typed
+      const bodyStyle = document.body.style as any;
+      bodyStyle.userSelect = '';
+      bodyStyle.webkitUserSelect = '';
+      bodyStyle.mozUserSelect = '';
+      bodyStyle.msUserSelect = '';
     };
   }, []);
 
