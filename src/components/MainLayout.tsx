@@ -64,7 +64,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     };
 
     return (
-      <Sidebar className="w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-xl">
+      <Sidebar className="w-64 border-r bg-white dark:bg-gray-900 shadow-xl">
         <SidebarHeader className="p-4 border-b bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
           <div className="flex items-center space-x-3">
             <div className="relative">
@@ -82,7 +82,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
         </SidebarHeader>
         
-        <SidebarContent className="scrollbar-hide">
+        <SidebarContent className="scrollbar-hide bg-white dark:bg-gray-900">
           <div className="p-3">
             {/* User Welcome Section */}
             <div className="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
@@ -128,7 +128,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
         </SidebarContent>
         
-        <SidebarFooter className="p-4 border-t space-y-4">
+        <SidebarFooter className="p-4 border-t space-y-4 bg-white dark:bg-gray-900">
           <Separator />
           
           {/* Stats Section */}

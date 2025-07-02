@@ -70,6 +70,29 @@
   }
 }
 
+/* Hide Lovable watermark and badge */
+div[data-testid="lovable-watermark"],
+div[data-testid="lovable-badge"],
+.lovable-watermark,
+.lovable-badge,
+iframe[src*="lovable"],
+[href*="lovable.dev"],
+[data-lovable],
+.gpt-engineer-watermark,
+div:has(> a[href*="lovable"]),
+div:has(> a[href*="gpt-engineer"]) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  z-index: -1 !important;
+}
+
 @layer components {
   .glass-card {
     @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-xl;
