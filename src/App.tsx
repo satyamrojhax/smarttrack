@@ -11,8 +11,8 @@ import { SyllabusProvider } from "@/contexts/SyllabusContext";
 import { TimerProvider } from "@/contexts/TimerContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import ExitPopup from "@/components/ExitPopup";
 import MainLayout from "./components/MainLayout";
+import SplashScreen from "./components/SplashScreen";
 
 // Optimized lazy loading with prefetching for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -31,19 +31,19 @@ const ExportPage = lazy(() => import("./pages/ExportPage"));
 const ThemePage = lazy(() => import("./pages/ThemePage"));
 const ToDoPage = lazy(() => import("./pages/ToDoPage"));
 
-// Optimized QueryClient with better performance settings
+// Enhanced QueryClient with better performance settings
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 10 * 60 * 1000, // 10 minutes
-      gcTime: 15 * 60 * 1000, // 15 minutes
-      retry: 2,
+      staleTime: 15 * 60 * 1000, // 15 minutes
+      gcTime: 30 * 60 * 1000, // 30 minutes
+      retry: 3,
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
     mutations: {
-      retry: 2,
+      retry: 3,
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
   },
@@ -63,8 +63,18 @@ const PageLoadingSpinner = () => (
 
 const AppContent = () => {
   const { user, isLoading } = useAuth();
+  const [showSplash, setShowSplash] = useState(false);
+  const [hasShownSplash, setHasShownSplash] = useState(false);
 
   console.log('AppContent - Auth state:', { user: !!user, isLoading });
+
+  // Show splash screen only when user first logs in and enters dashboard
+  useEffect(() => {
+    if (user && !hasShownSplash) {
+      setShowSplash(true);
+      setHasShownSplash(true);
+    }
+  }, [user, hasShownSplash]);
 
   // Enhanced security features with performance optimization
   useEffect(() => {
@@ -105,18 +115,18 @@ const AppContent = () => {
       return false;
     };
 
-    // Optimized event listener setup
+    // Optimized event listener setup with passive options
     const events = [
-      ['contextmenu', handleContextMenu],
-      ['selectstart', handleSelectStart],
-      ['dragstart', handleDragStart],
-      ['keydown', handleKeyDown],
-      ['copy', handleCopy],
-      ['beforeprint', handlePrint]
+      ['contextmenu', handleContextMenu, { passive: false }],
+      ['selectstart', handleSelectStart, { passive: false }],
+      ['dragstart', handleDragStart, { passive: false }],
+      ['keydown', handleKeyDown, { passive: false }],
+      ['copy', handleCopy, { passive: false }],
+      ['beforeprint', handlePrint, { passive: false }]
     ] as const;
 
-    events.forEach(([event, handler]) => {
-      document.addEventListener(event, handler as EventListener, { passive: false });
+    events.forEach(([event, handler, options]) => {
+      document.addEventListener(event, handler as EventListener, options);
     });
 
     // Disable text selection via CSS - properly typed
@@ -140,12 +150,20 @@ const AppContent = () => {
     };
   }, []);
 
-  // Performance optimization: prefetch critical routes
+  // Performance optimization: prefetch critical routes using requestIdleCallback
   useEffect(() => {
     if (user) {
-      // Prefetch commonly used routes
-      import("./pages/DoubtsPage");
-      import("./pages/QuestionsPage");
+      const prefetchRoutes = () => {
+        import("./pages/DoubtsPage");
+        import("./pages/QuestionsPage");
+        import("./pages/SyllabusPage");
+      };
+
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(prefetchRoutes);
+      } else {
+        setTimeout(prefetchRoutes, 100);
+      }
     }
   }, [user]);
 
@@ -161,6 +179,10 @@ const AppContent = () => {
         </Suspense>
       </ErrorBoundary>
     );
+  }
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
 
   return (
@@ -187,7 +209,6 @@ const AppContent = () => {
               </Routes>
             </Suspense>
           </MainLayout>
-          <ExitPopup />
         </TimerProvider>
       </SyllabusProvider>
     </ErrorBoundary>
