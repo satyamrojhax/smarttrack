@@ -10,7 +10,6 @@ export const loginUser = async (userData: LoginData) => {
     });
 
     if (error) {
-      // Provide more user-friendly error messages
       let friendlyMessage = error.message;
       if (error.message.includes('Invalid login credentials')) {
         friendlyMessage = 'Invalid email or password. Please check your credentials and try again.';
@@ -28,8 +27,8 @@ export const loginUser = async (userData: LoginData) => {
 
 export const signupUser = async (userData: SignupData) => {
   try {
-    // Use the current origin as the redirect URL
-    const redirectUrl = window.location.origin;
+    // Use the current origin as the redirect URL - redirect to home after verification
+    const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
       email: userData.email,
@@ -45,7 +44,6 @@ export const signupUser = async (userData: SignupData) => {
     });
 
     if (error) {
-      // Provide more user-friendly error messages
       let friendlyMessage = error.message;
       if (error.message.includes('User already registered')) {
         friendlyMessage = 'An account with this email already exists. Please sign in instead.';

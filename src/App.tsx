@@ -14,7 +14,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import MainLayout from "./components/MainLayout";
 import SplashScreen from "./components/SplashScreen";
 
-// Optimized lazy loading with prefetching for better performance
+// Optimized lazy loading
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -31,12 +31,12 @@ const ExportPage = lazy(() => import("./pages/ExportPage"));
 const ThemePage = lazy(() => import("./pages/ThemePage"));
 const ToDoPage = lazy(() => import("./pages/ToDoPage"));
 
-// Enhanced QueryClient with better performance settings
+// Enhanced QueryClient
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 15 * 60 * 1000, // 15 minutes
-      gcTime: 30 * 60 * 1000, // 30 minutes
+      staleTime: 15 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
       retry: 3,
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
@@ -64,19 +64,26 @@ const PageLoadingSpinner = () => (
 const AppContent = () => {
   const { user, isLoading } = useAuth();
   const [showSplash, setShowSplash] = useState(false);
-  const [hasShownSplash, setHasShownSplash] = useState(false);
+  const [isFirstTime, setIsFirstTime] = useState(false);
 
-  console.log('AppContent - Auth state:', { user: !!user, isLoading });
-
-  // Show splash screen only when user first logs in and enters dashboard
+  // Check if this is the first time opening the app
   useEffect(() => {
-    if (user && !hasShownSplash) {
-      setShowSplash(true);
-      setHasShownSplash(true);
+    const hasVisited = localStorage.getItem('axiom-visited');
+    if (!hasVisited) {
+      setIsFirstTime(true);
+      localStorage.setItem('axiom-visited', 'true');
     }
-  }, [user, hasShownSplash]);
+  }, []);
 
-  // Enhanced security features with performance optimization
+  // Show splash screen for first-time users or when entering dashboard
+  useEffect(() => {
+    if (user && isFirstTime) {
+      setShowSplash(true);
+      setIsFirstTime(false);
+    }
+  }, [user, isFirstTime]);
+
+  // Enhanced security features
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
@@ -94,7 +101,6 @@ const AppContent = () => {
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+Shift+C, Ctrl+Shift+K
       if (
         e.key === 'F12' ||
         (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'K')) ||
@@ -115,7 +121,6 @@ const AppContent = () => {
       return false;
     };
 
-    // Optimized event listener setup with passive options
     const events = [
       ['contextmenu', handleContextMenu, { passive: false }],
       ['selectstart', handleSelectStart, { passive: false }],
@@ -129,7 +134,6 @@ const AppContent = () => {
       document.addEventListener(event, handler as EventListener, options);
     });
 
-    // Disable text selection via CSS - properly typed
     const bodyStyle = document.body.style as any;
     bodyStyle.userSelect = 'none';
     bodyStyle.webkitUserSelect = 'none';
@@ -141,7 +145,6 @@ const AppContent = () => {
         document.removeEventListener(event, handler as EventListener);
       });
       
-      // Reset text selection - properly typed
       const bodyStyle = document.body.style as any;
       bodyStyle.userSelect = '';
       bodyStyle.webkitUserSelect = '';
@@ -150,7 +153,7 @@ const AppContent = () => {
     };
   }, []);
 
-  // Performance optimization: prefetch critical routes using requestIdleCallback
+  // Performance optimization: prefetch critical routes
   useEffect(() => {
     if (user) {
       const prefetchRoutes = () => {
