@@ -1,4 +1,3 @@
-
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -35,16 +34,16 @@ const ToDoPage = lazy(() => import("./pages/ToDoPage"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 10 * 60 * 1000, // 10 minutes
-      gcTime: 15 * 60 * 1000, // 15 minutes
-      retry: 2,
+      staleTime: 15 * 60 * 1000, // 15 minutes
+      gcTime: 30 * 60 * 1000, // 30 minutes
+      retry: 1,
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000),
     },
     mutations: {
-      retry: 2,
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retry: 1,
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000),
     },
   },
 });
@@ -66,86 +65,66 @@ const AppContent = () => {
 
   console.log('AppContent - Auth state:', { user: !!user, isLoading });
 
-  // Enhanced security features with performance optimization
+  // Optimized security features
   useEffect(() => {
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-      return false;
+    const securityHandlers = {
+      contextmenu: (e: Event) => e.preventDefault(),
+      selectstart: (e: Event) => e.preventDefault(),
+      dragstart: (e: Event) => e.preventDefault(),
+      keydown: (e: KeyboardEvent) => {
+        if (
+          e.key === 'F12' ||
+          (e.ctrlKey && e.shiftKey && ['I', 'J', 'C', 'K'].includes(e.key)) ||
+          (e.ctrlKey && e.key === 'U')
+        ) {
+          e.preventDefault();
+        }
+      },
+      copy: (e: Event) => e.preventDefault(),
+      beforeprint: (e: Event) => e.preventDefault()
     };
 
-    const handleSelectStart = (e: Event) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const handleDragStart = (e: DragEvent) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+Shift+C, Ctrl+Shift+K
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'K')) ||
-        (e.ctrlKey && e.key === 'U')
-      ) {
-        e.preventDefault();
-        return false;
-      }
-    };
-
-    const handleCopy = (e: ClipboardEvent) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const handlePrint = (e: Event) => {
-      e.preventDefault();
-      return false;
-    };
-
-    // Optimized event listener setup
-    const events = [
-      ['contextmenu', handleContextMenu],
-      ['selectstart', handleSelectStart],
-      ['dragstart', handleDragStart],
-      ['keydown', handleKeyDown],
-      ['copy', handleCopy],
-      ['beforeprint', handlePrint]
-    ] as const;
-
-    events.forEach(([event, handler]) => {
-      document.addEventListener(event, handler as EventListener, { passive: false });
+    // Add event listeners with optimized options
+    Object.entries(securityHandlers).forEach(([event, handler]) => {
+      document.addEventListener(event, handler, { passive: false });
     });
 
-    // Disable text selection via CSS - properly typed
-    const bodyStyle = document.body.style as any;
-    bodyStyle.userSelect = 'none';
-    bodyStyle.webkitUserSelect = 'none';
-    bodyStyle.mozUserSelect = 'none';
-    bodyStyle.msUserSelect = 'none';
+    // Disable text selection
+    const style = document.body.style as any;
+    style.userSelect = 'none';
+    style.webkitUserSelect = 'none';
+    style.mozUserSelect = 'none';
+    style.msUserSelect = 'none';
 
     return () => {
-      events.forEach(([event, handler]) => {
-        document.removeEventListener(event, handler as EventListener);
+      Object.entries(securityHandlers).forEach(([event, handler]) => {
+        document.removeEventListener(event, handler);
       });
       
-      // Reset text selection - properly typed
-      const bodyStyle = document.body.style as any;
-      bodyStyle.userSelect = '';
-      bodyStyle.webkitUserSelect = '';
-      bodyStyle.mozUserSelect = '';
-      bodyStyle.msUserSelect = '';
+      // Reset text selection
+      const style = document.body.style as any;
+      style.userSelect = '';
+      style.webkitUserSelect = '';
+      style.mozUserSelect = '';
+      style.msUserSelect = '';
     };
   }, []);
 
-  // Performance optimization: prefetch critical routes
+  // Optimized route prefetching
   useEffect(() => {
     if (user) {
-      // Prefetch commonly used routes
-      import("./pages/DoubtsPage");
-      import("./pages/QuestionsPage");
+      const prefetchRoutes = () => {
+        import("./pages/DoubtsPage");
+        import("./pages/QuestionsPage");
+        import("./pages/Profile");
+      };
+      
+      // Use requestIdleCallback for better performance
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(prefetchRoutes, { timeout: 2000 });
+      } else {
+        setTimeout(prefetchRoutes, 1000);
+      }
     }
   }, [user]);
 
