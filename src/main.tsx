@@ -50,9 +50,111 @@ if ('requestIdleCallback' in window) {
   setTimeout(initializeApp, 0);
 }
 
-// Add smooth scrolling behavior globally
+// Add smooth scrolling behavior globally with hardware acceleration
 document.documentElement.style.scrollBehavior = 'smooth';
 
-// Optimize touch events for mobile
-document.addEventListener('touchstart', () => {}, { passive: true });
-document.addEventListener('touchmove', () => {}, { passive: true });
+// Performance optimizations for faster scrolling and movements
+const optimizePerformance = () => {
+  // Enable hardware acceleration for better performance
+  document.body.style.transform = 'translateZ(0)';
+  document.body.style.backfaceVisibility = 'hidden';
+  
+  // Optimize scroll performance
+  document.body.style.overflowScrolling = 'touch';
+  
+  // Reduce layout thrashing
+  document.body.style.willChange = 'transform';
+  
+  // Optimize font rendering
+  document.body.style.textRendering = 'optimizeSpeed';
+  document.body.style.fontDisplay = 'swap';
+  
+  // Add CSS for better performance
+  const style = document.createElement('style');
+  style.textContent = `
+    * {
+      box-sizing: border-box;
+    }
+    
+    body, html {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeSpeed;
+    }
+    
+    /* Optimize animations and transitions */
+    * {
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+    }
+    
+    /* Smooth scrolling optimization */
+    * {
+      scroll-behavior: smooth;
+    }
+    
+    /* Optimize image loading */
+    img {
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+    }
+    
+    /* Optimize button and interactive elements */
+    button, a, [role="button"] {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    
+    /* Optimize form elements */
+    input, textarea, select {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    
+    /* Fast click response */
+    .fast-click {
+      touch-action: manipulation;
+    }
+  `;
+  document.head.appendChild(style);
+};
+
+// Apply performance optimizations
+optimizePerformance();
+
+// Optimize touch events for mobile with better performance
+const options = { passive: true, capture: false };
+document.addEventListener('touchstart', () => {}, options);
+document.addEventListener('touchmove', () => {}, options);
+document.addEventListener('touchend', () => {}, options);
+
+// Preload critical resources
+const preloadCriticalResources = () => {
+  // Preload fonts
+  const fontPreload = document.createElement('link');
+  fontPreload.rel = 'preload';
+  fontPreload.as = 'font';
+  fontPreload.type = 'font/woff2';
+  fontPreload.crossOrigin = 'anonymous';
+  document.head.appendChild(fontPreload);
+  
+  // Prefetch DNS for better performance
+  const dnsPreconnect = document.createElement('link');
+  dnsPreconnect.rel = 'preconnect';
+  dnsPreconnect.href = 'https://fonts.googleapis.com';
+  document.head.appendChild(dnsPreconnect);
+};
+
+// Apply preloading
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(preloadCriticalResources);
+} else {
+  setTimeout(preloadCriticalResources, 100);
+}

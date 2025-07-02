@@ -14,7 +14,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import MainLayout from "./components/MainLayout";
 import SplashScreen from "./components/SplashScreen";
 
-// Optimized lazy loading
+// Optimized lazy loading with preload
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -31,135 +31,60 @@ const ExportPage = lazy(() => import("./pages/ExportPage"));
 const ThemePage = lazy(() => import("./pages/ThemePage"));
 const ToDoPage = lazy(() => import("./pages/ToDoPage"));
 
-// Enhanced QueryClient
+// Enhanced QueryClient with aggressive caching
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 15 * 60 * 1000,
-      gcTime: 30 * 60 * 1000,
-      retry: 3,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      retry: 1,
       refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+      refetchOnReconnect: false,
+      retryDelay: 500,
     },
     mutations: {
-      retry: 3,
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retry: 1,
+      retryDelay: 500,
     },
   },
 });
 
 const AppLoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900">
-    <LoadingSpinner message="Loading your smart study space..." size="lg" />
+    <LoadingSpinner message="Loading..." size="lg" />
   </div>
 );
 
 const PageLoadingSpinner = () => (
   <div className="flex items-center justify-center min-h-[60vh]">
-    <LoadingSpinner message="Loading page..." />
+    <LoadingSpinner message="Loading..." />
   </div>
 );
 
 const AppContent = () => {
   const { user, isLoading } = useAuth();
-  const [showSplash, setShowSplash] = useState(false);
-  const [isFirstTime, setIsFirstTime] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
-  // Check if this is the first time opening the app
+  // Always show splash screen on initial load
   useEffect(() => {
-    const hasVisited = localStorage.getItem('axiom-visited');
-    if (!hasVisited) {
-      setIsFirstTime(true);
-      localStorage.setItem('axiom-visited', 'true');
-    }
-  }, []);
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 3000); // Show splash for 3 seconds
 
-  // Show splash screen for first-time users or when entering dashboard
-  useEffect(() => {
-    if (user && isFirstTime) {
-      setShowSplash(true);
-      setIsFirstTime(false);
-    }
-  }, [user, isFirstTime]);
-
-  // Enhanced security features
-  useEffect(() => {
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const handleSelectStart = (e: Event) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const handleDragStart = (e: DragEvent) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'K')) ||
-        (e.ctrlKey && e.key === 'U')
-      ) {
-        e.preventDefault();
-        return false;
-      }
-    };
-
-    const handleCopy = (e: ClipboardEvent) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const handlePrint = (e: Event) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const events = [
-      ['contextmenu', handleContextMenu, { passive: false }],
-      ['selectstart', handleSelectStart, { passive: false }],
-      ['dragstart', handleDragStart, { passive: false }],
-      ['keydown', handleKeyDown, { passive: false }],
-      ['copy', handleCopy, { passive: false }],
-      ['beforeprint', handlePrint, { passive: false }]
-    ] as const;
-
-    events.forEach(([event, handler, options]) => {
-      document.addEventListener(event, handler as EventListener, options);
-    });
-
-    const bodyStyle = document.body.style as any;
-    bodyStyle.userSelect = 'none';
-    bodyStyle.webkitUserSelect = 'none';
-    bodyStyle.mozUserSelect = 'none';
-    bodyStyle.msUserSelect = 'none';
-
-    return () => {
-      events.forEach(([event, handler]) => {
-        document.removeEventListener(event, handler as EventListener);
-      });
-      
-      const bodyStyle = document.body.style as any;
-      bodyStyle.userSelect = '';
-      bodyStyle.webkitUserSelect = '';
-      bodyStyle.mozUserSelect = '';
-      bodyStyle.msUserSelect = '';
-    };
+    return () => clearTimeout(timer);
   }, []);
 
   // Performance optimization: prefetch critical routes
   useEffect(() => {
-    if (user) {
+    if (!showSplash) {
       const prefetchRoutes = () => {
-        import("./pages/DoubtsPage");
-        import("./pages/QuestionsPage");
-        import("./pages/SyllabusPage");
+        if (user) {
+          import("./pages/Index");
+          import("./pages/DoubtsPage");
+          import("./pages/QuestionsPage");
+        } else {
+          import("./pages/Auth");
+        }
       };
 
       if ('requestIdleCallback' in window) {
@@ -168,7 +93,12 @@ const AppContent = () => {
         setTimeout(prefetchRoutes, 100);
       }
     }
-  }, [user]);
+  }, [user, showSplash]);
+
+  // Show splash screen first
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
 
   if (isLoading) {
     return <AppLoadingSpinner />;
@@ -182,10 +112,6 @@ const AppContent = () => {
         </Suspense>
       </ErrorBoundary>
     );
-  }
-
-  if (showSplash) {
-    return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
 
   return (
