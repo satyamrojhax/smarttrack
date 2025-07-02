@@ -59,15 +59,14 @@ const optimizePerformance = () => {
   document.body.style.transform = 'translateZ(0)';
   document.body.style.backfaceVisibility = 'hidden';
   
-  // Optimize scroll performance
-  document.body.style.overflowScrolling = 'touch';
+  // Optimize scroll performance - use correct CSS property
+  (document.body.style as any).webkitOverflowScrolling = 'touch';
   
   // Reduce layout thrashing
   document.body.style.willChange = 'transform';
   
   // Optimize font rendering
   document.body.style.textRendering = 'optimizeSpeed';
-  document.body.style.fontDisplay = 'swap';
   
   // Add CSS for better performance
   const style = document.createElement('style');
