@@ -8,22 +8,23 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, ChevronLeft, Brain, Mail, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, ChevronLeft, Brain, Mail, CheckCircle, User } from 'lucide-react';
 
-interface AuthProps {
+interface SignupProps {
   onBack?: () => void;
 }
 
-const Auth: React.FC<AuthProps> = ({ onBack }) => {
+const Signup: React.FC<SignupProps> = ({ onBack }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { signup } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,16 +32,24 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
     setIsLoading(true);
 
     try {
-      const result = await login({ email: formData.email, password: formData.password });
+      const result = await signup({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        class: 'class-10',
+        board: 'cbse'
+      });
+      
       if (result.success) {
+        setShowVerificationMessage(true);
         toast({
-          title: "Welcome back!",
-          description: "Successfully logged in to Axiom Smart Track",
+          title: "Account created!",
+          description: "Please check your email to verify your account.",
         });
       } else {
         toast({
-          title: "Login Failed",
-          description: result.error || "Invalid email or password. Please try again.",
+          title: "Signup Failed",
+          description: result.error || "Something went wrong. Please try again.",
           variant: "destructive"
         });
       }
@@ -87,8 +96,17 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
               onClick={() => setShowVerificationMessage(false)}
               className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl"
             >
-              Back to Sign In
+              Back to Sign Up
             </Button>
+            
+            <div className="text-center mt-4">
+              <p className="text-sm text-gray-600">
+                Already have an account?{' '}
+                <Link to="/auth" className="text-purple-600 hover:text-purple-700 font-medium">
+                  Sign In
+                </Link>
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -118,26 +136,45 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
           <Card className="bg-white rounded-3xl border-0 shadow-2xl overflow-hidden backdrop-blur-sm">
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-2xl font-bold text-gray-900">
-                Welcome Back
+                Create Account
               </CardTitle>
               <CardDescription className="text-gray-600">
-                Sign in to your account
+                Join Axiom Smart Track today
               </CardDescription>
             </CardHeader>
             
             <CardContent className="px-6 pb-6">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1">
+                  <Label htmlFor="name" className="text-sm font-medium text-gray-700">Full Name</Label>
+                  <div className="relative">
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="Enter your full name"
+                      value={formData.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 pl-12 transition-colors"
+                      required
+                    />
+                    <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
                   <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 transition-colors"
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 pl-12 transition-colors"
+                      required
+                    />
+                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  </div>
                 </div>
 
                 <div className="space-y-1">
@@ -167,15 +204,15 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
                   className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg mt-6 transform hover:scale-105 transition-all duration-200" 
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Please wait...' : 'Sign In'}
+                  {isLoading ? 'Creating Account...' : 'Create Account'}
                 </Button>
               </form>
 
               <div className="text-center mt-4">
                 <p className="text-sm text-gray-600">
-                  Don't have an account?{' '}
-                  <Link to="/signup" className="text-purple-600 hover:text-purple-700 font-medium">
-                    Create Account
+                  Already have an account?{' '}
+                  <Link to="/auth" className="text-purple-600 hover:text-purple-700 font-medium">
+                    Sign In
                   </Link>
                 </p>
               </div>
@@ -187,4 +224,4 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
   );
 };
 
-export default Auth;
+export default Signup;

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,11 +12,13 @@ import { TimerProvider } from "@/contexts/TimerContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ExitPopup from "@/components/ExitPopup";
+import SplashScreen from "@/components/SplashScreen";
 import MainLayout from "./components/MainLayout";
 
 // Optimized lazy loading with prefetching for better performance
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const Signup = lazy(() => import("./pages/Signup"));
 const Profile = lazy(() => import("./pages/Profile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SyllabusPage = lazy(() => import("./pages/SyllabusPage"));
@@ -62,6 +65,7 @@ const PageLoadingSpinner = () => (
 
 const AppContent = () => {
   const { user, isLoading } = useAuth();
+  const [showSplash, setShowSplash] = useState(true);
 
   console.log('AppContent - Auth state:', { user: !!user, isLoading });
 
@@ -128,6 +132,11 @@ const AppContent = () => {
     }
   }, [user]);
 
+  // Show splash screen on first load
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
+
   if (isLoading) {
     return <AppLoadingSpinner />;
   }
@@ -136,7 +145,10 @@ const AppContent = () => {
     return (
       <ErrorBoundary>
         <Suspense fallback={<AppLoadingSpinner />}>
-          <Auth />
+          <Routes>
+            <Route path="/signup" element={<Signup />} />
+            <Route path="*" element={<Auth />} />
+          </Routes>
         </Suspense>
       </ErrorBoundary>
     );
