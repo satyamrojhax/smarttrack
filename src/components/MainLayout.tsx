@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -19,17 +18,99 @@ import {
   SidebarFooter
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
-import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin } from 'lucide-react';
+import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Download, Palette, CheckSquare, Instagram, Github, Linkedin } from 'lucide-react';
+import PWADownload from '@/components/PWADownload';
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
+// Mobile PWA Download Icon Component
+const MobilePWADownload = () => {
+  const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null);
+  const [isStandalone, setIsStandalone] = React.useState(false);
+  const [isInstalling, setIsInstalling] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkStandalone = () => {
+      return window.matchMedia('(display-mode: standalone)').matches ||
+             (window.navigator as any).standalone ||
+             document.referrer.includes('android-app://');
+    };
+
+    setIsStandalone(checkStandalone());
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    const handleAppInstalled = () => {
+      setIsStandalone(true);
+      setIsInstalling(false);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+
+    try {
+      setIsInstalling(true);
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'dismissed') {
+        setIsInstalling(false);
+      }
+      
+      setDeferredPrompt(null);
+    } catch (error) {
+      setIsInstalling(false);
+    }
+  };
+
+  if (isStandalone) {
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        className="p-1.5 text-green-600 dark:text-green-400 cursor-default hover:bg-green-50 dark:hover:bg-green-900/20"
+      >
+        <Download className="w-4 h-4" />
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      onClick={handleInstallClick}
+      variant="ghost"
+      size="sm"
+      className="p-1.5 hover:bg-accent hover:text-accent-foreground transition-all duration-200 hover:scale-110"
+      disabled={isInstalling || !deferredPrompt}
+    >
+      {isInstalling ? (
+        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+      ) : (
+        <Download className="w-4 h-4" />
+      )}
+    </Button>
+  );
+};
+
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { theme, toggleTheme } = useTheme();
   const { profile } = useAuth();
   const location = useLocation();
-  const { isStandalone } = useDeviceCapabilities();
+  const { isMobile, isStandalone } = useDeviceCapabilities();
 
   const bottomNavigation = [
     { name: 'Dashboard', href: '/', icon: Home },
@@ -50,17 +131,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'Timer', href: '/timer', icon: Timer },
     { name: 'Notes', href: '/notes', icon: FileText },
     { name: 'Badges', href: '/badges', icon: Trophy },
+    { name: 'Export', href: '/export', icon: Download },
     { name: 'Theme', href: '/theme', icon: Palette },
   ];
 
-  const AppSidebar = React.memo(() => {
+  const AppSidebar = () => {
     const { setOpenMobile, isMobile } = useSidebar();
 
-    const handleSidebarItemClick = React.useCallback(() => {
+    const handleSidebarItemClick = () => {
       if (isMobile) {
         setOpenMobile(false);
       }
-    }, [isMobile, setOpenMobile]);
+    };
 
     return (
       <Sidebar className="w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -105,6 +187,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
         </SidebarContent>
         <SidebarFooter className="p-3 border-t space-y-3">
+          <div className="flex justify-center">
+            <PWADownload />
+          </div>
+          
           <Separator />
           
           <div className="space-y-3 text-center">
@@ -145,7 +231,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </SidebarFooter>
       </Sidebar>
     );
-  });
+  };
 
   return (
     <SidebarProvider>
@@ -173,6 +259,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <span className="text-xs sm:text-sm text-muted-foreground hidden lg:block font-medium">
                   Welcome, {profile?.name}! 👋
                 </span>
+                <div className="hidden sm:block">
+                  <PWADownload />
+                </div>
+                {/* Mobile PWA Download Icon */}
+                <div className="block sm:hidden">
+                  <MobilePWADownload />
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
