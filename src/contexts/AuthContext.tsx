@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +24,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Optimize profile fetching with better error handling
+  // Fetch user profile
   const fetchUserProfile = async (userId: string) => {
     try {
       console.log('Fetching profile for user:', userId);
@@ -52,6 +53,27 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     
     let mounted = true;
 
+    // Set up auth state change listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session);
+        
+        if (!mounted) return;
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          // Fetch profile but don't block the UI
+          fetchUserProfile(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          setProfile(null);
+        }
+        
+        setIsLoading(false);
+      }
+    );
+
     // Get initial session
     const initializeAuth = async () => {
       try {
@@ -76,27 +98,6 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     };
 
     initializeAuth();
-
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state changed:', event, session);
-        
-        if (!mounted) return;
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-          // Fetch profile but don't block the UI
-          fetchUserProfile(session.user.id);
-        } else if (event === 'SIGNED_OUT') {
-          setProfile(null);
-        }
-        
-        setIsLoading(false);
-      }
-    );
 
     return () => {
       mounted = false;

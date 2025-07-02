@@ -63,94 +63,15 @@ const PageLoadingSpinner = () => (
 
 const AppContent = () => {
   const { user, isLoading } = useAuth();
-  const [showSplash, setShowSplash] = useState(false);
-  const [isFirstTime, setIsFirstTime] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
-  // Check if this is the first time opening the app
+  // Show splash screen on app start
   useEffect(() => {
-    const hasVisited = localStorage.getItem('axiom-visited');
-    if (!hasVisited) {
-      setIsFirstTime(true);
-      localStorage.setItem('axiom-visited', 'true');
-    }
-  }, []);
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 3000); // Show splash for 3 seconds
 
-  // Show splash screen for first-time users or when entering dashboard
-  useEffect(() => {
-    if (user && isFirstTime) {
-      setShowSplash(true);
-      setIsFirstTime(false);
-    }
-  }, [user, isFirstTime]);
-
-  // Enhanced security features
-  useEffect(() => {
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const handleSelectStart = (e: Event) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const handleDragStart = (e: DragEvent) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'K')) ||
-        (e.ctrlKey && e.key === 'U')
-      ) {
-        e.preventDefault();
-        return false;
-      }
-    };
-
-    const handleCopy = (e: ClipboardEvent) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const handlePrint = (e: Event) => {
-      e.preventDefault();
-      return false;
-    };
-
-    const events = [
-      ['contextmenu', handleContextMenu, { passive: false }],
-      ['selectstart', handleSelectStart, { passive: false }],
-      ['dragstart', handleDragStart, { passive: false }],
-      ['keydown', handleKeyDown, { passive: false }],
-      ['copy', handleCopy, { passive: false }],
-      ['beforeprint', handlePrint, { passive: false }]
-    ] as const;
-
-    events.forEach(([event, handler, options]) => {
-      document.addEventListener(event, handler as EventListener, options);
-    });
-
-    const bodyStyle = document.body.style as any;
-    bodyStyle.userSelect = 'none';
-    bodyStyle.webkitUserSelect = 'none';
-    bodyStyle.mozUserSelect = 'none';
-    bodyStyle.msUserSelect = 'none';
-
-    return () => {
-      events.forEach(([event, handler]) => {
-        document.removeEventListener(event, handler as EventListener);
-      });
-      
-      const bodyStyle = document.body.style as any;
-      bodyStyle.userSelect = '';
-      bodyStyle.webkitUserSelect = '';
-      bodyStyle.mozUserSelect = '';
-      bodyStyle.msUserSelect = '';
-    };
+    return () => clearTimeout(timer);
   }, []);
 
   // Performance optimization: prefetch critical routes
@@ -170,10 +91,17 @@ const AppContent = () => {
     }
   }, [user]);
 
+  // Show splash screen first
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
+
+  // Show loading spinner while checking auth
   if (isLoading) {
     return <AppLoadingSpinner />;
   }
 
+  // Show auth page if user is not authenticated
   if (!user) {
     return (
       <ErrorBoundary>
@@ -184,10 +112,7 @@ const AppContent = () => {
     );
   }
 
-  if (showSplash) {
-    return <SplashScreen onComplete={() => setShowSplash(false)} />;
-  }
-
+  // Show dashboard (main app) for authenticated users
   return (
     <ErrorBoundary>
       <SyllabusProvider>
