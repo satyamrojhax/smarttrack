@@ -63,21 +63,10 @@
 @layer base {
   * {
     @apply border-border;
-    box-sizing: border-box;
   }
-  
-  html {
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-  }
-  
   body {
     @apply bg-background text-foreground font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeSpeed;
-    transform: translateZ(0); /* Hardware acceleration */
   }
 }
 
@@ -110,8 +99,7 @@ div:has(> a[href*="gpt-engineer"]) {
   }
   
   .smooth-transition {
-    @apply transition-all duration-200 ease-out;
-    will-change: transform, opacity;
+    @apply transition-all duration-300 ease-in-out;
   }
   
   .gradient-text {
@@ -134,30 +122,22 @@ div:has(> a[href*="gpt-engineer"]) {
   }
   
   .animate-fade-in {
-    animation: fadeIn 0.3s ease-out;
+    animation: fadeIn 0.5s ease-in-out;
   }
   
   .hover-scale {
-    @apply transition-transform duration-150 hover:scale-105;
-    will-change: transform;
+    @apply transition-transform duration-200 hover:scale-105;
   }
   
   .scale-102 {
     transform: scale(1.02);
-  }
-  
-  /* Performance optimized scrolling */
-  .smooth-scroll {
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    transform: translateZ(0);
   }
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -200,10 +180,18 @@ p, span, div {
 }
 
 /* Performance optimizations */
+* {
+  box-sizing: border-box;
+}
+
 img {
   max-width: 100%;
   height: auto;
-  will-change: auto;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
 }
 
 /* Focus styles for accessibility */
@@ -214,21 +202,4 @@ textarea:focus-visible,
 select:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
-}
-
-/* Hardware acceleration for animations */
-.animate-spin,
-.animate-pulse,
-.animate-bounce {
-  will-change: transform;
-  transform: translateZ(0);
-}
-
-/* Optimize scrolling performance */
-* {
-  -webkit-transform: translateZ(0);
-  -moz-transform: translateZ(0);
-  -ms-transform: translateZ(0);
-  -o-transform: translateZ(0);
-  transform: translateZ(0);
 }

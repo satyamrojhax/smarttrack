@@ -243,9 +243,9 @@ Answer:`;
   ));
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background">
+    <div className="h-screen flex flex-col">
       {/* Header */}
-      <div className="flex-shrink-0 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b">
+      <div className="flex-shrink-0 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b">
         <div className="flex items-center justify-center gap-4 max-w-4xl mx-auto">
           <div className="relative">
             <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl shadow-xl">
@@ -272,9 +272,9 @@ Answer:`;
         </div>
       </div>
 
-      {/* Chat Area - Full screen with proper scrolling */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        <ScrollArea className="flex-1 px-4 py-4" ref={scrollAreaRef}>
+      {/* Chat Area */}
+      <div className="flex-1 flex flex-col min-h-0">
+        <ScrollArea className="flex-1 px-6 py-4" ref={scrollAreaRef}>
           <div className="py-6 max-w-4xl mx-auto">
             {messages.map((message) => (
               <MessageComponent key={message.id} message={message} />
@@ -300,8 +300,8 @@ Answer:`;
           </div>
         </ScrollArea>
 
-        {/* Fixed Input Area */}
-        <div className="flex-shrink-0 p-4 bg-white dark:bg-gray-800 border-t shadow-lg">
+        {/* Input Area */}
+        <div className="flex-shrink-0 p-6 bg-white dark:bg-gray-800 border-t shadow-lg">
           <div className="max-w-4xl mx-auto">
             <div className="flex gap-4 items-end">
               <div className="flex-1 relative">

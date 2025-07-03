@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, ChevronLeft, Brain } from 'lucide-react';
-import EmailVerification from './EmailVerification';
+import { Eye, EyeOff, ChevronLeft, Brain, Mail, CheckCircle } from 'lucide-react';
 
 interface AuthProps {
   onBack?: () => void;
@@ -17,7 +17,6 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -61,16 +60,15 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
           name: formData.name, 
           email: formData.email, 
           password: formData.password, 
-          class: 'class-10',
-          board: 'cbse'
+          class: 'class-10', // Fixed value
+          board: 'cbse' // Fixed value
         });
         
         if (result.success) {
-          setUserEmail(formData.email);
           setShowVerificationMessage(true);
           toast({
             title: "Account Created!",
-            description: "Please check your email to verify your account.",
+            description: "Please check your email to verify your account before logging in.",
           });
         } else {
           toast({
@@ -105,13 +103,54 @@ const Auth: React.FC<AuthProps> = ({ onBack }) => {
 
   if (showVerificationMessage) {
     return (
-      <EmailVerification 
-        email={userEmail}
-        onBack={() => {
-          setShowVerificationMessage(false);
-          setFormData(prev => ({ ...prev, password: '' }));
-        }}
-      />
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex flex-col items-center justify-center p-6">
+        <Card className="w-full max-w-md bg-white rounded-3xl border-0 shadow-2xl">
+          <CardHeader className="text-center pb-4">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <Mail className="w-8 h-8 text-green-600" />
+            </div>
+            <CardTitle className="text-2xl font-bold text-gray-900">
+              Check Your Email
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              We've sent a verification link to {formData.email}
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="px-6 pb-6">
+            <Alert className="mb-4">
+              <CheckCircle className="h-4 w-4" />
+              <AlertDescription>
+                Click the verification link in your email to activate your account, then return here to sign in.
+              </AlertDescription>
+            </Alert>
+            
+            <Button 
+              onClick={() => {
+                setShowVerificationMessage(false);
+                setIsLogin(true);
+                setFormData(prev => ({ ...prev, password: '' }));
+              }}
+              className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl"
+            >
+              Back to Sign In
+            </Button>
+            
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-600">
+                Didn't receive the email?{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowVerificationMessage(false)}
+                  className="text-purple-600 hover:text-purple-700 font-medium"
+                >
+                  Try again
+                </button>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 

@@ -24,25 +24,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Performance optimization functions
-const optimizePerformance = () => {
-  // Enable hardware acceleration
-  document.documentElement.style.transform = 'translateZ(0)';
-  
-  // Optimize scrolling
-  if (CSS.supports('scroll-behavior', 'smooth')) {
-    document.documentElement.style.scrollBehavior = 'smooth';
-  }
-  
-  // Enable momentum scrolling on iOS
-  (document.body.style as any).webkitOverflowScrolling = 'touch';
-  
-  // Optimize font rendering
-  document.body.style.textRendering = 'optimizeSpeed';
-  (document.body.style as any).webkitFontSmoothing = 'antialiased';
-  (document.body.style as any).mozOsxFontSmoothing = 'grayscale';
-};
-
 // Performance optimization: Use requestIdleCallback for non-critical tasks
 const initializeApp = () => {
   const root = createRoot(document.getElementById("root")!);
@@ -51,9 +32,6 @@ const initializeApp = () => {
   // Log performance metrics
   const endTime = performance.now();
   console.log(`App initialization took ${(endTime - startTime).toFixed(2)}ms`);
-  
-  // Apply performance optimizations
-  optimizePerformance();
   
   // Track page visibility for better UX
   document.addEventListener('visibilitychange', () => {
@@ -71,6 +49,9 @@ if ('requestIdleCallback' in window) {
 } else {
   setTimeout(initializeApp, 0);
 }
+
+// Add smooth scrolling behavior globally
+document.documentElement.style.scrollBehavior = 'smooth';
 
 // Optimize touch events for mobile
 document.addEventListener('touchstart', () => {}, { passive: true });
