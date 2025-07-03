@@ -35,12 +35,12 @@ const optimizePerformance = () => {
   }
   
   // Enable momentum scrolling on iOS
-  document.body.style.webkitOverflowScrolling = 'touch';
+  (document.body.style as any).webkitOverflowScrolling = 'touch';
   
   // Optimize font rendering
   document.body.style.textRendering = 'optimizeSpeed';
-  document.body.style.webkitFontSmoothing = 'antialiased';
-  document.body.style.mozOsxFontSmoothing = 'grayscale';
+  (document.body.style as any).webkitFontSmoothing = 'antialiased';
+  (document.body.style as any).mozOsxFontSmoothing = 'grayscale';
 };
 
 // Performance optimization: Use requestIdleCallback for non-critical tasks
