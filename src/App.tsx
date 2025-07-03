@@ -1,4 +1,3 @@
-
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -33,6 +32,7 @@ const ThemePage = lazy(() => import("./pages/ThemePage"));
 const ToDoPage = lazy(() => import("./pages/ToDoPage"));
 const EmailVerification = lazy(() => import("./pages/EmailVerification"));
 const EmailVerifying = lazy(() => import("./pages/EmailVerifying"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 
 // Enhanced QueryClient
 const queryClient = new QueryClient({
@@ -162,6 +162,7 @@ const AppContent = () => {
             <Route path="/auth" element={<Auth />} />
             <Route path="/email-verification" element={<EmailVerification />} />
             <Route path="/email-verifying" element={<EmailVerifying />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="*" element={<Auth />} />
           </Routes>
         </Suspense>

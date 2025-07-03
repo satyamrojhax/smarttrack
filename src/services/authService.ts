@@ -27,8 +27,8 @@ export const loginUser = async (userData: LoginData) => {
 
 export const signupUser = async (userData: SignupData) => {
   try {
-    // Use the email-verifying page as the redirect URL
-    const redirectUrl = `${window.location.origin}/email-verifying`;
+    // Use the specific verification URL you requested
+    const redirectUrl = 'https://smarttrackverfication.lovable.app/verify-email';
     
     const { data, error } = await supabase.auth.signUp({
       email: userData.email,
@@ -37,8 +37,8 @@ export const signupUser = async (userData: SignupData) => {
         emailRedirectTo: redirectUrl,
         data: {
           name: userData.name,
-          class: 'class-10' as const,
-          board: 'cbse' as const,
+          class: userData.class,
+          board: userData.board,
         }
       }
     });
