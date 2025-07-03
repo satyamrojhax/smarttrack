@@ -245,37 +245,37 @@ Answer:`;
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <div className="flex-shrink-0 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b">
+      <div className="flex-shrink-0 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b">
         <div className="flex items-center justify-center gap-4 max-w-4xl mx-auto">
           <div className="relative">
             <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl shadow-xl">
-              <Brain className="w-8 h-8 text-white" />
+              <Brain className="w-6 h-6 text-white" />
             </div>
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-              <Sparkles className="w-3 h-3 text-white" />
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+              <Sparkles className="w-2 h-2 text-white" />
             </div>
           </div>
           <div className="text-center">
-            <h1 className="text-3xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               AI Study Assistant
             </h1>
-            <p className="text-muted-foreground font-medium">Your Class 10 CBSE companion</p>
+            <p className="text-muted-foreground font-medium text-sm">Your Class 10 CBSE companion</p>
           </div>
           <div className="relative">
             <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl shadow-xl">
-              <MessageSquare className="w-8 h-8 text-white" />
+              <MessageSquare className="w-6 h-6 text-white" />
             </div>
-            <div className="absolute -bottom-1 -left-1 w-5 h-5 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
-              <Zap className="w-3 h-3 text-white" />
+            <div className="absolute -bottom-1 -left-1 w-4 h-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+              <Zap className="w-2 h-2 text-white" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Chat Area */}
+      {/* Chat Area - Fixed height to ensure input is always visible */}
       <div className="flex-1 flex flex-col min-h-0">
-        <ScrollArea className="flex-1 px-6 py-4" ref={scrollAreaRef}>
-          <div className="py-6 max-w-4xl mx-auto">
+        <ScrollArea className="flex-1 px-4 py-4" ref={scrollAreaRef}>
+          <div className="py-4 max-w-4xl mx-auto pb-20">
             {messages.map((message) => (
               <MessageComponent key={message.id} message={message} />
             ))}
@@ -300,10 +300,10 @@ Answer:`;
           </div>
         </ScrollArea>
 
-        {/* Input Area */}
-        <div className="flex-shrink-0 p-6 bg-white dark:bg-gray-800 border-t shadow-lg">
+        {/* Fixed Input Area - Always visible at bottom */}
+        <div className="flex-shrink-0 p-4 bg-white dark:bg-gray-800 border-t shadow-lg">
           <div className="max-w-4xl mx-auto">
-            <div className="flex gap-4 items-end">
+            <div className="flex gap-3 items-end">
               <div className="flex-1 relative">
                 <Textarea
                   ref={inputRef}
@@ -311,7 +311,7 @@ Answer:`;
                   onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
                   placeholder="Ask your study question..."
-                  className="min-h-[60px] max-h-[120px] resize-none text-base border-2 border-gray-300 dark:border-gray-600 rounded-2xl focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-800 shadow-lg focus:shadow-xl transition-all duration-300 px-4 py-3 font-medium"
+                  className="min-h-[50px] max-h-[100px] resize-none text-base border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-800 shadow-sm focus:shadow-md transition-all duration-300 px-4 py-3 font-medium"
                   disabled={isLoading}
                   rows={1}
                   autoFocus
@@ -320,12 +320,12 @@ Answer:`;
               <Button
                 onClick={sendMessage}
                 disabled={!inputMessage.trim() || isLoading}
-                className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-2xl transition-all duration-300 hover:shadow-blue-500/25 hover:scale-110"
+                className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg transition-all duration-300 hover:shadow-blue-500/25 hover:scale-105 flex-shrink-0"
               >
                 {isLoading ? (
-                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <Send className="w-6 h-6" />
+                  <Send className="w-5 h-5" />
                 )}
               </Button>
             </div>

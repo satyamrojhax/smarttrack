@@ -1,4 +1,3 @@
-
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,6 +12,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import MainLayout from "./components/MainLayout";
 import SplashScreen from "./components/SplashScreen";
+import ExitConfirmation from "./components/ExitConfirmation";
 
 // Optimized lazy loading
 const Index = lazy(() => import("./pages/Index"));
@@ -30,6 +30,8 @@ const BadgesPage = lazy(() => import("./pages/BadgesPage"));
 const ExportPage = lazy(() => import("./pages/ExportPage"));
 const ThemePage = lazy(() => import("./pages/ThemePage"));
 const ToDoPage = lazy(() => import("./pages/ToDoPage"));
+const EmailVerification = lazy(() => import("./pages/EmailVerification"));
+const EmailVerifying = lazy(() => import("./pages/EmailVerifying"));
 
 // Enhanced QueryClient
 const queryClient = new QueryClient({
@@ -106,7 +108,12 @@ const AppContent = () => {
     return (
       <ErrorBoundary>
         <Suspense fallback={<AppLoadingSpinner />}>
-          <Auth />
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/email-verification" element={<EmailVerification />} />
+            <Route path="/email-verifying" element={<EmailVerifying />} />
+            <Route path="*" element={<Auth />} />
+          </Routes>
         </Suspense>
       </ErrorBoundary>
     );
@@ -153,6 +160,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <AppContent />
+              <ExitConfirmation />
             </BrowserRouter>
           </TooltipProvider>
         </AuthProvider>

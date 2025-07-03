@@ -1,308 +1,197 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, ChevronLeft, Brain, Mail, CheckCircle } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from "@/hooks/use-toast";
+import { loginUser, signupUser } from '@/services/authService';
+import { LoginData, SignupData } from '@/types/auth';
+import { Mail, KeyRound, User } from 'lucide-react';
 
-interface AuthProps {
-  onBack?: () => void;
-}
-
-const Auth: React.FC<AuthProps> = ({ onBack }) => {
+const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showVerificationMessage, setShowVerificationMessage] = useState(false);
-  const [formData, setFormData] = useState({
+  const [isLoading, setIsLoading] = useState(false);
+  const [loginData, setLoginData] = useState<LoginData>({
+    email: '',
+    password: '',
+  });
+  const [signupData, setSignupData] = useState<SignupData>({
     name: '',
     email: '',
     password: '',
   });
-  const [isLoading, setIsLoading] = useState(false);
-
-  const { login, signup } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, formType: 'login' | 'signup') => {
+    const { name, value } = e.target;
+    if (formType === 'login') {
+      setLoginData(prev => ({ ...prev, [name]: value }));
+    } else {
+      setSignupData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (!loginData.email || !loginData.password) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    setIsLoading(true);
     try {
-      if (isLogin) {
-        const result = await login({ email: formData.email, password: formData.password });
-        if (result.success) {
-          toast({
-            title: "Welcome back!",
-            description: "Successfully logged in to Axiom Smart Track",
-          });
-        } else {
-          toast({
-            title: "Login Failed",
-            description: result.error || "Invalid email or password. Please try again.",
-            variant: "destructive"
-          });
-        }
-      } else {
-        if (!formData.name) {
-          toast({
-            title: "Missing Information",
-            description: "Please fill in all required fields",
-            variant: "destructive"
-          });
-          return;
-        }
-        
-        const result = await signup({ 
-          name: formData.name, 
-          email: formData.email, 
-          password: formData.password, 
-          class: 'class-10', // Fixed value
-          board: 'cbse' // Fixed value
+      const result = await loginUser(loginData);
+      if (result.success) {
+        toast({
+          title: "Login Successful! 🎉",
+          description: "You are now logged in",
         });
-        
-        if (result.success) {
-          setShowVerificationMessage(true);
-          toast({
-            title: "Account Created!",
-            description: "Please check your email to verify your account before logging in.",
-          });
-        } else {
-          toast({
-            title: "Signup Failed",
-            description: result.error || "Failed to create account. Please try again.",
-            variant: "destructive"
-          });
-        }
+      } else {
+        toast({
+          title: "Login Failed",
+          description: result.error,
+          variant: "destructive",
+        });
       }
     } catch (error) {
       toast({
-        title: "Error",
+        title: "Login Failed",
         description: "Something went wrong. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signupData.name || !signupData.email || !signupData.password) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await signupUser(signupData);
+      if (result.success) {
+        toast({
+          title: "Account Created! 🎉",
+          description: "Please check your email to verify your account",
+        });
+        // Navigate to email verification page
+        navigate('/email-verification');
+      } else {
+        toast({
+          title: "Sign Up Failed",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Sign Up Failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  const getPasswordStrength = (password: string) => {
-    if (password.length < 4) return { strength: 'weak', color: 'text-red-500' };
-    if (password.length < 8) return { strength: 'medium', color: 'text-yellow-500' };
-    return { strength: 'strong', color: 'text-green-500' };
-  };
-
-  const passwordStrength = getPasswordStrength(formData.password);
-
-  if (showVerificationMessage) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex flex-col items-center justify-center p-6">
-        <Card className="w-full max-w-md bg-white rounded-3xl border-0 shadow-2xl">
-          <CardHeader className="text-center pb-4">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <Mail className="w-8 h-8 text-green-600" />
-            </div>
-            <CardTitle className="text-2xl font-bold text-gray-900">
-              Check Your Email
-            </CardTitle>
-            <CardDescription className="text-gray-600">
-              We've sent a verification link to {formData.email}
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="px-6 pb-6">
-            <Alert className="mb-4">
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription>
-                Click the verification link in your email to activate your account, then return here to sign in.
-              </AlertDescription>
-            </Alert>
-            
-            <Button 
-              onClick={() => {
-                setShowVerificationMessage(false);
-                setIsLogin(true);
-                setFormData(prev => ({ ...prev, password: '' }));
-              }}
-              className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl"
-            >
-              Back to Sign In
-            </Button>
-            
-            <div className="mt-4 text-center">
-              <p className="text-sm text-gray-600">
-                Didn't receive the email?{' '}
-                <button
-                  type="button"
-                  onClick={() => setShowVerificationMessage(false)}
-                  className="text-purple-600 hover:text-purple-700 font-medium"
-                >
-                  Try again
-                </button>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex flex-col">
-      {/* Header with centered logo */}
-      <div className="flex items-center justify-center p-6 text-white relative">
-        {onBack && (
-          <button onClick={onBack} className="absolute left-6 p-2 hover:bg-white/10 rounded-full transition-colors">
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-        )}
-        <div className="flex items-center justify-center">
-          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3 mr-3">
-            <Brain className="w-6 h-6 text-white" />
-          </div>
-          <h1 className="text-xl font-bold">Axiom Smart Track</h1>
-        </div>
-        <div className="absolute right-6">
-          {!isLogin && (
-            <button 
-              onClick={() => setIsLogin(true)}
-              className="text-white/80 hover:text-white text-sm hover:bg-white/10 px-3 py-1 rounded-full transition-colors"
-            >
-              Sign in
-            </button>
-          )}
-          {isLogin && (
-            <button 
-              onClick={() => setIsLogin(false)}
-              className="text-white/80 hover:text-white text-sm hover:bg-white/10 px-3 py-1 rounded-full transition-colors"
-            >
-              Sign up
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-sm">
-          <Card className="bg-white rounded-3xl border-0 shadow-2xl overflow-hidden backdrop-blur-sm">
-            <CardHeader className="text-center pb-4">
-              <CardTitle className="text-2xl font-bold text-gray-900">
-                {isLogin ? 'Welcome Back' : 'Get started free.'}
-              </CardTitle>
-              <CardDescription className="text-gray-600">
-                {isLogin 
-                  ? 'Enter your details below' 
-                  : 'Free forever. No credit card needed.'
-                }
-              </CardDescription>
-              {!isLogin && (
-                <div className="mt-2 text-xs text-gray-500 bg-blue-50 p-2 rounded-lg">
-                  For Class 10 CBSE students
-                </div>
-              )}
-            </CardHeader>
-            
-            <CardContent className="px-6 pb-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1">
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 transition-colors"
-                    required
-                  />
-                </div>
-
-                {!isLogin && (
-                  <div className="space-y-1">
-                    <Label htmlFor="name" className="text-sm font-medium text-gray-700">Name</Label>
-                    <Input
-                      id="name"
-                      type="text"
-                      placeholder="Your full name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 transition-colors"
-                      required={!isLogin}
-                    />
-                  </div>
-                )}
-
-                <div className="space-y-1">
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••••••"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
-                      className="h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 pr-12 transition-colors"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                  {!isLogin && formData.password && (
-                    <div className="flex items-center space-x-2 mt-1">
-                      <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full transition-all duration-300 ${
-                            passwordStrength.strength === 'weak' ? 'w-1/3 bg-red-500' :
-                            passwordStrength.strength === 'medium' ? 'w-2/3 bg-yellow-500' :
-                            'w-full bg-green-500'
-                          }`}
-                        />
-                      </div>
-                      <span className={`text-xs font-medium ${passwordStrength.color}`}>
-                        {passwordStrength.strength}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg mt-6 transform hover:scale-105 transition-all duration-200" 
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center space-y-4">
+          <CardTitle className="text-2xl font-bold">{isLogin ? 'Sign In' : 'Create Account'}</CardTitle>
+          <CardDescription>Enter your details below to {isLogin ? 'access your account' : 'create a new account'}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <form onSubmit={isLogin ? handleLogin : handleSignUp} className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  type="text"
+                  id="name"
+                  name="name"
+                  placeholder="Enter your name"
+                  value={signupData.name}
+                  onChange={(e) => handleInputChange(e, 'signup')}
                   disabled={isLoading}
-                >
-                  {isLoading ? 'Please wait...' : (isLogin ? 'Sign in' : 'Sign up')}
-                </Button>
-              </form>
-
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
-                  {isLogin ? "Don't have an account? " : "Already have an account? "}
-                  <button
-                    type="button"
-                    onClick={() => setIsLogin(!isLogin)}
-                    className="text-purple-600 hover:text-purple-700 font-medium transition-colors"
-                  >
-                    {isLogin ? 'Sign up' : 'Sign in'}
-                  </button>
-                </p>
+                  required
+                />
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Enter your email"
+                value={isLogin ? loginData.email : signupData.email}
+                onChange={(e) => handleInputChange(e, isLogin ? 'login' : 'signup')}
+                disabled={isLoading}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                value={isLogin ? loginData.password : signupData.password}
+                onChange={(e) => handleInputChange(e, isLogin ? 'login' : 'signup')}
+                disabled={isLoading}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Please wait...
+                </>
+              ) : (
+                isLogin ? 'Sign In' : 'Create Account'
+              )}
+            </Button>
+          </form>
+          <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+            {isLogin ? (
+              <>
+                Don't have an account?{' '}
+                <Button variant="link" onClick={() => setIsLogin(false)}>
+                  Create one
+                </Button>
+              </>
+            ) : (
+              <>
+                Already have an account?{' '}
+                <Button variant="link" onClick={() => setIsLogin(true)}>
+                  Sign in
+                </Button>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

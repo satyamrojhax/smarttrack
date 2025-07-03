@@ -27,8 +27,8 @@ export const loginUser = async (userData: LoginData) => {
 
 export const signupUser = async (userData: SignupData) => {
   try {
-    // Use the current origin as the redirect URL - redirect to home after verification
-    const redirectUrl = `${window.location.origin}/`;
+    // Use the email-verifying page as the redirect URL
+    const redirectUrl = `${window.location.origin}/email-verifying`;
     
     const { data, error } = await supabase.auth.signUp({
       email: userData.email,
