@@ -14,7 +14,7 @@ const EmailVerifying: React.FC = () => {
       setIsVerified(true);
     }, 4000);
 
-    // Redirect to homepage after 7 seconds total (3 seconds after showing success)
+    // Redirect to dashboard after 7 seconds total (3 seconds after showing success)
     const redirectTimer = setTimeout(() => {
       navigate('/');
     }, 7000);
@@ -48,7 +48,7 @@ const EmailVerifying: React.FC = () => {
                 Your email has been successfully verified!
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Redirecting in a few seconds...
+                Redirecting to dashboard in a few seconds...
               </p>
             </div>
           ) : (

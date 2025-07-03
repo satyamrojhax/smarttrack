@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,34 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
 
   const currentQuestion = questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+
+  // Disable right-click and keyboard shortcuts
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Disable F12, Ctrl+Shift+I, Ctrl+U, Ctrl+S, etc.
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'C') ||
+        (e.ctrlKey && e.key === 'u') ||
+        (e.ctrlKey && e.key === 's')
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   useEffect(() => {
     if (!quizCompleted && !showResult && timeLeft > 0) {
@@ -130,7 +159,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
               </p>
               
               <div className="p-4 sm:p-6 md:p-8 rounded-2xl bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800">
-                <p className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-center leading-relaxed">
+                <p className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-center leading-relaxed break-words">
                   {getPerformanceMessage(percentage)}
                 </p>
               </div>
@@ -216,7 +245,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
         <CardContent className="space-y-6 sm:space-y-8 p-3 sm:p-4 md:p-6">
           <div className="space-y-6 sm:space-y-8">
             <div className="p-4 sm:p-6 md:p-8 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl border border-blue-200 dark:border-blue-800 shadow-lg">
-              <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold leading-relaxed text-center break-words hyphens-auto">
+              <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold leading-relaxed text-center break-words overflow-wrap-anywhere">
                 {currentQuestion.question}
               </h3>
             </div>
@@ -224,7 +253,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
             <div className="grid gap-3 sm:gap-4 md:gap-5">
               {currentQuestion.options.map((option, index) => {
                 let buttonVariant: "default" | "outline" | "secondary" = "outline";
-                let className = "p-4 sm:p-5 md:p-6 text-left h-auto justify-start smooth-transition text-sm sm:text-base md:text-lg border-2 min-h-[4rem] sm:min-h-[5rem] rounded-xl shadow-lg hover:shadow-xl";
+                let className = "p-3 sm:p-4 md:p-5 text-left h-auto justify-start smooth-transition text-sm sm:text-base md:text-lg border-2 min-h-[3rem] sm:min-h-[4rem] md:min-h-[5rem] rounded-xl shadow-lg hover:shadow-xl";
                 
                 if (showResult) {
                   if (index === currentQuestion.correctAnswer) {
@@ -248,18 +277,18 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
                     onClick={() => handleAnswerSelect(index)}
                     disabled={showResult}
                   >
-                    <div className="flex items-start w-full gap-3 sm:gap-4">
-                      <span className="font-bold text-sm sm:text-base md:text-lg flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs sm:text-sm md:text-base">
+                    <div className="flex items-start w-full gap-2 sm:gap-3 md:gap-4">
+                      <span className="font-bold text-xs sm:text-sm md:text-base flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 rounded-full bg-primary/10 flex items-center justify-center">
                         {String.fromCharCode(65 + index)}
                       </span>
-                      <span className="flex-1 text-left break-words leading-relaxed hyphens-auto word-break">
+                      <span className="flex-1 text-left break-words leading-relaxed overflow-wrap-anywhere word-break hyphens-auto">
                         {option}
                       </span>
                       {showResult && index === currentQuestion.correctAnswer && (
-                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-green-600 flex-shrink-0 animate-bounce" />
+                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-green-600 flex-shrink-0 animate-bounce" />
                       )}
                       {showResult && index === selectedAnswer && selectedAnswer !== currentQuestion.correctAnswer && (
-                        <XCircle className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-red-600 flex-shrink-0 animate-pulse" />
+                        <XCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-red-600 flex-shrink-0 animate-pulse" />
                       )}
                     </div>
                   </Button>
@@ -292,7 +321,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
                 </div>
                 <div className="space-y-3">
                   <p className="font-medium text-primary text-sm sm:text-base md:text-lg">Here's why:</p>
-                  <p className="leading-relaxed text-muted-foreground text-sm sm:text-base md:text-lg break-words hyphens-auto">
+                  <p className="leading-relaxed text-muted-foreground text-sm sm:text-base md:text-lg break-words overflow-wrap-anywhere hyphens-auto">
                     {currentQuestion.explanation}
                   </p>
                 </div>

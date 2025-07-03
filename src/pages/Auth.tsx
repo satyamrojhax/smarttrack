@@ -55,6 +55,7 @@ const Auth = () => {
           title: "Login Successful! 🎉",
           description: "You are now logged in",
         });
+        navigate('/');
       } else {
         toast({
           title: "Login Failed",
