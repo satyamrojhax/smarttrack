@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,8 @@ const Auth = () => {
     name: '',
     email: '',
     password: '',
+    class: 'class-10', // Default value
+    board: 'cbse', // Default value
   });
   const { toast } = useToast();
   const navigate = useNavigate();
