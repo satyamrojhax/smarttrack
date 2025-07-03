@@ -14,9 +14,10 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import MainLayout from "./components/MainLayout";
 import SplashScreen from "./components/SplashScreen";
 
-// Optimized lazy loading
+// Optimized lazy loading with preloading
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const EmailVerifying = lazy(() => import("./pages/EmailVerifying"));
 const Profile = lazy(() => import("./pages/Profile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SyllabusPage = lazy(() => import("./pages/SyllabusPage"));
@@ -31,20 +32,20 @@ const ExportPage = lazy(() => import("./pages/ExportPage"));
 const ThemePage = lazy(() => import("./pages/ThemePage"));
 const ToDoPage = lazy(() => import("./pages/ToDoPage"));
 
-// Enhanced QueryClient
+// Enhanced QueryClient with better performance settings
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 15 * 60 * 1000,
-      gcTime: 30 * 60 * 1000,
-      retry: 3,
+      staleTime: 15 * 60 * 1000, // 15 minutes
+      gcTime: 30 * 60 * 1000, // 30 minutes
+      retry: 2,
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000),
     },
     mutations: {
-      retry: 3,
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retry: 2,
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000),
     },
   },
 });
@@ -106,7 +107,10 @@ const AppContent = () => {
     return (
       <ErrorBoundary>
         <Suspense fallback={<AppLoadingSpinner />}>
-          <Auth />
+          <Routes>
+            <Route path="/email-verifying" element={<EmailVerifying />} />
+            <Route path="*" element={<Auth />} />
+          </Routes>
         </Suspense>
       </ErrorBoundary>
     );
