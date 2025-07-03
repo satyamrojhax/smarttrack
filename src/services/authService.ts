@@ -37,8 +37,8 @@ export const signupUser = async (userData: SignupData) => {
         emailRedirectTo: redirectUrl,
         data: {
           name: userData.name,
-          class: userData.class,
-          board: userData.board,
+          class: 'class-10', // Default to class 10
+          board: 'cbse',     // Default to CBSE
         }
       }
     });

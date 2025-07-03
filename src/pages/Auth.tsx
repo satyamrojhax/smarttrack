@@ -8,12 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from "@/hooks/use-toast";
 import { loginUser, signupUser } from '@/services/authService';
 import { LoginData, SignupData } from '@/types/auth';
-import { Mail, KeyRound, User, Eye, EyeOff, BookOpen, GraduationCap } from 'lucide-react';
+import { Mail, KeyRound, User, Eye, EyeOff, GraduationCap } from 'lucide-react';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [sharedEmail, setSharedEmail] = useState(''); // Shared email between forms
   const [loginData, setLoginData] = useState<LoginData>({
     email: '',
     password: '',
@@ -22,18 +23,34 @@ const Auth = () => {
     name: '',
     email: '',
     password: '',
-    class: 'class-10',
-    board: 'cbse',
+    class: 'class-10', // Default to class 10
+    board: 'cbse',     // Default to CBSE
   });
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, formType: 'login' | 'signup') => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, formType: 'login' | 'signup') => {
     const { name, value } = e.target;
     if (formType === 'login') {
       setLoginData(prev => ({ ...prev, [name]: value }));
+      if (name === 'email') {
+        setSharedEmail(value);
+      }
     } else {
       setSignupData(prev => ({ ...prev, [name]: value }));
+      if (name === 'email') {
+        setSharedEmail(value);
+      }
+    }
+  };
+
+  const handleFormToggle = (newIsLogin: boolean) => {
+    setIsLogin(newIsLogin);
+    // Persist email between forms
+    if (newIsLogin) {
+      setLoginData(prev => ({ ...prev, email: sharedEmail }));
+    } else {
+      setSignupData(prev => ({ ...prev, email: sharedEmail }));
     }
   };
 
@@ -134,7 +151,7 @@ const Auth = () => {
             Smart Study Tracker
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Your intelligent companion for academic success
+            Your intelligent companion for Class 10th CBSE success
           </p>
         </div>
 
@@ -142,7 +159,7 @@ const Auth = () => {
           <CardHeader className="text-center space-y-4 pb-6">
             <div className="flex justify-center space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
               <button
-                onClick={() => setIsLogin(true)}
+                onClick={() => handleFormToggle(true)}
                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
                   isLogin 
                     ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm' 
@@ -152,7 +169,7 @@ const Auth = () => {
                 Sign In
               </button>
               <button
-                onClick={() => setIsLogin(false)}
+                onClick={() => handleFormToggle(false)}
                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
                   !isLogin 
                     ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm' 
@@ -168,8 +185,8 @@ const Auth = () => {
               </CardTitle>
               <CardDescription className="text-gray-500 dark:text-gray-400 mt-2">
                 {isLogin 
-                  ? 'Sign in to continue your learning journey' 
-                  : 'Create your account to start tracking your progress'
+                  ? 'Sign in to continue your CBSE Class 10th journey' 
+                  : 'Create your account for CBSE Class 10th success'
                 }
               </CardDescription>
             </div>
@@ -251,55 +268,6 @@ const Auth = () => {
                 )}
               </div>
 
-              {!isLogin && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="class" className="text-gray-700 dark:text-gray-300 font-medium">
-                      Class
-                    </Label>
-                    <div className="relative">
-                      <BookOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <select
-                        id="class"
-                        name="class"
-                        value={signupData.class}
-                        onChange={(e) => handleInputChange(e, 'signup')}
-                        disabled={isLoading}
-                        className="w-full pl-10 h-12 border border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-blue-500"
-                        required
-                      >
-                        <option value="class-9">Class 9</option>
-                        <option value="class-10">Class 10</option>
-                        <option value="class-11">Class 11</option>
-                        <option value="class-12">Class 12</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="board" className="text-gray-700 dark:text-gray-300 font-medium">
-                      Board
-                    </Label>
-                    <div className="relative">
-                      <GraduationCap className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <select
-                        id="board"
-                        name="board"
-                        value={signupData.board}
-                        onChange={(e) => handleInputChange(e, 'signup')}
-                        disabled={isLoading}
-                        className="w-full pl-10 h-12 border border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-blue-500"
-                        required
-                      >
-                        <option value="cbse">CBSE</option>
-                        <option value="icse">ICSE</option>
-                        <option value="state">State Board</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <Button 
                 type="submit" 
                 className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]" 
@@ -323,7 +291,7 @@ const Auth = () => {
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
                 <button
-                  onClick={() => setIsLogin(!isLogin)}
+                  onClick={() => handleFormToggle(!isLogin)}
                   className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                   disabled={isLoading}
                 >
@@ -336,7 +304,8 @@ const Auth = () => {
 
         {/* Footer */}
         <div className="text-center mt-8 text-xs text-gray-400 dark:text-gray-500">
-          <p>Secure authentication powered by advanced encryption</p>
+          <p>Designed specifically for CBSE Class 10th students</p>
+          <p className="mt-1">Secure authentication powered by advanced encryption</p>
         </div>
       </div>
     </div>
