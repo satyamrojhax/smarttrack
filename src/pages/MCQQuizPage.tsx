@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -33,24 +33,38 @@ const MCQQuizPage: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [subjects, setSubjects] = useState([]);
+  const [chapters, setChapters] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedChapter, setSelectedChapter] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('1');
   const [numberOfQuestions, setNumberOfQuestions] = useState('10');
   const [isGenerating, setIsGenerating] = useState(false);
   const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
 
-  const difficultyLevels = [
+  const difficultyLevels = useMemo(() => [
     { value: '1', label: 'Easy', color: 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400', icon: '🟢' },
     { value: '2', label: 'Medium', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400', icon: '🟡' },
     { value: '3', label: 'Hard', color: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400', icon: '🔴' }
-  ];
+  ], []);
 
-  const questionCounts = ['5', '10', '15', '20'];
+  const questionCounts = useMemo(() => ['5', '10', '15', '20'], []);
 
+  // Fetch subjects on mount
   useEffect(() => {
     fetchSubjects();
   }, []);
 
+  // Fetch chapters when subject changes
+  useEffect(() => {
+    if (selectedSubject) {
+      fetchChapters(selectedSubject);
+    } else {
+      setChapters([]);
+      setSelectedChapter('');
+    }
+  }, [selectedSubject]);
+
+  // Timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (quizSession?.isActive && quizSession.timeLeft > 0) {
@@ -68,7 +82,7 @@ const MCQQuizPage: React.FC = () => {
     return () => clearInterval(interval);
   }, [quizSession?.isActive, quizSession?.timeLeft]);
 
-  const fetchSubjects = async () => {
+  const fetchSubjects = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('subjects')
@@ -85,9 +99,29 @@ const MCQQuizPage: React.FC = () => {
         variant: "destructive"
       });
     }
-  };
+  }, [toast]);
 
-  const generateMCQQuestions = async () => {
+  const fetchChapters = useCallback(async (subjectId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('chapters')
+        .select('*')
+        .eq('subject_id', subjectId)
+        .order('order_index');
+
+      if (error) throw error;
+      setChapters(data || []);
+    } catch (error) {
+      console.error('Error fetching chapters:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load chapters",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
+
+  const generateMCQQuestions = useCallback(async () => {
     if (!selectedSubject) {
       toast({
         title: "Subject Required",
@@ -100,14 +134,21 @@ const MCQQuizPage: React.FC = () => {
     setIsGenerating(true);
     try {
       const selectedSubjectData = subjects.find(s => s.id === selectedSubject);
+      const selectedChapterData = chapters.find(c => c.id === selectedChapter);
       
+      const requestData = {
+        subjectId: selectedSubject,
+        subjectName: selectedSubjectData?.name || 'General',
+        difficulty: selectedDifficulty,
+        numberOfQuestions: numberOfQuestions,
+        ...(selectedChapter && { 
+          chapterId: selectedChapter,
+          chapterName: selectedChapterData?.name 
+        })
+      };
+
       const { data, error } = await supabase.functions.invoke('generate-mcq-questions', {
-        body: {
-          subjectId: selectedSubject,
-          subjectName: selectedSubjectData?.name || 'General',
-          difficulty: selectedDifficulty,
-          numberOfQuestions: numberOfQuestions
-        }
+        body: requestData
       });
 
       if (error) throw error;
@@ -139,7 +180,7 @@ const MCQQuizPage: React.FC = () => {
 
       toast({
         title: "Quiz Started! 🎯",
-        description: `Generated ${numberOfQuestions} AI-powered CBSE questions. Best of luck!`
+        description: `Generated ${numberOfQuestions} AI-powered questions. Best of luck!`
       });
     } catch (error) {
       console.error('Error generating questions:', error);
@@ -151,9 +192,9 @@ const MCQQuizPage: React.FC = () => {
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [selectedSubject, selectedChapter, selectedDifficulty, numberOfQuestions, subjects, chapters, toast]);
 
-  const selectAnswer = (answerIndex: number) => {
+  const selectAnswer = useCallback((answerIndex: number) => {
     if (!quizSession || !quizSession.isActive) return;
 
     setQuizSession(prev => {
@@ -162,9 +203,9 @@ const MCQQuizPage: React.FC = () => {
       newSelectedAnswers[prev.currentQuestionIndex] = answerIndex;
       return { ...prev, selectedAnswers: newSelectedAnswers };
     });
-  };
+  }, [quizSession]);
 
-  const nextQuestion = () => {
+  const nextQuestion = useCallback(() => {
     if (!quizSession) return;
 
     if (quizSession.currentQuestionIndex < quizSession.questions.length - 1) {
@@ -172,17 +213,17 @@ const MCQQuizPage: React.FC = () => {
     } else {
       finishQuiz();
     }
-  };
+  }, [quizSession]);
 
-  const previousQuestion = () => {
+  const previousQuestion = useCallback(() => {
     if (!quizSession) return;
 
     if (quizSession.currentQuestionIndex > 0) {
       setQuizSession(prev => prev ? { ...prev, currentQuestionIndex: prev.currentQuestionIndex - 1 } : null);
     }
-  };
+  }, [quizSession]);
 
-  const finishQuiz = async () => {
+  const finishQuiz = useCallback(async () => {
     if (!quizSession) return;
 
     const correctAnswers = quizSession.selectedAnswers.reduce((count, answer, index) => {
@@ -206,27 +247,28 @@ const MCQQuizPage: React.FC = () => {
     } catch (error) {
       console.error('Error saving quiz session:', error);
     }
-  };
+  }, [quizSession, numberOfQuestions, user?.id]);
 
-  const resetQuiz = () => {
+  const resetQuiz = useCallback(() => {
     setQuizSession(null);
-  };
+  }, []);
 
-  const formatTime = (seconds: number) => {
+  const formatTime = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const getScoreGrade = (percentage: number) => {
+  const getScoreGrade = useCallback((percentage: number) => {
     if (percentage >= 90) return { grade: 'A+', color: 'text-green-600', emoji: '🏆' };
     if (percentage >= 80) return { grade: 'A', color: 'text-green-500', emoji: '🎖️' };
     if (percentage >= 70) return { grade: 'B+', color: 'text-blue-500', emoji: '🥉' };
     if (percentage >= 60) return { grade: 'B', color: 'text-blue-400', emoji: '📚' };
     if (percentage >= 50) return { grade: 'C', color: 'text-yellow-500', emoji: '📖' };
     return { grade: 'D', color: 'text-red-500', emoji: '📝' };
-  };
+  }, []);
 
+  // Results Page
   if (quizSession?.showResults) {
     const correctAnswers = quizSession.selectedAnswers.reduce((count, answer, index) => {
       return count + (answer === quizSession.questions[index].correct_option ? 1 : 0);
@@ -347,6 +389,7 @@ const MCQQuizPage: React.FC = () => {
     );
   }
 
+  // Quiz Session Page
   if (quizSession && !quizSession.showResults) {
     const currentQuestion = quizSession.questions[quizSession.currentQuestionIndex];
     const progress = ((quizSession.currentQuestionIndex + 1) / quizSession.questions.length) * 100;
@@ -487,6 +530,7 @@ const MCQQuizPage: React.FC = () => {
     );
   }
 
+  // Setup Page
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 p-2 sm:p-4">
       <div className="container mx-auto max-w-4xl space-y-4 sm:space-y-6">
@@ -514,7 +558,7 @@ const MCQQuizPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 sm:p-8 space-y-6 sm:space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-2 sm:space-y-3">
                 <label className="text-sm font-semibold text-primary">📚 Subject</label>
                 <Select value={selectedSubject} onValueChange={setSelectedSubject}>
@@ -534,6 +578,25 @@ const MCQQuizPage: React.FC = () => {
                 </Select>
               </div>
 
+              <div className="space-y-2 sm:space-y-3">
+                <label className="text-sm font-semibold text-primary">📖 Chapter (Optional)</label>
+                <Select value={selectedChapter} onValueChange={setSelectedChapter} disabled={!selectedSubject}>
+                  <SelectTrigger className="h-10 sm:h-12 border-2 hover:border-primary transition-colors">
+                    <SelectValue placeholder={selectedSubject ? "Select chapter (optional)" : "Select subject first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Chapters</SelectItem>
+                    {chapters.map((chapter: any) => (
+                      <SelectItem key={chapter.id} value={chapter.id} className="hover:bg-primary/10">
+                        <span className="text-sm sm:text-base">{chapter.name}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-2 sm:space-y-3">
                 <label className="text-sm font-semibold text-primary">⚡ Difficulty</label>
                 <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
@@ -593,7 +656,10 @@ const MCQQuizPage: React.FC = () => {
               </Button>
               {selectedSubject && (
                 <p className="text-xs sm:text-sm text-muted-foreground animate-fade-in text-center">
-                  Estimated time: {Math.round(parseInt(numberOfQuestions) * 1.5)} minutes
+                  {selectedChapter ? 
+                    `Chapter-specific quiz • Estimated time: ${Math.round(parseInt(numberOfQuestions) * 1.5)} minutes` :
+                    `All chapters • Estimated time: ${Math.round(parseInt(numberOfQuestions) * 1.5)} minutes`
+                  }
                 </p>
               )}
             </div>
@@ -615,6 +681,7 @@ const MCQQuizPage: React.FC = () => {
                 {[
                   { icon: "🎓", text: "CBSE Pattern Questions" },
                   { icon: "📝", text: "Previous Year Questions" },
+                  { icon: "📖", text: "Chapter-wise Topics" },
                   { icon: "💡", text: "Detailed Explanations" },
                   { icon: "⏱️", text: "Timed Quiz Sessions" }
                 ].map((feature, index) => (
@@ -639,6 +706,7 @@ const MCQQuizPage: React.FC = () => {
               <div className="space-y-2 sm:space-y-3">
                 {[
                   "Read questions carefully",
+                  "Select specific chapters for focused practice",
                   "Start with easier difficulty",
                   "Manage your time wisely",
                   "Review explanations"
