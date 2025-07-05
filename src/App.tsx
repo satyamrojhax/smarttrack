@@ -12,7 +12,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import MainLayout from "./components/MainLayout";
 import SplashScreen from "./components/SplashScreen";
-import ExitConfirmation from "./components/ExitConfirmation";
 
 // Optimized lazy loading
 const Index = lazy(() => import("./pages/Index"));
@@ -30,6 +29,7 @@ const BadgesPage = lazy(() => import("./pages/BadgesPage"));
 const ExportPage = lazy(() => import("./pages/ExportPage"));
 const ThemePage = lazy(() => import("./pages/ThemePage"));
 const ToDoPage = lazy(() => import("./pages/ToDoPage"));
+const MCQQuizPage = lazy(() => import("./pages/MCQQuizPage"));
 const EmailVerification = lazy(() => import("./pages/EmailVerification"));
 const EmailVerifying = lazy(() => import("./pages/EmailVerifying"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
@@ -182,6 +182,7 @@ const AppContent = () => {
                 <Route path="/todo" element={<ToDoPage />} />
                 <Route path="/syllabus" element={<SyllabusPage />} />
                 <Route path="/questions" element={<QuestionsPage />} />
+                <Route path="/mcq-quiz" element={<MCQQuizPage />} />
                 <Route path="/doubts" element={<DoubtsPage />} />
                 <Route path="/predictor" element={<PredictorPage />} />
                 <Route path="/history" element={<HistoryPage />} />
@@ -211,7 +212,6 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <AppContent />
-              <ExitConfirmation />
             </BrowserRouter>
           </TooltipProvider>
         </AuthProvider>
