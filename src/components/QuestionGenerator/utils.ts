@@ -69,13 +69,55 @@ export const generateQuestionsPrompt = (
   questionTypes: string[],
   difficulty: string
 ): string => {
+  const isMath = subjectName.toLowerCase().includes('math');
+  
+  if (isMath) {
+    return `Create ${questionCount} high-quality Class 10 CBSE Mathematics practice questions for chapter "${chapterName}".
+
+IMPORTANT REQUIREMENTS:
+- Generate questions that are frequently asked in CBSE Class 10 Board Exams
+- Include Previous Year Questions (PYQs) patterns and important exam-oriented questions
+- Focus on questions with HIGH PROBABILITY of appearing in exams
+- Question types: ${questionTypes.join(', ')}
+- Difficulty: ${difficulty} level
+
+For Mathematics questions, ensure:
+- Step-by-step solutions with clear mathematical reasoning
+- Include formula applications and theorem usage
+- Show complete working with proper mathematical notation
+- Cover important concepts that are exam favorites
+
+For MCQ questions, provide exactly 4 options:
+a) [option 1]
+b) [option 2] 
+c) [option 3]
+d) [option 4]
+
+Then clearly state: "Correct Answer: [letter]"
+
+For Long Answer/Application questions:
+- Create real-world problem scenarios
+- Include multiple steps requiring different concepts
+- Ensure questions test deep understanding
+
+Format each question as:
+Question 1: [question text]
+[If MCQ, include options and correct answer]
+
+Question 2: [question text]
+[If MCQ, include options and correct answer]
+
+Focus on CBSE exam pattern, important theorems, and frequently tested concepts.`;
+  }
+  
   return `Create ${questionCount} high-quality practice questions for Class 10 CBSE ${subjectName}, chapter "${chapterName}".
 
 Requirements:
 - Question types: ${questionTypes.join(', ')}
 - Difficulty: ${difficulty} level
 - Make them exam-oriented and based on latest CBSE pattern
-- DO NOT include any context or introduction as the first question
+- Include Previous Year Questions patterns
+- Focus on important and frequently asked concepts
 
 For MCQ questions, provide exactly 4 options labeled as:
 a) [option 1]
@@ -94,22 +136,43 @@ Question 1: [question text]
 Question 2: [question text]
 [If MCQ, include options and correct answer]
 
-And so on...
-
 Write in a friendly, encouraging tone like a helpful tutor. Focus on clarity and exam relevance.`;
 };
 
 export const generateSolutionPrompt = (question: GeneratedQuestion): string => {
-  return `Provide a SHORT and CONCISE solution for this Class 10 CBSE ${question.subject} question from "${question.chapter}":
+  const isMath = question.subject.toLowerCase().includes('math');
+  
+  if (isMath) {
+    return `Provide a DETAILED step-by-step solution for this Class 10 CBSE Mathematics question from "${question.chapter}":
 
 ${question.question}
 
 ${question.options ? `Options:\na) ${question.options[0]}\nb) ${question.options[1]}\nc) ${question.options[2]}\nd) ${question.options[3]}` : ''}
 
-IMPORTANT: Give ONLY a brief, direct answer. Keep it under 100 words. Include:
-1. The correct answer (if MCQ)
-2. ONE key explanation line
-3. Main concept involved
+IMPORTANT: Provide a COMPLETE mathematical solution with:
 
-Be concise and to the point. No lengthy explanations.`;
+1. **Given/To Find:** Clearly state what is given and what needs to be found
+2. **Formula/Theorem:** Mention the relevant formula or theorem used
+3. **Step-by-Step Solution:** Show each calculation step clearly
+4. **Mathematical Working:** Include all algebraic steps, substitutions, and calculations
+5. **Final Answer:** Clearly highlight the final answer
+6. **Verification:** If possible, verify the answer
+
+Use proper mathematical notation and explain the reasoning behind each step. Make it detailed enough for a Class 10 student to understand completely.`;
+  }
+  
+  return `Provide a clear and detailed solution for this Class 10 CBSE ${question.subject} question from "${question.chapter}":
+
+${question.question}
+
+${question.options ? `Options:\na) ${question.options[0]}\nb) ${question.options[1]}\nc) ${question.options[2]}\nd) ${question.options[3]}` : ''}
+
+IMPORTANT: Give a comprehensive answer including:
+1. The correct answer (if MCQ)
+2. Detailed explanation with reasoning
+3. Key concepts involved
+4. Step-by-step approach
+5. Important points to remember
+
+Make it detailed and educational for Class 10 CBSE students.`;
 };

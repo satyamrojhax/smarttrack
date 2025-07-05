@@ -1,3 +1,4 @@
+
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -12,7 +13,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import MainLayout from "./components/MainLayout";
 import SplashScreen from "./components/SplashScreen";
-import ExitConfirmation from "./components/ExitConfirmation";
 
 // Optimized lazy loading
 const Index = lazy(() => import("./pages/Index"));
@@ -211,7 +211,6 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <AppContent />
-              <ExitConfirmation />
             </BrowserRouter>
           </TooltipProvider>
         </AuthProvider>
