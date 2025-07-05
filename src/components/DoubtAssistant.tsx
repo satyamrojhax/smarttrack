@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,7 +21,7 @@ export const DoubtAssistant = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hi! 👋 I'm your specialized Class 10 CBSE Math AI tutor. I can provide detailed solutions for:\n\n🔢 **Short Answer Questions** - Quick explanations\n📝 **Long Answer Questions** - Step-by-step solutions\n🎯 **Application Problems** - Real-world math scenarios\n\nAsk me any math doubt and I'll give you the best detailed solution!",
+      content: "Hi! 👋 I'm your AI study companion. Ask me anything about Class 10 CBSE and I'll provide clear, concise answers!",
       role: 'assistant',
       timestamp: Date.now()
     }
@@ -54,104 +55,6 @@ export const DoubtAssistant = () => {
       .trim();
   }, []);
 
-  const detectQuestionType = useCallback((question: string): string => {
-    const lowerQuestion = question.toLowerCase();
-    
-    // Check for math keywords
-    const mathKeywords = ['solve', 'find', 'calculate', 'prove', 'derive', 'equation', 'formula', 'theorem', 'graph', 'polynomial', 'quadratic', 'linear', 'trigonometry', 'geometry', 'algebra', 'statistics', 'probability'];
-    const isMath = mathKeywords.some(keyword => lowerQuestion.includes(keyword));
-    
-    // Check for application-based keywords
-    const applicationKeywords = ['real life', 'daily life', 'application', 'practical', 'example', 'scenario', 'situation', 'problem', 'word problem'];
-    const isApplication = applicationKeywords.some(keyword => lowerQuestion.includes(keyword));
-    
-    // Check for short vs long answer indicators
-    const shortIndicators = ['what is', 'define', 'state', 'name', 'list', 'mention'];
-    const longIndicators = ['explain', 'describe', 'solve step by step', 'detailed', 'prove', 'derive', 'show that'];
-    
-    const isShort = shortIndicators.some(indicator => lowerQuestion.includes(indicator));
-    const isLong = longIndicators.some(indicator => lowerQuestion.includes(indicator));
-    
-    if (isMath && isApplication) return 'math-application';
-    if (isMath && isLong) return 'math-long';
-    if (isMath && isShort) return 'math-short';
-    if (isMath) return 'math-general';
-    if (isApplication) return 'application';
-    if (isLong) return 'long-answer';
-    if (isShort) return 'short-answer';
-    
-    return 'general';
-  }, []);
-
-  const generateEnhancedPrompt = useCallback((question: string): string => {
-    const questionType = detectQuestionType(question);
-    
-    const basePrompt = `You are an expert Class 10 CBSE Mathematics tutor specializing in detailed explanations and step-by-step solutions.
-
-Student Question: "${question}"
-
-Question Type Detected: ${questionType}
-
-`;
-
-    switch (questionType) {
-      case 'math-application':
-        return basePrompt + `INSTRUCTIONS FOR APPLICATION-BASED MATH PROBLEMS:
-1. **Understand the Problem:** Break down the real-world scenario
-2. **Identify Given Information:** List all given data clearly
-3. **Mathematical Translation:** Convert the word problem into mathematical expressions
-4. **Step-by-Step Solution:** Show each calculation step with proper reasoning
-5. **Formula Application:** Use relevant Class 10 CBSE formulas
-6. **Final Answer:** Present the answer in context of the real-world problem
-7. **Verification:** Check if the answer makes practical sense
-
-Provide a comprehensive solution with proper mathematical notation and clear explanations.`;
-
-      case 'math-long':
-        return basePrompt + `INSTRUCTIONS FOR DETAILED MATH SOLUTIONS:
-1. **Given/To Find:** Clearly state what is given and what needs to be found  
-2. **Relevant Formula/Theorem:** Mention the Class 10 CBSE formula or theorem
-3. **Step-by-Step Working:** Show every algebraic step and calculation
-4. **Mathematical Reasoning:** Explain why each step is taken
-5. **Substitution:** Show all value substitutions clearly
-6. **Simplification:** Demonstrate each simplification step
-7. **Final Answer:** Highlight the final result
-8. **Alternative Methods:** If applicable, mention other solving approaches
-
-Use proper mathematical symbols and provide educational explanations.`;
-
-      case 'math-short':
-        return basePrompt + `INSTRUCTIONS FOR CONCISE MATH EXPLANATIONS:
-1. **Direct Answer:** Provide the key answer/definition first
-2. **Essential Formula:** State the main formula used
-3. **Quick Working:** Show the most important steps
-4. **Key Concept:** Explain the core mathematical concept
-5. **CBSE Context:** Relate to Class 10 CBSE syllabus
-
-Keep it focused but mathematically accurate and educationally valuable.`;
-
-      case 'math-general':
-        return basePrompt + `INSTRUCTIONS FOR GENERAL MATH QUESTIONS:
-1. **Problem Analysis:** Understand what type of math problem this is
-2. **Approach Selection:** Choose the best solving method for Class 10 level
-3. **Detailed Solution:** Provide step-by-step mathematical working
-4. **Concept Explanation:** Explain the underlying mathematical concepts
-5. **CBSE Relevance:** Connect to Class 10 CBSE exam patterns
-
-Ensure the solution is appropriate for Class 10 CBSE standard.`;
-
-      default:
-        return basePrompt + `INSTRUCTIONS FOR GENERAL ACADEMIC QUESTIONS:
-1. **Clear Answer:** Provide accurate information
-2. **Detailed Explanation:** Give comprehensive explanation
-3. **CBSE Context:** Relate to Class 10 CBSE syllabus
-4. **Examples:** Include relevant examples if helpful
-5. **Key Points:** Highlight important concepts to remember
-
-Make it educational and exam-oriented for Class 10 students.`;
-    }
-  }, [detectQuestionType]);
-
   const sendMessage = useCallback(async () => {
     if (!inputMessage.trim() || isLoading) return;
 
@@ -184,10 +87,21 @@ Make it educational and exam-oriented for Class 10 students.`;
         }
       }
 
-      const enhancedPrompt = generateEnhancedPrompt(currentInput);
+      const prompt = `You are a Class 10 CBSE AI tutor. Give SHORT, DIRECT answers (max 80 words).
+
+Question: "${currentInput}"
+
+Rules:
+- Be concise and direct
+- Show key steps only for math
+- Brief explanations for concepts
+- No extra text or motivation
+- Just the essential answer
+
+Answer:`;
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
         method: 'POST',
@@ -197,12 +111,12 @@ Make it educational and exam-oriented for Class 10 students.`;
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: enhancedPrompt
+              text: prompt
             }]
           }],
           generationConfig: {
-            maxOutputTokens: 1000,
-            temperature: 0.2
+            maxOutputTokens: 200,
+            temperature: 0.3
           }
         }),
         signal: controller.signal
@@ -270,7 +184,7 @@ Make it educational and exam-oriented for Class 10 students.`;
     } finally {
       setIsLoading(false);
     }
-  }, [inputMessage, isLoading, formatAIResponse, toast, currentConversationId, messages.length, generateEnhancedPrompt]);
+  }, [inputMessage, isLoading, formatAIResponse, toast, currentConversationId, messages.length]);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -343,9 +257,9 @@ Make it educational and exam-oriented for Class 10 students.`;
           </div>
           <div className="text-center">
             <h1 className="text-2xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Math AI Tutor
+              AI Study Assistant
             </h1>
-            <p className="text-muted-foreground font-medium text-sm">Expert Class 10 CBSE Math Solutions</p>
+            <p className="text-muted-foreground font-medium text-sm">Your Class 10 CBSE companion</p>
           </div>
           <div className="relative">
             <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl shadow-xl">
@@ -375,7 +289,7 @@ Make it educational and exam-oriented for Class 10 students.`;
                   <div className="inline-block p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                     <div className="flex items-center gap-3">
                       <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
-                      <span className="text-muted-foreground">AI is solving your problem...</span>
+                      <span className="text-muted-foreground">AI is thinking...</span>
                     </div>
                   </div>
                 </div>
@@ -396,7 +310,7 @@ Make it educational and exam-oriented for Class 10 students.`;
                   value={inputMessage}
                   onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask your math question (e.g., 'Solve x² + 5x + 6 = 0' or 'Explain Pythagoras theorem')..."
+                  placeholder="Ask your study question..."
                   className="min-h-[50px] max-h-[100px] resize-none text-base border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-800 shadow-sm focus:shadow-md transition-all duration-300 px-4 py-3 font-medium"
                   disabled={isLoading}
                   rows={1}
