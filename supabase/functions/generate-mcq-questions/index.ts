@@ -21,26 +21,14 @@ serve(async (req) => {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const authHeader = req.headers.get('Authorization')!;
-    
-    if (!authHeader) {
-      throw new Error('No authorization header provided');
-    }
-
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const { data: { user } } = await supabase.auth.getUser(token);
 
-    if (authError || !user) {
-      console.error('Auth error:', authError);
-      throw new Error('Unauthorized - Invalid token');
+    if (!user) {
+      throw new Error('Unauthorized');
     }
-
-    console.log('User authenticated:', user.id);
 
     const { subjectId, difficulty, numberOfQuestions, subjectName, chapterId, chapterName } = await req.json();
-
-    if (!subjectId || !difficulty || !numberOfQuestions) {
-      throw new Error('Missing required parameters');
-    }
 
     // Build context based on whether chapter is specified
     const contextText = chapterId && chapterName 
@@ -154,9 +142,9 @@ Generate ${numberOfQuestions} high-quality CBSE pattern questions now:`;
 
     console.log(`Successfully generated ${generatedQuestions.length} questions`);
 
-    // Save questions to database with proper user ID
+    // Save questions to database
     const questionsToInsert = generatedQuestions.map((q: any) => ({
-      user_id: user.id, // Ensure we use the authenticated user's ID
+      user_id: user.id,
       question_text: q.question_text,
       options: q.options,
       correct_option: q.correct_option,
@@ -168,9 +156,6 @@ Generate ${numberOfQuestions} high-quality CBSE pattern questions now:`;
       question_type: 'mcq'
     }));
 
-    console.log('Inserting questions with user_id:', user.id);
-    console.log('Questions to insert:', questionsToInsert.length);
-
     const { data: insertedQuestions, error: insertError } = await supabase
       .from('mcq_questions')
       .insert(questionsToInsert)
@@ -181,12 +166,11 @@ Generate ${numberOfQuestions} high-quality CBSE pattern questions now:`;
       throw new Error('Failed to save questions to database: ' + insertError.message);
     }
 
-    console.log(`Successfully saved ${insertedQuestions?.length || 0} questions to database`);
+    console.log(`Successfully saved ${insertedQuestions.length} questions to database`);
 
     return new Response(JSON.stringify({ 
       success: true, 
-      questions: insertedQuestions || [],
-      count: insertedQuestions?.length || 0,
+      questions: insertedQuestions,
       context: chapterId ? `Chapter: ${chapterName}` : `Subject: ${subjectName}`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -196,8 +180,7 @@ Generate ${numberOfQuestions} high-quality CBSE pattern questions now:`;
     console.error('Error in generate-mcq-questions function:', error);
     return new Response(JSON.stringify({ 
       success: false, 
-      error: error.message,
-      details: 'Check function logs for more information'
+      error: error.message 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

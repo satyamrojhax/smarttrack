@@ -1,184 +1,264 @@
 
-import React, { useState } from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
-import { 
-  Home, 
-  Brain, 
-  BookOpen, 
-  Clock, 
-  Trophy, 
-  User, 
-  CheckSquare, 
-  FileText, 
-  HelpCircle,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-  Palette,
-  Award,
-  TrendingUp,
-  Download,
-  History
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
-import EnhancedThemeToggle from '@/components/EnhancedThemeToggle';
-import PWADownload from '@/components/PWADownload';
+import { useDeviceCapabilities } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import { 
+  Sidebar, 
+  SidebarContent, 
+  SidebarHeader, 
+  SidebarMenu, 
+  SidebarMenuButton, 
+  SidebarMenuItem, 
+  SidebarProvider, 
+  SidebarTrigger,
+  SidebarInset,
+  useSidebar,
+  SidebarFooter
+} from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
+import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin, Users, Settings, Star, Target } from 'lucide-react';
 
 interface MainLayoutProps {
-  children?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { profile, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const { profile } = useAuth();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { isStandalone } = useDeviceCapabilities();
 
-  const navigationItems = [
-    { path: '/', icon: Home, label: 'Dashboard' },
-    { path: '/questions', icon: Brain, label: 'AI Questions' },
-    { path: '/mcq-quiz', icon: Trophy, label: 'MCQ Quiz' },
-    { path: '/notes', icon: BookOpen, label: 'Smart Notes' },
-    { path: '/syllabus', icon: FileText, label: 'Syllabus Tracker' },
-    { path: '/timer', icon: Clock, label: 'Study Timer' },
-    { path: '/doubts', icon: HelpCircle, label: 'AI Doubts' },
-    { path: '/todo', icon: CheckSquare, label: 'To-Do List' },
-    { path: '/predictor', icon: TrendingUp, label: 'Marks Predictor' },
-    { path: '/badges', icon: Award, label: 'Achievements' },
-    { path: '/history', icon: History, label: 'History' },
-    { path: '/export', icon: Download, label: 'Export Progress' },
+  const bottomNavigation = [
+    { name: 'Dashboard', href: '/', icon: Home },
+    { name: 'Questions', href: '/questions', icon: Brain },
+    { name: 'MCQ Quiz', href: '/mcq-quiz', icon: Target },
+    { name: 'Ask Doubts', href: '/doubts', icon: HelpCircle },
+    { name: 'Profile', href: '/profile', icon: User },
   ];
 
-  const handleLogout = async () => {
-    await logout();
-    setSidebarOpen(false);
-  };
+  const sidebarItems = [
+    { name: 'Dashboard', href: '/', icon: Home, color: 'text-blue-600' },
+    { name: 'ToDo Tasks', href: '/todo', icon: CheckSquare, color: 'text-green-600' },
+    { name: 'AI Questions', href: '/questions', icon: Brain, color: 'text-purple-600' },
+    { name: 'Ask Doubts', href: '/doubts', icon: HelpCircle, color: 'text-orange-600' },
+    { name: 'Syllabus', href: '/syllabus', icon: BookOpen, color: 'text-indigo-600' },
+    { name: 'Predictor', href: '/predictor', icon: TrendingUp, color: 'text-emerald-600' },
+    { name: 'History', href: '/history', icon: History, color: 'text-amber-600' },
+    { name: 'Study Timer', href: '/timer', icon: Timer, color: 'text-red-600' },
+    { name: 'My Notes', href: '/notes', icon: FileText, color: 'text-cyan-600' },
+    { name: 'Achievements', href: '/badges', icon: Trophy, color: 'text-yellow-600' },
+    { name: 'Theme', href: '/theme', icon: Palette, color: 'text-pink-600' },
+    { name: 'Profile', href: '/profile', icon: User, color: 'text-gray-600' },
+  ];
 
-  const closeSidebar = () => setSidebarOpen(false);
+  // Memoized Sidebar Component for better performance
+  const AppSidebar = React.memo(() => {
+    const { setOpenMobile, isMobile } = useSidebar();
 
-  return (
-    <div className="min-h-screen bg-background flex">
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
-          onClick={closeSidebar}
-        />
-      )}
+    const handleSidebarItemClick = () => {
+      if (isMobile) {
+        setOpenMobile(false);
+      }
+    };
 
-      {/* Sidebar */}
-      <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card border-r transform transition-transform duration-200 ease-in-out
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="p-4 border-b">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h1 className="font-bold text-lg">BoardsTrack</h1>
-                  <p className="text-xs text-muted-foreground">v3.18.22</p>
-                </div>
+    return (
+      <Sidebar className="w-64 border-r bg-white dark:bg-gray-900 shadow-xl">
+        <SidebarHeader className="p-4 border-b bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg">
+                <Brain className="w-6 h-6 text-white" />
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="lg:hidden"
-                onClick={closeSidebar}
-              >
-                <X className="w-4 h-4" />
-              </Button>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+            </div>
+            <div>
+              <h2 className="font-bold text-lg text-foreground bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                Axiom Smart Track
+              </h2>
+              <p className="text-xs text-muted-foreground">AI Study Assistant</p>
             </div>
           </div>
+        </SidebarHeader>
+        
+        <SidebarContent className="scrollbar-hide bg-white dark:bg-gray-900">
+          <div className="p-3">
+            {/* User Welcome Section */}
+            <div className="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    Hello, {profile?.name?.split(' ')[0] || 'Student'}! 👋
+                  </p>
+                  <p className="text-xs text-muted-foreground">Ready to study?</p>
+                </div>
+              </div>
+            </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={closeSidebar}
-                  className={`
-                    flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors
-                    ${isActive 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                    }
-                  `}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Footer */}
-          <div className="p-4 border-t space-y-2">
-            <div className="flex items-center justify-between">
-              <EnhancedThemeToggle />
-              <PWADownload />
+            <SidebarMenu>
+              {sidebarItems.map((item) => {
+                const isActive = location.pathname === item.href;
+                const Icon = item.icon;
+                
+                return (
+                  <SidebarMenuItem key={item.name}>
+                    <SidebarMenuButton asChild isActive={isActive}>
+                      <Link 
+                        to={item.href} 
+                        className={`flex items-center space-x-3 w-full p-3 rounded-xl transition-all duration-200 group ${
+                          isActive 
+                            ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg scale-105 border border-primary/20' 
+                            : 'hover:bg-accent hover:text-accent-foreground hover:scale-102 hover:shadow-md'
+                        }`}
+                        onClick={handleSidebarItemClick}
+                      >
+                        <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : item.color} transition-colors duration-200`} />
+                        <span className="text-sm font-medium">{item.name}</span>
+                        {isActive && <div className="ml-auto w-2 h-2 bg-white rounded-full animate-pulse"></div>}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </div>
+        </SidebarContent>
+        
+        <SidebarFooter className="p-4 border-t space-y-4 bg-white dark:bg-gray-900">
+          <Separator />
+          
+          {/* Stats Section */}
+          <div className="grid grid-cols-2 gap-2 text-center">
+            <div className="p-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg">
+              <Star className="w-4 h-4 text-green-600 mx-auto mb-1" />
+              <p className="text-xs font-semibold text-green-700 dark:text-green-400">Active</p>
+            </div>
+            <div className="p-2 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg">
+              <Users className="w-4 h-4 text-blue-600 mx-auto mb-1" />
+              <p className="text-xs font-semibold text-blue-700 dark:text-blue-400">Student</p>
+            </div>
+          </div>
+          
+          <div className="space-y-3 text-center">
+            <div className="flex justify-center space-x-3">
+              <a 
+                href="https://instagram.com/satyamrojhax" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 hover:bg-accent rounded-lg transition-colors hover:scale-110"
+              >
+                <Instagram className="w-4 h-4 text-pink-500" />
+              </a>
+              <a 
+                href="https://github.com/satyamrojhax" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 hover:bg-accent rounded-lg transition-colors hover:scale-110"
+              >
+                <Github className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              </a>
+              <a 
+                href="https://linkedin.com/in/satyamrojhax" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 hover:bg-accent rounded-lg transition-colors hover:scale-110"
+              >
+                <Linkedin className="w-4 h-4 text-blue-600" />
+              </a>
             </div>
             
-            <div className="flex items-center space-x-2 text-sm">
-              <Link 
-                to="/profile"
-                onClick={closeSidebar}
-                className="flex items-center space-x-2 flex-1 p-2 rounded hover:bg-accent"
-              >
-                <User className="w-4 h-4" />
-                <span className="truncate">{profile?.name || 'Profile'}</span>
-              </Link>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={handleLogout}
-                className="text-muted-foreground hover:text-destructive"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p className="font-semibold text-orange-600 flex items-center justify-center gap-1">
+                🇮🇳 Made in India
+              </p>
+              <p>Designed & Developed By</p>
+              <p className="font-medium">Satyam Rojha</p>
+              <p className="text-xs opacity-75 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-semibold">
+                v2.13.16
+              </p>
             </div>
           </div>
-        </div>
-      </aside>
+        </SidebarFooter>
+      </Sidebar>
+    );
+  });
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:ml-0">
-        {/* Mobile Header */}
-        <header className="lg:hidden bg-card border-b p-4">
-          <div className="flex items-center justify-between">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu className="w-5 h-5" />
-            </Button>
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-md flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-white" />
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
+        <SidebarInset className="flex-1 w-full">
+          <header className={`sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm ${isStandalone ? 'pt-safe-area-inset-top' : ''}`}>
+            <div className="flex justify-between items-center h-16 px-4 md:px-6">
+              <div className="flex items-center space-x-3">
+                <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground transition-colors rounded-lg p-2" />
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg">
+                    <Brain className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="hidden sm:block">
+                    <h1 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                      Axiom Smart Track
+                    </h1>
+                    <p className="text-xs text-muted-foreground hidden md:block">AI Study Assistant</p>
+                  </div>
+                </div>
               </div>
-              <span className="font-bold">BoardsTrack</span>
-            </div>
-            <div className="w-8" /> {/* Spacer */}
-          </div>
-        </header>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto">
-          {children || <Outlet />}
-        </main>
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-muted-foreground hidden lg:block font-medium">
+                  Welcome, {profile?.name}! 👋
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleTheme}
+                  className="p-2 hover:bg-accent hover:text-accent-foreground transition-all duration-200 hover:scale-110 rounded-lg"
+                >
+                  {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+                </Button>
+              </div>
+            </div>
+          </header>
+
+          <main className={`flex-1 overflow-auto scrollbar-hide pb-20 lg:pb-6 ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
+            <div className="w-full min-h-full">
+              {children}
+            </div>
+          </main>
+
+          <nav className={`fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t shadow-lg ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
+            <div className="grid grid-cols-5 py-2 px-1">
+              {bottomNavigation.map((item) => {
+                const isActive = location.pathname === item.href;
+                const Icon = item.icon;
+                
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`flex flex-col items-center space-y-1 py-3 px-2 rounded-xl transition-all duration-200 touch-manipulation ${
+                      isActive 
+                        ? 'text-primary bg-primary/10 scale-105 shadow-sm' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-xs font-medium truncate">{item.name}</span>
+                    {isActive && <div className="w-1 h-1 bg-primary rounded-full animate-pulse"></div>}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
