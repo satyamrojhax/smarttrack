@@ -38,7 +38,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center space-x-2 text-base sm:text-lg md:text-xl">
           <Brain className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
-          <span>Create Your Practice Set</span>
+          <span>Generate Practice Questions</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -106,16 +106,15 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                 <SelectItem value="5">5 Questions</SelectItem>
                 <SelectItem value="10">10 Questions</SelectItem>
                 <SelectItem value="15">15 Questions</SelectItem>
-                <SelectItem value="20">20 Questions</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Question Types</label>
+          <label className="text-sm font-medium">Question Types (Select at least one)</label>
           <div className="flex flex-wrap gap-2">
-            {['MCQ', 'Short Answer', 'Long Answer', 'Application Based'].map((type) => (
+            {['Short Answer', 'Long Answer', 'Application Based'].map((type) => (
               <Badge
                 key={type}
                 variant={formData.questionTypes.includes(type) ? "default" : "outline"}
@@ -126,6 +125,9 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
               </Badge>
             ))}
           </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            📝 Perfect for descriptive answers and detailed solutions
+          </p>
         </div>
 
         <Button 
@@ -137,7 +139,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
-              <span className="text-sm sm:text-base">Generating practice questions...</span>
+              <span className="text-sm sm:text-base">Generating PYQ-based questions...</span>
             </>
           ) : savingQuestions ? (
             <>
