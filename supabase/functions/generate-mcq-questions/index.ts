@@ -28,13 +28,19 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { subjectId, difficulty, numberOfQuestions, subjectName } = await req.json();
+    const { subjectId, subjectName, chapterId, chapterName, difficulty, numberOfQuestions } = await req.json();
 
-    const prompt = `Generate exactly ${numberOfQuestions} multiple choice questions for CBSE Class 10 ${subjectName} subject.
+    // Create the chapter context for the prompt
+    const chapterContext = chapterId && chapterName 
+      ? `from Chapter: "${chapterName}"` 
+      : `covering all chapters`;
+
+    const prompt = `Generate exactly ${numberOfQuestions} multiple choice questions for CBSE Class 10 ${subjectName} subject ${chapterContext}.
 
 Requirements:
 - Difficulty level: ${difficulty === '1' ? 'Easy' : difficulty === '2' ? 'Medium' : 'Hard'}
 - Focus on CBSE Class 10 syllabus and Previous Year Questions (PYQs) pattern
+${chapterId && chapterName ? `- All questions must be specifically from the chapter: "${chapterName}"` : '- Questions should cover various chapters and topics'}
 - Each question should have exactly 4 options (A, B, C, D)
 - Include detailed explanations for correct answers
 - Mix of conceptual, application-based, and problem-solving questions
@@ -59,6 +65,7 @@ Return the response as a JSON array of objects with this exact structure:
 ]
 
 Subject: ${subjectName}
+${chapterId && chapterName ? `Chapter: ${chapterName}` : 'All Chapters'}
 Generate ${numberOfQuestions} questions now:`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`, {
@@ -108,6 +115,7 @@ Generate ${numberOfQuestions} questions now:`;
       options: q.options,
       correct_option: q.correct_option,
       subject_id: subjectId,
+      chapter_id: chapterId || null,
       difficulty_level: parseInt(difficulty),
       explanation: q.explanation,
       is_pyq: q.is_pyq || false,

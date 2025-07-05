@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,7 +32,9 @@ const MCQQuizPage: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [subjects, setSubjects] = useState([]);
+  const [chapters, setChapters] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedChapter, setSelectedChapter] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('1');
   const [numberOfQuestions, setNumberOfQuestions] = useState('10');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -50,6 +51,15 @@ const MCQQuizPage: React.FC = () => {
   useEffect(() => {
     fetchSubjects();
   }, []);
+
+  useEffect(() => {
+    if (selectedSubject) {
+      fetchChapters();
+    } else {
+      setChapters([]);
+      setSelectedChapter('');
+    }
+  }, [selectedSubject]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -87,6 +97,28 @@ const MCQQuizPage: React.FC = () => {
     }
   };
 
+  const fetchChapters = async () => {
+    if (!selectedSubject) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('chapters')
+        .select('*')
+        .eq('subject_id', selectedSubject)
+        .order('order_index');
+
+      if (error) throw error;
+      setChapters(data || []);
+    } catch (error) {
+      console.error('Error fetching chapters:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load chapters",
+        variant: "destructive"
+      });
+    }
+  };
+
   const generateMCQQuestions = async () => {
     if (!selectedSubject) {
       toast({
@@ -100,11 +132,14 @@ const MCQQuizPage: React.FC = () => {
     setIsGenerating(true);
     try {
       const selectedSubjectData = subjects.find(s => s.id === selectedSubject);
+      const selectedChapterData = chapters.find(c => c.id === selectedChapter);
       
       const { data, error } = await supabase.functions.invoke('generate-mcq-questions', {
         body: {
           subjectId: selectedSubject,
           subjectName: selectedSubjectData?.name || 'General',
+          chapterId: selectedChapter || null,
+          chapterName: selectedChapterData?.name || null,
           difficulty: selectedDifficulty,
           numberOfQuestions: numberOfQuestions
         }
@@ -306,22 +341,6 @@ const MCQQuizPage: React.FC = () => {
             </Card>
           </div>
 
-          {/* Performance Message */}
-          <Card className="glass-card border-none bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/20 dark:to-blue-900/20">
-            <CardContent className="p-4 sm:p-6 text-center">
-              <div className="text-lg sm:text-xl font-semibold mb-2">
-                {scorePercentage >= 80 ? "Excellent Work! 🌟" : 
-                 scorePercentage >= 60 ? "Good Job! 👍" : 
-                 "Keep Practicing! 💪"}
-              </div>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                {scorePercentage >= 80 ? "You've mastered this topic! Ready for the next challenge?" : 
-                 scorePercentage >= 60 ? "You're doing well! A bit more practice and you'll ace it!" : 
-                 "Don't worry! Every expert was once a beginner. Keep going!"}
-              </p>
-            </CardContent>
-          </Card>
-
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pb-4 sm:pb-8">
             <Button 
@@ -408,7 +427,7 @@ const MCQQuizPage: React.FC = () => {
                   {currentQuestion.question_text}
                 </div>
 
-                <div className="grid gap-2 sm:gap-3">
+                <div className="grid gap-3">
                   {currentQuestion.options.map((option, index) => {
                     const isSelected = quizSession.selectedAnswers[quizSession.currentQuestionIndex] === index;
                     const optionLabel = String.fromCharCode(65 + index);
@@ -417,22 +436,22 @@ const MCQQuizPage: React.FC = () => {
                       <Button
                         key={index}
                         variant={isSelected ? "default" : "outline"}
-                        className={`w-full text-left justify-start h-auto p-3 sm:p-4 transition-all duration-300 hover:scale-[1.02] ${
+                        className={`w-full text-left justify-start h-auto p-4 transition-all duration-300 hover:scale-[1.02] ${
                           isSelected 
                             ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg' 
                             : 'hover:bg-gray-50 dark:hover:bg-gray-800 border-2 hover:border-purple-300'
                         }`}
                         onClick={() => selectAnswer(index)}
                       >
-                        <div className="flex items-start gap-3 sm:gap-4 w-full">
-                          <div className={`flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center text-xs sm:text-sm font-bold ${
+                        <div className="flex items-start gap-4 w-full">
+                          <div className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold ${
                             isSelected 
                               ? 'bg-white text-purple-600 border-white' 
                               : 'border-current'
                           }`}>
                             {optionLabel}
                           </div>
-                          <span className="text-sm sm:text-base leading-relaxed text-left break-words">
+                          <span className="text-sm sm:text-base leading-relaxed text-left break-words flex-1">
                             {option}
                           </span>
                         </div>
@@ -498,7 +517,7 @@ const MCQQuizPage: React.FC = () => {
             </div>
             <div className="text-left">
               <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                AI Quiz Generator
+                AI Quizs Generator
               </h1>
               <p className="text-xs sm:text-lg text-muted-foreground">CBSE Class 10 Pattern Questions</p>
             </div>
@@ -514,7 +533,7 @@ const MCQQuizPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 sm:p-8 space-y-6 sm:space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-2 sm:space-y-3">
                 <label className="text-sm font-semibold text-primary">📚 Subject</label>
                 <Select value={selectedSubject} onValueChange={setSelectedSubject}>
@@ -534,6 +553,25 @@ const MCQQuizPage: React.FC = () => {
                 </Select>
               </div>
 
+              <div className="space-y-2 sm:space-y-3">
+                <label className="text-sm font-semibold text-primary">📖 Chapter (Optional)</label>
+                <Select value={selectedChapter} onValueChange={setSelectedChapter} disabled={!selectedSubject}>
+                  <SelectTrigger className="h-10 sm:h-12 border-2 hover:border-primary transition-colors">
+                    <SelectValue placeholder={selectedSubject ? "Select chapter or leave blank for all" : "Select subject first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Chapters</SelectItem>
+                    {chapters.map((chapter: any) => (
+                      <SelectItem key={chapter.id} value={chapter.id} className="hover:bg-primary/10">
+                        <span className="text-sm sm:text-base">{chapter.name}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-2 sm:space-y-3">
                 <label className="text-sm font-semibold text-primary">⚡ Difficulty</label>
                 <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
@@ -594,6 +632,11 @@ const MCQQuizPage: React.FC = () => {
               {selectedSubject && (
                 <p className="text-xs sm:text-sm text-muted-foreground animate-fade-in text-center">
                   Estimated time: {Math.round(parseInt(numberOfQuestions) * 1.5)} minutes
+                  {selectedChapter && (
+                    <span className="block text-primary font-medium">
+                      Chapter: {chapters.find(c => c.id === selectedChapter)?.name}
+                    </span>
+                  )}
                 </p>
               )}
             </div>
