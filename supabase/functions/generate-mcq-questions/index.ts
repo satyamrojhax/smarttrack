@@ -1,8 +1,10 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+// Using the same Gemini API key that's used in DoubtAssistant
+const geminiApiKey = 'AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U';
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -59,38 +61,37 @@ Return the response as a JSON array of objects with this exact structure:
 Subject: ${subjectName}
 Generate ${numberOfQuestions} questions now:`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert CBSE Class 10 teacher who creates high-quality multiple choice questions. Always respond with valid JSON array format only, no additional text.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 4000,
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }],
+        generationConfig: {
+          maxOutputTokens: 4000,
+          temperature: 0.7
+        }
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      throw new Error(`Gemini API error: ${response.statusText}`);
     }
 
     const data = await response.json();
     let generatedQuestions;
     
     try {
-      const content = data.choices[0].message.content;
+      if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+        throw new Error('Invalid response format from Gemini API');
+      }
+
+      const content = data.candidates[0].content.parts[0].text;
       // Clean the response to extract JSON
       const jsonMatch = content.match(/\[[\s\S]*\]/);
       const jsonString = jsonMatch ? jsonMatch[0] : content;
