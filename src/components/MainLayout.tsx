@@ -23,10 +23,14 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { EnhancedThemeToggle } from '@/components/EnhancedThemeToggle';
-import { PWADownload } from '@/components/PWADownload';
+import EnhancedThemeToggle from '@/components/EnhancedThemeToggle';
+import PWADownload from '@/components/PWADownload';
 
-const MainLayout = () => {
+interface MainLayoutProps {
+  children?: React.ReactNode;
+}
+
+const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { profile, logout } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -171,7 +175,7 @@ const MainLayout = () => {
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto">
-          <Outlet />
+          {children || <Outlet />}
         </main>
       </div>
     </div>
