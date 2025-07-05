@@ -98,60 +98,53 @@ const MCQQuizPage: React.FC = () => {
 
     setIsGenerating(true);
     try {
-      // Generate questions using AI (mock data for now)
-      const mockQuestions: MCQQuestion[] = Array.from({ length: parseInt(numberOfQuestions) }, (_, i) => ({
-        id: `q-${i + 1}`,
-        question_text: `CBSE Class 10 ${subjects.find(s => s.id === selectedSubject)?.name} Question ${i + 1}: What is the main concept discussed in this topic? This is a sample PYQ question that would appear in board exams.`,
-        options: [
-          'Option A: First possible answer',
-          'Option B: Second possible answer', 
-          'Option C: Third possible answer',
-          'Option D: Fourth possible answer'
-        ],
-        correct_option: Math.floor(Math.random() * 4),
-        explanation: `This is the detailed explanation for question ${i + 1}. The correct answer is explained step by step with proper reasoning according to CBSE Class 10 pattern.`,
-        difficulty_level: parseInt(selectedDifficulty),
-        is_pyq: Math.random() > 0.5
+      const selectedSubjectData = subjects.find(s => s.id === selectedSubject);
+      
+      const { data, error } = await supabase.functions.invoke('generate-mcq-questions', {
+        body: {
+          subjectId: selectedSubject,
+          subjectName: selectedSubjectData?.name || 'General',
+          difficulty: selectedDifficulty,
+          numberOfQuestions: numberOfQuestions
+        }
+      });
+
+      if (error) throw error;
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to generate questions');
+      }
+
+      const generatedQuestions = data.questions.map((q: any) => ({
+        id: q.id,
+        question_text: q.question_text,
+        options: q.options,
+        correct_option: q.correct_option,
+        explanation: q.explanation,
+        difficulty_level: q.difficulty_level,
+        is_pyq: q.is_pyq
       }));
 
-      // Save questions to database
-      const { error: insertError } = await supabase
-        .from('mcq_questions')
-        .insert(
-          mockQuestions.map(q => ({
-            user_id: user?.id,
-            question_text: q.question_text,
-            options: q.options,
-            correct_option: q.correct_option,
-            subject_id: selectedSubject,
-            difficulty_level: q.difficulty_level,
-            explanation: q.explanation,
-            is_pyq: q.is_pyq
-          }))
-        );
-
-      if (insertError) throw insertError;
-
       // Start quiz session
-      const timeLimit = parseInt(numberOfQuestions) * 60; // 1 minute per question
+      const timeLimit = parseInt(numberOfQuestions) * 90; // 1.5 minutes per question
       setQuizSession({
-        questions: mockQuestions,
+        questions: generatedQuestions,
         currentQuestionIndex: 0,
-        selectedAnswers: new Array(mockQuestions.length).fill(null),
+        selectedAnswers: new Array(generatedQuestions.length).fill(null),
         timeLeft: timeLimit,
         isActive: true,
         showResults: false
       });
 
       toast({
-        title: "Quiz Started!",
-        description: `Generated ${numberOfQuestions} questions. Good luck!`
+        title: "Quiz Started! 🎯",
+        description: `Generated ${numberOfQuestions} AI-powered CBSE questions. Best of luck!`
       });
     } catch (error) {
       console.error('Error generating questions:', error);
       toast({
-        title: "Error",
-        description: "Failed to generate quiz questions",
+        title: "Generation Failed",
+        description: error.message || "Failed to generate quiz questions. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -358,110 +351,166 @@ const MCQQuizPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl space-y-6">
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-2xl">
-            <Brain className="w-8 h-8 text-primary" />
-            MCQ Quiz Generator
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Subject</label>
-              <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a subject" />
-                </SelectTrigger>
-                <SelectContent>
-                  {subjects.map((subject: any) => (
-                    <SelectItem key={subject.id} value={subject.id}>
-                      {subject.icon} {subject.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900">
+      <div className="container mx-auto p-4 max-w-4xl space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-4 py-8">
+          <div className="flex items-center justify-center gap-3">
+            <div className="p-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl shadow-lg animate-pulse">
+              <Brain className="w-10 h-10 text-white" />
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Difficulty Level</label>
-              <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {difficultyLevels.map(level => (
-                    <SelectItem key={level.value} value={level.value}>
-                      <span className={level.color}>{level.label}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Number of Questions</label>
-              <Select value={numberOfQuestions} onValueChange={setNumberOfQuestions}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {questionCounts.map(count => (
-                    <SelectItem key={count} value={count}>
-                      {count} Questions
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                AI MCQ Quiz Generator
+              </h1>
+              <p className="text-muted-foreground text-lg">CBSE Class 10 Pattern Questions</p>
             </div>
           </div>
+        </div>
 
-          <Button
-            onClick={generateMCQQuestions}
-            disabled={isGenerating || !selectedSubject}
-            className="w-full h-12 text-lg"
-          >
-            {isGenerating ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                Generating Questions...
-              </>
-            ) : (
-              <>
-                <Play className="w-5 h-5 mr-2" />
-                Start Quiz
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
+        <Card className="glass-card border-none shadow-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl">
+          <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-t-lg">
+            <CardTitle className="flex items-center gap-2 text-2xl">
+              <Target className="w-8 h-8 text-primary animate-bounce" />
+              Setup Your Quiz
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-8 p-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-primary">📚 Subject</label>
+                <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                  <SelectTrigger className="h-12 border-2 hover:border-primary transition-colors">
+                    <SelectValue placeholder="Choose your subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subjects.map((subject: any) => (
+                      <SelectItem key={subject.id} value={subject.id} className="hover:bg-primary/10">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{subject.icon}</span>
+                          <span>{subject.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle className="text-xl">Features</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-500" />
-              <span>CBSE Class 10 Pattern Questions</span>
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-primary">⚡ Difficulty Level</label>
+                <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+                  <SelectTrigger className="h-12 border-2 hover:border-primary transition-colors">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {difficultyLevels.map(level => (
+                      <SelectItem key={level.value} value={level.value}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3 h-3 rounded-full ${
+                            level.value === '1' ? 'bg-green-500' : 
+                            level.value === '2' ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}></div>
+                          <span className={level.color}>{level.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-primary">🔢 Questions Count</label>
+                <Select value={numberOfQuestions} onValueChange={setNumberOfQuestions}>
+                  <SelectTrigger className="h-12 border-2 hover:border-primary transition-colors">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {questionCounts.map(count => (
+                      <SelectItem key={count} value={count}>
+                        <div className="flex items-center gap-2">
+                          <Trophy className="w-4 h-4 text-yellow-500" />
+                          <span>{count} Questions</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-500" />
-              <span>Previous Year Questions (PYQs)</span>
+
+            <div className="flex flex-col items-center space-y-4">
+              <Button
+                onClick={generateMCQQuestions}
+                disabled={isGenerating || !selectedSubject}
+                className="w-full md:w-auto px-12 h-14 text-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+              >
+                {isGenerating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+                    <span className="animate-pulse">Generating AI Questions...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-6 h-6 mr-3" />
+                    🚀 Start AI Quiz
+                  </>
+                )}
+              </Button>
+              {selectedSubject && (
+                <p className="text-sm text-muted-foreground animate-fade-in">
+                  Estimated time: {parseInt(numberOfQuestions) * 1.5} minutes
+                </p>
+              )}
             </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-500" />
-              <span>Detailed Explanations</span>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card border-none shadow-xl bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+              🎯 Quiz Features
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { icon: "🎓", text: "CBSE Class 10 Pattern Questions", color: "text-blue-600" },
+                { icon: "📝", text: "Previous Year Questions (PYQs)", color: "text-purple-600" },
+                { icon: "💡", text: "Detailed Step-by-Step Explanations", color: "text-orange-600" },
+                { icon: "⏱️", text: "Smart Timed Quiz Sessions", color: "text-green-600" },
+                { icon: "🤖", text: "AI-Generated Quality Questions", color: "text-red-600" },
+                { icon: "📊", text: "Performance Analytics & Results", color: "text-cyan-600" }
+              ].map((feature, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors">
+                  <span className="text-2xl">{feature.icon}</span>
+                  <span className={`font-medium ${feature.color}`}>{feature.text}</span>
+                </div>
+              ))}
             </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-500" />
-              <span>Timed Quiz Sessions</span>
+          </CardContent>
+        </Card>
+
+        {/* Tips Card */}
+        <Card className="glass-card border-none shadow-xl bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-yellow-400 rounded-full">
+                <Target className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-2">💡 Pro Tips for Better Performance</h3>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  <li>• Read each question carefully before selecting your answer</li>
+                  <li>• Use the explanation feature to understand concepts better</li>
+                  <li>• Start with easier difficulty and gradually increase</li>
+                  <li>• Time yourself to simulate real exam conditions</li>
+                </ul>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
