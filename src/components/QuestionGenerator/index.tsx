@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useSyllabus } from '@/contexts/SyllabusContext';
 import { useToast } from '@/hooks/use-toast';
 import { Brain, Sparkles } from 'lucide-react';
+import { QuizMode } from '../QuizMode';
 import { saveQuestionResponse, saveQuestionToDatabase } from '@/services/questionResponseService';
 import { saveQuestionToHistory } from '@/services/questionHistoryService';
 import { GeneratedQuestion, QuestionFormData } from './types';
@@ -33,6 +34,7 @@ export const QuestionGenerator = () => {
   const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([]);
   const [visibleSolutions, setVisibleSolutions] = useState<Set<string>>(new Set());
   const [generatingSolution, setGeneratingSolution] = useState<string | null>(null);
+  const [showQuizMode, setShowQuizMode] = useState(false);
   const [savingQuestions, setSavingQuestions] = useState(false);
 
   const selectedSubjectData = subjects.find(s => s.id === formData.selectedSubject);
@@ -144,7 +146,7 @@ export const QuestionGenerator = () => {
     if (!formData.selectedSubject || !formData.selectedChapter || !formData.difficulty || formData.questionTypes.length === 0) {
       toast({
         title: "Missing Information",
-        description: "Please fill all fields and select at least one question type",
+        description: "Please fill all fields before generating questions",
         variant: "destructive"
       });
       return;
@@ -174,11 +176,7 @@ export const QuestionGenerator = () => {
             parts: [{
               text: prompt
             }]
-          }],
-          generationConfig: {
-            maxOutputTokens: 4000,
-            temperature: 0.7
-          }
+          }]
         })
       });
 
@@ -198,7 +196,7 @@ export const QuestionGenerator = () => {
       
       toast({
         title: "Questions Generated Successfully! 🎉",
-        description: `Created ${questions.length} practice questions tailored for CBSE Class 10`,
+        description: `Created ${questions.length} practice questions tailored for you`,
       });
 
     } catch (error) {
@@ -229,11 +227,7 @@ export const QuestionGenerator = () => {
             parts: [{
               text: prompt
             }]
-          }],
-          generationConfig: {
-            maxOutputTokens: 1000,
-            temperature: 0.3
-          }
+          }]
         })
       });
 
@@ -256,7 +250,7 @@ export const QuestionGenerator = () => {
 
       toast({
         title: "Solution Ready! ✨",
-        description: "Detailed step-by-step solution generated successfully",
+        description: "Brief explanation generated successfully",
       });
 
     } catch (error) {
@@ -299,18 +293,52 @@ export const QuestionGenerator = () => {
     });
   };
 
+  const startQuiz = () => {
+    const mcqQuestions = generatedQuestions.filter(q => q.options && q.correctAnswer !== undefined);
+    if (mcqQuestions.length === 0) {
+      toast({
+        title: "No MCQ Questions Available",
+        description: "Please generate MCQ questions first to start the quiz mode!",
+        variant: "destructive"
+      });
+      return;
+    }
+    setShowQuizMode(true);
+  };
+
+  if (showQuizMode) {
+    const quizQuestions = generatedQuestions
+      .filter(q => q.options && q.correctAnswer !== undefined)
+      .map(q => ({
+        id: q.id,
+        question: q.question,
+        options: q.options!,
+        correctAnswer: q.correctAnswer!,
+        explanation: q.answer || "Great attempt! The key to mastering this topic is regular practice and understanding the underlying concepts.",
+        subject: q.subject,
+        chapter: q.chapter
+      }));
+
+    return (
+      <div className="min-h-screen w-full p-2 sm:p-4 md:p-6">
+        <QuizMode 
+          questions={quizQuestions}
+          onExit={() => setShowQuizMode(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen w-full p-2 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
       <div className="text-center space-y-2 animate-fade-in">
         <h2 className="text-xl sm:text-2xl md:text-3xl font-bold flex items-center justify-center space-x-2">
           <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-primary" />
-          <span>Practice Question Generator</span>
+          <span>Smart Question Generator</span>
         </h2>
-        <p className="text-muted-foreground text-sm sm:text-base md:text-lg px-2">
-          Generate CBSE Class 10 PYQ-style questions with detailed step-by-step solutions
-        </p>
+        <p className="text-muted-foreground text-sm sm:text-base md:text-lg px-2">Generate personalized CBSE practice questions with AI-powered solutions</p>
         
-        <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
+        <div className="pt-2">
           <Button 
             variant="outline" 
             className="bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0 hover:opacity-90 text-sm sm:text-base"
@@ -318,14 +346,6 @@ export const QuestionGenerator = () => {
           >
             <Brain className="w-4 h-4 mr-2" />
             Ask Doubt - ChatGPT Style
-          </Button>
-          <Button 
-            variant="outline" 
-            className="bg-gradient-to-r from-green-500 to-blue-500 text-white border-0 hover:opacity-90 text-sm sm:text-base"
-            onClick={() => window.location.href = '/mcq-quiz'}
-          >
-            <Brain className="w-4 h-4 mr-2" />
-            Try MCQ Quiz Mode
           </Button>
         </div>
       </div>
@@ -344,6 +364,7 @@ export const QuestionGenerator = () => {
         questions={generatedQuestions}
         visibleSolutions={visibleSolutions}
         generatingSolution={generatingSolution}
+        onStartQuiz={startQuiz}
         onExportQuestions={handleExportQuestions}
         onCopyQuestion={copyQuestion}
         onToggleSolution={toggleSolutionVisibility}
