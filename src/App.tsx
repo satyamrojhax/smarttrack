@@ -1,4 +1,3 @@
-
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,6 +12,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import MainLayout from "./components/MainLayout";
 import SplashScreen from "./components/SplashScreen";
+import ExitConfirmation from "./components/ExitConfirmation";
 
 // Optimized lazy loading
 const Index = lazy(() => import("./pages/Index"));
@@ -21,7 +21,6 @@ const Profile = lazy(() => import("./pages/Profile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SyllabusPage = lazy(() => import("./pages/SyllabusPage"));
 const QuestionsPage = lazy(() => import("./pages/QuestionsPage"));
-const MCQQuizPage = lazy(() => import("./pages/MCQQuizPage"));
 const PredictorPage = lazy(() => import("./pages/PredictorPage"));
 const DoubtsPage = lazy(() => import("./pages/DoubtsPage"));
 const HistoryPage = lazy(() => import("./pages/HistoryPage"));
@@ -122,7 +121,7 @@ const AppContent = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 4000); // Show splash for 4 seconds
+    }, 3000); // Show splash for 3 seconds
 
     return () => clearTimeout(timer);
   }, []);
@@ -133,7 +132,6 @@ const AppContent = () => {
       const prefetchRoutes = () => {
         import("./pages/DoubtsPage");
         import("./pages/QuestionsPage");
-        import("./pages/MCQQuizPage");
         import("./pages/SyllabusPage");
       };
 
@@ -184,7 +182,6 @@ const AppContent = () => {
                 <Route path="/todo" element={<ToDoPage />} />
                 <Route path="/syllabus" element={<SyllabusPage />} />
                 <Route path="/questions" element={<QuestionsPage />} />
-                <Route path="/mcq-quiz" element={<MCQQuizPage />} />
                 <Route path="/doubts" element={<DoubtsPage />} />
                 <Route path="/predictor" element={<PredictorPage />} />
                 <Route path="/history" element={<HistoryPage />} />
@@ -214,6 +211,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <AppContent />
+              <ExitConfirmation />
             </BrowserRouter>
           </TooltipProvider>
         </AuthProvider>

@@ -122,7 +122,7 @@ div:has(> a[href*="gpt-engineer"]) {
   }
   
   .animate-fade-in {
-    animation: fadeIn 0.8s ease-in-out forwards;
+    animation: fadeIn 0.5s ease-in-out;
   }
   
   .hover-scale {
@@ -132,50 +132,18 @@ div:has(> a[href*="gpt-engineer"]) {
   .scale-102 {
     transform: scale(1.02);
   }
-
-  .animate-bounce-slow {
-    animation: bounce-slow 3s infinite;
-  }
-
-  .animate-spin-slow {
-    animation: spin 4s linear infinite;
-  }
-
-  .slow-spin {
-    animation: spin 8s linear infinite;
-  }
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-
-@keyframes bounce-slow {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-10px);
-  }
-  60% {
-    transform: translateY(-5px);
-  }
-}
-
-/* Delay classes for animations */
-.delay-100 { animation-delay: 0.1s; }
-.delay-200 { animation-delay: 0.2s; }
-.delay-300 { animation-delay: 0.3s; }
-.delay-400 { animation-delay: 0.4s; }
-.delay-500 { animation-delay: 0.5s; }
-.delay-600 { animation-delay: 0.6s; }
 
 /* Safe area padding for mobile devices */
 .pt-safe-area-inset-top {
