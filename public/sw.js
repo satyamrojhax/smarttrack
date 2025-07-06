@@ -1,50 +1,46 @@
 
-const CACHE_NAME = 'axiom-smart-track-v3';
-const STATIC_CACHE = 'static-v3';
-const DYNAMIC_CACHE = 'dynamic-v3';
+const CACHE_NAME = 'axiom-smart-track-v4';
+const STATIC_CACHE = 'static-v4';
+const DYNAMIC_CACHE = 'dynamic-v4';
 
-// Enhanced caching strategy with more aggressive caching
+// Enhanced caching strategy for production
 const urlsToCache = [
   '/',
   '/static/js/bundle.js',
   '/static/css/main.css',
   '/manifest.json',
   '/favicon.ico',
-  // Cache common API endpoints
-  '/api/auth/user',
-  '/api/syllabus',
+  // Cache offline fallback page
+  '/offline.html',
 ];
 
-// Install event - cache static resources aggressively
+// Install event - aggressive caching for production
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
+  console.log('[SW] Installing service worker v4...');
   event.waitUntil(
     Promise.all([
       caches.open(STATIC_CACHE).then((cache) => {
         console.log('[SW] Caching static resources');
         return cache.addAll(urlsToCache.map(url => new Request(url, { cache: 'reload' })));
       }),
-      // Pre-cache critical resources
       caches.open(DYNAMIC_CACHE).then((cache) => {
         console.log('[SW] Pre-caching dynamic resources');
         return cache.addAll([
           'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
         ]);
       })
     ]).then(() => {
-      console.log('[SW] Installation complete, skipping waiting');
+      console.log('[SW] Installation complete, taking control');
       return self.skipWaiting();
     })
   );
 });
 
-// Activate event - clean up old caches and claim clients immediately
+// Activate event - clean up and take control
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
+  console.log('[SW] Activating service worker v4...');
   event.waitUntil(
     Promise.all([
-      // Clean up old caches
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
@@ -55,40 +51,69 @@ self.addEventListener('activate', (event) => {
           })
         );
       }),
-      // Take control of all clients immediately
       self.clients.claim()
     ]).then(() => {
-      console.log('[SW] Activation complete');
+      console.log('[SW] Activation complete - ready for production');
     })
   );
 });
 
-// Enhanced fetch event with network-first for API calls, cache-first for static assets
+// Production-ready fetch strategy
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests and chrome-extension requests
   if (event.request.method !== 'GET' || event.request.url.startsWith('chrome-extension://')) {
     return;
   }
 
   const url = new URL(event.request.url);
 
-  // Different strategies for different types of requests
-  if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase') || url.hostname.includes('googleapis')) {
-    // Network-first for API calls
-    event.respondWith(networkFirstStrategy(event.request));
-  } else if (event.request.destination === 'image' || event.request.destination === 'font') {
-    // Cache-first for images and fonts
-    event.respondWith(cacheFirstStrategy(event.request));
-  } else {
-    // Stale-while-revalidate for everything else
-    event.respondWith(staleWhileRevalidateStrategy(event.request));
+  // Handle navigation requests (HTML pages)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response.ok) {
+            const cache = caches.open(DYNAMIC_CACHE);
+            cache.then(c => c.put(event.request, response.clone()));
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match('/') || caches.match('/offline.html');
+        })
+    );
+    return;
   }
+
+  // API calls - network first with timeout
+  if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase') || url.hostname.includes('googleapis')) {
+    event.respondWith(networkFirstWithTimeout(event.request));
+    return;
+  }
+
+  // Static assets - cache first
+  if (event.request.destination === 'image' || 
+      event.request.destination === 'font' || 
+      event.request.destination === 'style' ||
+      event.request.destination === 'script') {
+    event.respondWith(cacheFirstStrategy(event.request));
+    return;
+  }
+
+  // Everything else - stale while revalidate
+  event.respondWith(staleWhileRevalidateStrategy(event.request));
 });
 
-// Network-first strategy for API calls
-async function networkFirstStrategy(request) {
+// Network first with timeout for critical requests
+async function networkFirstWithTimeout(request) {
   try {
-    const networkResponse = await fetch(request, { timeout: 8000 });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    const networkResponse = await fetch(request, { 
+      signal: controller.signal 
+    });
+    
+    clearTimeout(timeoutId);
     
     if (networkResponse.ok) {
       const cache = await caches.open(DYNAMIC_CACHE);
@@ -97,17 +122,32 @@ async function networkFirstStrategy(request) {
     
     return networkResponse;
   } catch (error) {
-    console.log('[SW] Network failed, trying cache for:', request.url);
+    console.log('[SW] Network timeout/error, trying cache:', request.url);
     const cachedResponse = await caches.match(request);
-    return cachedResponse || new Response('Offline', { status: 503 });
+    return cachedResponse || new Response(
+      JSON.stringify({ error: 'Service temporarily unavailable' }), 
+      { 
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 }
 
-// Cache-first strategy for static assets
+// Cache first for static assets
 async function cacheFirstStrategy(request) {
   const cachedResponse = await caches.match(request);
   
   if (cachedResponse) {
+    // Update cache in background
+    fetch(request).then(response => {
+      if (response.ok) {
+        caches.open(DYNAMIC_CACHE).then(cache => {
+          cache.put(request, response);
+        });
+      }
+    }).catch(() => {});
+    
     return cachedResponse;
   }
 
@@ -121,25 +161,33 @@ async function cacheFirstStrategy(request) {
     
     return networkResponse;
   } catch (error) {
-    console.log('[SW] Failed to fetch:', request.url);
-    return new Response('Resource not available', { status: 404 });
+    console.log('[SW] Failed to fetch asset:', request.url);
+    return new Response('Asset not available offline', { status: 404 });
   }
 }
 
-// Stale-while-revalidate strategy
+// Stale while revalidate for general requests
 async function staleWhileRevalidateStrategy(request) {
   const cachedResponse = await caches.match(request);
   
   const networkFetch = fetch(request).then(response => {
     if (response.ok) {
-      const cache = caches.open(DYNAMIC_CACHE);
-      cache.then(c => c.put(request, response.clone()));
+      caches.open(DYNAMIC_CACHE).then(cache => {
+        cache.put(request, response.clone());
+      });
     }
     return response;
   }).catch(() => cachedResponse);
 
   return cachedResponse || networkFetch;
 }
+
+// Handle messages from main thread
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
 
 // Background sync for offline actions
 self.addEventListener('sync', (event) => {
@@ -150,8 +198,26 @@ self.addEventListener('sync', (event) => {
 });
 
 async function doBackgroundSync() {
-  // Handle offline data sync here
   console.log('[SW] Performing background sync...');
+  try {
+    // Sync offline data when back online
+    const offlineData = await getOfflineData();
+    if (offlineData && offlineData.length > 0) {
+      await syncDataToServer(offlineData);
+    }
+  } catch (error) {
+    console.error('[SW] Background sync failed:', error);
+  }
+}
+
+async function getOfflineData() {
+  // Get offline data from IndexedDB or localStorage
+  return [];
+}
+
+async function syncDataToServer(data) {
+  // Sync data to server
+  console.log('[SW] Syncing data to server:', data.length, 'items');
 }
 
 // Enhanced push notifications
@@ -162,7 +228,7 @@ self.addEventListener('push', (event) => {
       body: data.body,
       icon: '/favicon.ico',
       badge: '/favicon.ico',
-      vibrate: [100, 50, 100],
+      vibrate: [200, 100, 200],
       data: {
         dateOfArrival: Date.now(),
         primaryKey: data.id || 1,
@@ -170,22 +236,26 @@ self.addEventListener('push', (event) => {
       },
       actions: [
         {
-          action: 'explore', 
+          action: 'open', 
           title: 'Open App',
           icon: '/favicon.ico'
         },
         {
-          action: 'close', 
-          title: 'Close',
+          action: 'dismiss', 
+          title: 'Dismiss',
           icon: '/favicon.ico'
         },
       ],
-      requireInteraction: true,
-      silent: false
+      requireInteraction: false,
+      silent: false,
+      tag: 'axiom-notification'
     };
 
     event.waitUntil(
-      self.registration.showNotification(data.title || 'Axiom Smart Track', options)
+      self.registration.showNotification(
+        data.title || 'Axiom Smart Track', 
+        options
+      )
     );
   }
 });
@@ -193,16 +263,15 @@ self.addEventListener('push', (event) => {
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Notification click received.');
-
   event.notification.close();
 
-  if (event.action === 'explore') {
+  if (event.action === 'open' || !event.action) {
     const urlToOpen = event.notification.data?.url || '/';
     
     event.waitUntil(
-      clients.matchAll({ type: 'window' }).then((clientList) => {
+      clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
         for (const client of clientList) {
-          if (client.url === urlToOpen && 'focus' in client) {
+          if (client.url.includes(urlToOpen) && 'focus' in client) {
             return client.focus();
           }
         }
@@ -214,14 +283,24 @@ self.addEventListener('notificationclick', (event) => {
   }
 });
 
-// Periodic background sync
-self.addEventListener('periodicsync', (event) => {
-  if (event.tag === 'content-sync') {
-    event.waitUntil(doPeriodicSync());
-  }
+// Performance monitoring
+self.addEventListener('fetch', (event) => {
+  const startTime = Date.now();
+  
+  event.respondWith(
+    handleRequest(event.request).then(response => {
+      const duration = Date.now() - startTime;
+      
+      // Log slow requests
+      if (duration > 5000) {
+        console.warn(`[SW] Slow request detected: ${event.request.url} took ${duration}ms`);
+      }
+      
+      return response;
+    })
+  );
 });
 
-async function doPeriodicSync() {
-  console.log('[SW] Periodic sync triggered');
-  // Sync content in the background
+async function handleRequest(request) {
+  return fetch(request);
 }

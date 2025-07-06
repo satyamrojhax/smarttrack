@@ -9,6 +9,12 @@
   "theme_color": "#6366f1",
   "orientation": "portrait-primary",
   "scope": "/",
+  "lang": "en",
+  "prefer_related_applications": false,
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
   "icons": [
     {
       "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA3LjUgOC41SDlDOS4xMzgwNyA3LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
@@ -17,19 +23,13 @@
       "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA3LjUgOC41SDlDOS4xMzgwNyA3LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDgsNSA3LjUgOC41SDlDOS4xMzgwNyA3LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
   "categories": ["education", "productivity", "lifestyle"],
-  "lang": "en",
-  "prefer_related_applications": false,
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-  "launch_handler": {
-    "client_mode": "navigate-existing"
-  },
   "shortcuts": [
     {
       "name": "AI Doubts",
@@ -50,7 +50,19 @@
       "url": "/questions",
       "icons": [
         {
-          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA7LjUgOC41SDlDOS4xMzgwNyA3LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA3LjUgOC41SDlDOS4xMzgwNyA3LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Study Timer",
+      "short_name": "Timer",
+      "description": "Focus with study timer",
+      "url": "/timer",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI2IiBmaWxsPSIjNjM2NmYxIi8+CjxwYXRoIGQ9Ik05LjUgNkgxMkgxMy41QzE2LjUzNzYgNiAxOSA4LjQ2MjQ0IDE5IDExLjVDMTkgMTIuNjEyNiAxOC42ODgzIDEzLjY0MyAxNy4xMDE3IDE0LjMxMTNDMTcuMjIyNSAxNS4yNjQzIDE3LjUgMTYuMzUzMyAxNy41IDE4LjVDMTcuMTQ3OCAxNy43Mzc5IDE2LjU0MzcgMTkuNjA5MiAxNyAyMUMxNy40NTYzIDIyLjM5MDggMTYuMzkyOCAyMy41IDE0LjUgMjMuNUg4LjVDMy40MzkzIDIzLjUgMiAyMS4wNjA3IDIgMTZDMiAxMC45MzkzNiA0LjQzOTM2IDguNSA3LjUgOC41SDlDOS4xMzgwNyA3LjAzMzA3IDEwLjM4MzEgNiA5LjUgNloiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4=",
           "sizes": "96x96"
         }
       ]

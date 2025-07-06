@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -21,6 +20,12 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin, Users, Settings, Star, Download } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import OfflineIndicator from './OfflineIndicator';
+import InstallPrompt from './InstallPrompt';
+import UpdatePrompt from './UpdatePrompt';
+import AppRating from './AppRating';
+import PerformanceMonitor from './PerformanceMonitor';
+import DataSyncManager from './DataSyncManager';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -239,7 +244,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
+        <OfflineIndicator />
+        <PerformanceMonitor />
+        <DataSyncManager />
+        
         <AppSidebar />
+        
         <SidebarInset className="flex-1 w-full">
           <header className={`sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm ${isStandalone ? 'pt-safe-area-inset-top' : ''}`}>
             <div className="flex justify-between items-center h-16 px-4 md:px-6">
@@ -316,6 +326,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </div>
           </nav>
         </SidebarInset>
+        
+        <InstallPrompt />
+        <UpdatePrompt />
+        <AppRating />
       </div>
     </SidebarProvider>
   );
