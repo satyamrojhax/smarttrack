@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useSyllabus } from '@/contexts/SyllabusContext';
 import { useToast } from '@/hooks/use-toast';
 import { Brain, Sparkles } from 'lucide-react';
 import { QuizMode } from '../QuizMode';
-import { saveQuestionResponse, saveQuestionToDatabase } from '@/services/questionResponseService';
+import { saveUserQuestionResponse } from '@/services/questionResponseService';
 import { saveQuestionToHistory } from '@/services/questionHistoryService';
 import { GeneratedQuestion, QuestionFormData } from './types';
 import { QuestionForm } from './QuestionForm';
@@ -59,18 +58,18 @@ export const QuestionGenerator = () => {
           
           const difficultyNum = question.difficulty === 'easy' ? 1 : question.difficulty === 'medium' ? 2 : 3;
           
-          const questionSaveResult = await saveQuestionToDatabase(
-            question.question,
-            question.type,
-            difficultyNum,
-            question.options ? String.fromCharCode(97 + (question.correctAnswer || 0)) : question.answer,
-            question.options ? question.options : undefined,
-            question.answer,
-            chapterId
-          );
+          const questionSaveResult = await saveUserQuestionResponse({
+            question_text: question.question,
+            question_type: question.type,
+            difficulty_level: difficultyNum,
+            correct_answer: question.options ? String.fromCharCode(97 + (question.correctAnswer || 0)) : question.answer,
+            options: question.options ? question.options : undefined,
+            explanation: question.answer,
+            chapter_id: chapterId
+          });
 
-          if (questionSaveResult.success && questionSaveResult.data) {
-            console.log('Question saved successfully:', questionSaveResult.data.id);
+          if (questionSaveResult) {
+            console.log('Question saved successfully:', questionSaveResult.id);
             
             const historyResult = await saveQuestionToHistory(
               question.question,
@@ -80,33 +79,18 @@ export const QuestionGenerator = () => {
               question.options ? String.fromCharCode(97 + (question.correctAnswer || 0)) : question.answer,
               undefined,
               undefined,
-              questionSaveResult.data.id
+              questionSaveResult.id
             );
 
             if (historyResult.success) {
               console.log('Question saved to history successfully');
-            } else {
-              console.error('Failed to save to history:', historyResult.error);
-            }
-
-            const responseResult = await saveQuestionResponse(
-              question.question,
-              undefined,
-              question.options ? String.fromCharCode(97 + (question.correctAnswer || 0)) : question.answer,
-              undefined,
-              undefined,
-              questionSaveResult.data.id
-            );
-
-            if (responseResult.success) {
-              console.log('Question response saved successfully');
               savedCount++;
             } else {
-              console.error('Failed to save question response:', responseResult.error);
+              console.error('Failed to save to history:', historyResult.error);
               errorCount++;
             }
           } else {
-            console.error('Failed to save question:', questionSaveResult.error);
+            console.error('Failed to save question');
             errorCount++;
           }
         } catch (error) {

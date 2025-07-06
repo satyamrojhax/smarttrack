@@ -32,7 +32,7 @@ export const usePerformance = () => {
     return async (...args: any[]) => {
       const startTime = performance.now();
       try {
-        const result = await fn(...args);
+        const result = typeof fn === 'function' ? await fn.apply(null, args) : await fn;
         const endTime = performance.now();
         const duration = endTime - startTime;
         
