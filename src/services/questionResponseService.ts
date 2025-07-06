@@ -35,7 +35,7 @@ export const saveUserQuestionResponse = async (questionData: QuestionData) => {
 
     if (existingQuestion) {
       console.log('Question already exists, skipping save');
-      return { success: true, data: existingQuestion };
+      return { success: true, data: existingQuestion, isDuplicate: true };
     }
 
     const { data, error } = await supabase
@@ -64,7 +64,7 @@ export const saveUserQuestionResponse = async (questionData: QuestionData) => {
       throw error;
     }
 
-    return { success: true, data };
+    return { success: true, data, isDuplicate: false };
   } catch (error) {
     console.error('Error saving question response:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
@@ -107,17 +107,20 @@ export const saveQuestionToDatabase = async (
       return { success: false, error: 'User not authenticated' };
     }
 
+    // Create a unique identifier based on question content to prevent duplicates
+    const questionHash = questionText.trim().toLowerCase();
+    
     // Check if this exact question already exists for this user
     const { data: existingQuestion } = await supabase
       .from('user_generated_questions')
       .select('id')
       .eq('user_id', user.id)
-      .eq('question_text', questionText)
+      .ilike('question_text', questionHash)
       .maybeSingle();
 
     if (existingQuestion) {
       console.log('Question already exists, skipping duplicate save');
-      return { success: true, data: existingQuestion };
+      return { success: true, data: existingQuestion, isDuplicate: true };
     }
 
     const { data, error } = await supabase
@@ -140,7 +143,7 @@ export const saveQuestionToDatabase = async (
       return { success: false, error: error.message };
     }
 
-    return { success: true, data };
+    return { success: true, data, isDuplicate: false };
   } catch (error) {
     console.error('Error in saveQuestionToDatabase:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };

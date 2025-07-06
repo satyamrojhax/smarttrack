@@ -146,7 +146,7 @@ const PromptQuestionPage: React.FC = () => {
 
       if (question) {
         questions.push({
-          id: `prompt-q-${index}`,
+          id: `prompt-q-${index}-${Date.now()}`,
           question,
           answer,
           type,

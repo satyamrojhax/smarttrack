@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Mail, Lock, User, Brain, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Brain, ArrowRight, Download } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -105,7 +105,7 @@ const Auth: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const redirectUrl = `${window.location.origin}/verify-email`;
+      const redirectUrl = `${window.location.origin}/email-verification`;
       
       const { error } = await supabase.auth.signUp({
         email: email.trim(),
@@ -138,7 +138,7 @@ const Auth: React.FC = () => {
           title: "Account Created!",
           description: "Please check your email to verify your account before signing in.",
         });
-        setActiveTab('signin');
+        navigate('/email-verifying');
       }
     } catch (error) {
       toast({
@@ -325,6 +325,18 @@ const Auth: React.FC = () => {
                 </form>
               </TabsContent>
             </Tabs>
+
+            {/* Download Now Button */}
+            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <Button
+                variant="outline"
+                className="w-full h-12 border-2 border-gradient-to-r from-purple-500 to-blue-500 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl font-medium"
+                onClick={() => window.open('https://play.google.com/store/apps/details?id=com.axiomsmarttrack', '_blank')}
+              >
+                <Download className="w-5 h-5 mr-2" />
+                Download App Now
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

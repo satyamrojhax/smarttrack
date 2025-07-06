@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -23,8 +24,8 @@ import {
   Wand2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { EnhancedThemeToggle } from '@/components/EnhancedThemeToggle';
-import { PWADownload } from '@/components/PWADownload';
+import EnhancedThemeToggle from '@/components/EnhancedThemeToggle';
+import PWADownload from '@/components/PWADownload';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
