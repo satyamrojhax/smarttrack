@@ -28,7 +28,7 @@ export const usePerformance = () => {
     };
   }, []);
 
-  const measurePerformance = useCallback((name: string, fn: (...args: any[]) => Promise<any> | any) => {
+  const measurePerformance = useCallback((name: string, fn: () => Promise<any> | any) => {
     return async (...args: any[]) => {
       const startTime = performance.now();
       try {

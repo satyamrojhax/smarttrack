@@ -1,4 +1,3 @@
-
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -21,8 +20,6 @@ const Profile = lazy(() => import("./pages/Profile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SyllabusPage = lazy(() => import("./pages/SyllabusPage"));
 const QuestionsPage = lazy(() => import("./pages/QuestionsPage"));
-const PromptQuestionPage = lazy(() => import("./pages/PromptQuestionPage"));
-const MCQQuizPage = lazy(() => import("./pages/MCQQuizPage"));
 const PredictorPage = lazy(() => import("./pages/PredictorPage"));
 const DoubtsPage = lazy(() => import("./pages/DoubtsPage"));
 const HistoryPage = lazy(() => import("./pages/HistoryPage"));
@@ -184,8 +181,6 @@ const AppContent = () => {
                 <Route path="/todo" element={<ToDoPage />} />
                 <Route path="/syllabus" element={<SyllabusPage />} />
                 <Route path="/questions" element={<QuestionsPage />} />
-                <Route path="/prompt-questions" element={<PromptQuestionPage />} />
-                <Route path="/quiz" element={<MCQQuizPage />} />
                 <Route path="/doubts" element={<DoubtsPage />} />
                 <Route path="/predictor" element={<PredictorPage />} />
                 <Route path="/history" element={<HistoryPage />} />

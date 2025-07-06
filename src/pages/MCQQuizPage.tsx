@@ -72,50 +72,20 @@ const MCQQuizPage: React.FC = () => {
 
     setLoading(true);
     try {
-      // Generate MCQ questions using AI
-      const subjectName = subjects.find(s => s.id === selectedSubject)?.name || '';
-      const chapterName = selectedChapter ? filteredChapters.find(ch => ch.id === selectedChapter)?.name || '' : '';
-      
-      const prompt = `Generate ${questionCount} multiple choice questions for ${subjectName}${chapterName ? ` - ${chapterName}` : ''} at ${difficulty === 1 ? 'easy' : difficulty === 2 ? 'medium' : 'hard'} difficulty level for Class 10 students.
-
-Format each question as:
-Question: [question text]
-A) [option 1]
-B) [option 2] 
-C) [option 3]
-D) [option 4]
-Correct Answer: [A/B/C/D]
-Explanation: [brief explanation]
-
-Make sure questions are educational and test understanding of key concepts.`;
-
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }]
-        })
+      const { data, error } = await supabase.functions.invoke('generate-mcq-questions', {
+        body: {
+          subject_id: selectedSubject,
+          chapter_id: selectedChapter || null,
+          difficulty_level: difficulty,
+          question_count: questionCount
+        }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate questions');
-      }
+      if (error) throw error;
 
-      const data = await response.json();
-      const generatedText = data.candidates[0].content.parts[0].text;
-      
-      // Parse the generated questions
-      const questions = parseQuestions(generatedText);
-      
-      if (questions.length > 0) {
+      if (data?.questions && data.questions.length > 0) {
         setQuizSession({
-          questions: questions,
+          questions: data.questions,
           currentQuestionIndex: 0,
           answers: [],
           score: 0,
@@ -124,15 +94,10 @@ Make sure questions are educational and test understanding of key concepts.`;
           timeElapsed: 0
         });
         setTimer(0);
-        
-        toast({
-          title: "Quiz Started! 🎯",
-          description: `Generated ${questions.length} questions for your quiz.`,
-        });
       } else {
         toast({
-          title: "No Questions Generated",
-          description: "Unable to generate questions. Please try different settings.",
+          title: "No Questions Available",
+          description: "No questions found for the selected criteria. Try different settings.",
           variant: "destructive"
         });
       }
@@ -146,50 +111,6 @@ Make sure questions are educational and test understanding of key concepts.`;
     } finally {
       setLoading(false);
     }
-  };
-
-  const parseQuestions = (text: string): MCQQuestion[] => {
-    const questions: MCQQuestion[] = [];
-    const questionBlocks = text.split(/Question \d+:|Question:/i).filter(block => block.trim());
-    
-    questionBlocks.forEach((block, index) => {
-      const lines = block.trim().split('\n').map(line => line.trim()).filter(line => line);
-      
-      if (lines.length < 6) return; // Need at least question + 4 options + answer
-      
-      const questionText = lines[0];
-      const options: string[] = [];
-      let correctAnswer = 0;
-      let explanation = '';
-      
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i];
-        
-        if (line.match(/^[A-D]\)/)) {
-          options.push(line.substring(2).trim());
-        } else if (line.toLowerCase().startsWith('correct answer:')) {
-          const answer = line.split(':')[1].trim().toUpperCase();
-          correctAnswer = answer.charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
-        } else if (line.toLowerCase().startsWith('explanation:')) {
-          explanation = line.split(':')[1].trim();
-        }
-      }
-      
-      if (options.length === 4 && questionText) {
-        questions.push({
-          id: `q${index + 1}`,
-          question_text: questionText,
-          options: options,
-          correct_option: correctAnswer,
-          explanation: explanation,
-          difficulty_level: difficulty,
-          subject_id: selectedSubject,
-          chapter_id: selectedChapter
-        });
-      }
-    });
-    
-    return questions;
   };
 
   const answerQuestion = (selectedOption: number) => {
@@ -223,10 +144,25 @@ Make sure questions are educational and test understanding of key concepts.`;
   const completeQuiz = async (completedSession: QuizSession) => {
     setQuizSession(completedSession);
     
-    toast({
-      title: "Quiz Complete! 🎉",
-      description: `You scored ${completedSession.score}/${completedSession.questions.length}`,
-    });
+    // Save quiz session to database
+    try {
+      const { error } = await supabase
+        .from('mcq_quiz_sessions')
+        .insert({
+          user_id: user!.id,
+          total_questions: completedSession.questions.length,
+          correct_answers: completedSession.score,
+          score_percentage: Math.round((completedSession.score / completedSession.questions.length) * 100),
+          time_taken: completedSession.timeElapsed,
+          completed_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Error saving quiz session:', error);
+      }
+    } catch (error) {
+      console.error('Error saving quiz session:', error);
+    }
   };
 
   const resetQuiz = () => {
@@ -255,7 +191,7 @@ Make sure questions are educational and test understanding of key concepts.`;
           <div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
               <Brain className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-purple-600" />
-              Quiz Challenge
+              Quizs
             </h1>
             <p className="text-xs sm:text-sm lg:text-base text-muted-foreground mt-1">
               Test your knowledge with AI-generated questions

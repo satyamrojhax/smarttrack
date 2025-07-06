@@ -25,10 +25,7 @@ export const saveUserQuestionResponse = async (questionData: QuestionData) => {
       throw new Error('User not authenticated');
     }
 
-    // Create a unique identifier for the question to prevent duplicates
-    const questionHash = btoa(questionData.question_text).replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
-    
-    // Check if this exact question already exists for this user by content hash
+    // Check if this exact question already exists for this user
     const { data: existingQuestion } = await supabase
       .from('user_generated_questions')
       .select('id')
@@ -38,7 +35,7 @@ export const saveUserQuestionResponse = async (questionData: QuestionData) => {
 
     if (existingQuestion) {
       console.log('Question already exists, skipping save');
-      return { success: true, data: existingQuestion, duplicate: true };
+      return existingQuestion;
     }
 
     const { data, error } = await supabase
@@ -67,93 +64,10 @@ export const saveUserQuestionResponse = async (questionData: QuestionData) => {
       throw error;
     }
 
-    return { success: true, data, duplicate: false };
+    return data;
   } catch (error) {
     console.error('Error saving question response:', error);
     throw error;
-  }
-};
-
-// Updated function to return proper success/error format and prevent duplicates
-export const saveQuestionResponse = async (
-  questionText: string,
-  userAnswer?: string,
-  correctAnswer?: string,
-  isCorrect?: boolean,
-  timeTaken?: number,
-  questionId?: string
-) => {
-  try {
-    const result = await saveUserQuestionResponse({
-      question_text: questionText,
-      correct_answer: correctAnswer,
-      explanation: `User answer: ${userAnswer || 'Not provided'}. Correct: ${isCorrect ? 'Yes' : 'No'}. Time taken: ${timeTaken || 0}s`
-    });
-    
-    if (result.duplicate) {
-      return { success: true, data: result.data, message: 'Question already exists in history' };
-    }
-    
-    return { success: true, data: result.data };
-  } catch (error) {
-    console.error('Error saving question response:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-  }
-};
-
-// Enhanced saveQuestionToDatabase function with duplicate prevention
-export const saveQuestionToDatabase = async (
-  questionText: string,
-  questionType: string,
-  difficultyLevel: number,
-  correctAnswer: string,
-  options?: string[],
-  explanation?: string,
-  chapterId?: string
-) => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return { success: false, error: 'User not authenticated' };
-    }
-
-    // Check for duplicate before inserting
-    const { data: existingQuestion } = await supabase
-      .from('user_generated_questions')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('question_text', questionText)
-      .maybeSingle();
-
-    if (existingQuestion) {
-      console.log('Question already exists, skipping save');
-      return { success: true, data: existingQuestion, duplicate: true };
-    }
-
-    const { data, error } = await supabase
-      .from('user_generated_questions')
-      .insert({
-        user_id: user.id,
-        question_text: questionText,
-        question_type: questionType,
-        difficulty_level: difficultyLevel,
-        correct_answer: correctAnswer,
-        options: options ? JSON.stringify(options) : null,
-        explanation: explanation,
-        chapter_id: chapterId
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Database error saving question:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, data, duplicate: false };
-  } catch (error) {
-    console.error('Error in saveQuestionToDatabase:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
 
