@@ -60,16 +60,20 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         
         if (!mounted) return;
         
+        // Always update session and user state
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-          // Fetch profile but don't block the UI
-          fetchUserProfile(session.user.id);
+        if (session?.user) {
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            // Fetch profile but don't block the UI
+            fetchUserProfile(session.user.id);
+          }
         } else if (event === 'SIGNED_OUT') {
           setProfile(null);
         }
         
+        // Only set loading to false after we've processed the auth state
         setIsLoading(false);
       }
     );
