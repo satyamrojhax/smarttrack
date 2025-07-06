@@ -71,7 +71,7 @@ export const saveUserQuestionResponse = async (questionData: QuestionData) => {
   }
 };
 
-// Alias for backward compatibility
+// Updated function to return proper success/error format
 export const saveQuestionResponse = async (
   questionText: string,
   userAnswer?: string,
@@ -80,11 +80,17 @@ export const saveQuestionResponse = async (
   timeTaken?: number,
   questionId?: string
 ) => {
-  return saveUserQuestionResponse({
-    question_text: questionText,
-    correct_answer: correctAnswer,
-    explanation: `User answer: ${userAnswer || 'Not provided'}. Correct: ${isCorrect ? 'Yes' : 'No'}. Time taken: ${timeTaken || 0}s`
-  });
+  try {
+    const result = await saveUserQuestionResponse({
+      question_text: questionText,
+      correct_answer: correctAnswer,
+      explanation: `User answer: ${userAnswer || 'Not provided'}. Correct: ${isCorrect ? 'Yes' : 'No'}. Time taken: ${timeTaken || 0}s`
+    });
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error saving question response:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
 };
 
 // Add the missing saveQuestionToDatabase function
