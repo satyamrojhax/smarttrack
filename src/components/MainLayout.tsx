@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -38,8 +39,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         description: "Starting download of Axiom Smart Track APK",
       });
 
-      // Direct APK URL from Supabase storage
-      const apkUrl = 'https://zlmemsesjpwtpxaznikg.supabase.co/storage/v1/object/sign/axiom-smart-track.apk/apkfiles.apk?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV82MmQ1NTBmOS04YjIxLTQ4ZGItYWRjNy1iMDY2OWJjNjY4M2MiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJheGlvbS1zbWFydC10cmFjay5hcGsvYXBrZmlsZXMuYXBrIiwiaWF0IjoxNzUxNzg5NzQxLCJleHAiOjE3ODMzMjU3NDF9.UYi3skqI2hkG17-88nNWRKFtoWT2uiRZX7UMKvSeHZo';
+      // Updated APK URL from Supabase storage
+      const apkUrl = 'https://zlmemsesjpwtpxaznikg.supabase.co/storage/v1/object/sign/axiom-smart-track.apk/smarttrack.apk?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV82MmQ1NTBmOS04YjIxLTQ4ZGItYWRjNy1iMDY2OWJjNjY4M2MiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJheGlvbS1zbWFydC10cmFjay5hcGsvc21hcnR0cmFjay5hcGsiLCJpYXQiOjE3NTE3OTAxNTYsImV4cCI6MTc4MzMyNjE1Nn0.M_Y-6arMzf8NGHPd1sC4uoMdAn7z7dcUVtHPPBLxCrY';
 
       // Create a temporary anchor element to trigger download
       const link = document.createElement('a');
