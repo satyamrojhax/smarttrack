@@ -1,4 +1,3 @@
-
 import React, { Suspense, lazy } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -20,7 +19,7 @@ import {
   SidebarFooter
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
-import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin, Users, Settings, Star, Download } from 'lucide-react';
+import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin, Users, Settings, Star, Download, Sparkles } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 // Lazy load components for better performance
@@ -89,6 +88,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'Dashboard', href: '/', icon: Home, color: 'text-blue-600', gradient: 'from-blue-500 to-blue-600' },
     { name: 'ToDo Tasks', href: '/todo', icon: CheckSquare, color: 'text-green-600', gradient: 'from-green-500 to-green-600' },
     { name: 'AI Questions', href: '/questions', icon: Brain, color: 'text-purple-600', gradient: 'from-purple-500 to-purple-600' },
+    { name: 'Prompt Questions', href: '/prompt-questions', icon: Sparkles, color: 'text-pink-600', gradient: 'from-pink-500 to-pink-600' },
     { name: 'Ask Doubts', href: '/doubts', icon: HelpCircle, color: 'text-orange-600', gradient: 'from-orange-500 to-orange-600' },
     { name: 'Syllabus', href: '/syllabus', icon: BookOpen, color: 'text-indigo-600', gradient: 'from-indigo-500 to-indigo-600' },
     { name: 'Predictor', href: '/predictor', icon: TrendingUp, color: 'text-emerald-600', gradient: 'from-emerald-500 to-emerald-600' },
@@ -211,7 +211,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 🇮🇳 Made in India
               </p>
               <p className="font-medium">Designed & Developed By</p>
-              <p className="font-semibold">Satyam Rojha</p>
+              <a 
+                href="https://satyamrojha.netlify.app/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="font-semibold text-purple-600 hover:text-purple-700 transition-colors cursor-pointer hover:underline"
+              >
+                Satyam Rojha
+              </a>
               <p className="text-xs opacity-75 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-bold">
                 v3.21.28 ✨
               </p>
