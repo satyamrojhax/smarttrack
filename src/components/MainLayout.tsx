@@ -178,7 +178,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <p>Designed & Developed By</p>
               <p className="font-medium">Satyam Rojha</p>
               <p className="text-xs opacity-75 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-semibold">
-                v2.13.16
+                v3.21.28
               </p>
             </div>
           </div>
