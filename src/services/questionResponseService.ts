@@ -35,7 +35,7 @@ export const saveUserQuestionResponse = async (questionData: QuestionData) => {
 
     if (existingQuestion) {
       console.log('Question already exists, skipping save');
-      return existingQuestion;
+      return { success: true, data: existingQuestion };
     }
 
     const { data, error } = await supabase
@@ -64,14 +64,13 @@ export const saveUserQuestionResponse = async (questionData: QuestionData) => {
       throw error;
     }
 
-    return data;
+    return { success: true, data };
   } catch (error) {
     console.error('Error saving question response:', error);
-    throw error;
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
 
-// Updated function to return proper success/error format
 export const saveQuestionResponse = async (
   questionText: string,
   userAnswer?: string,
@@ -86,14 +85,13 @@ export const saveQuestionResponse = async (
       correct_answer: correctAnswer,
       explanation: `User answer: ${userAnswer || 'Not provided'}. Correct: ${isCorrect ? 'Yes' : 'No'}. Time taken: ${timeTaken || 0}s`
     });
-    return { success: true, data: result };
+    return result;
   } catch (error) {
     console.error('Error saving question response:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
 
-// Add the missing saveQuestionToDatabase function
 export const saveQuestionToDatabase = async (
   questionText: string,
   questionType: string,
@@ -107,6 +105,19 @@ export const saveQuestionToDatabase = async (
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return { success: false, error: 'User not authenticated' };
+    }
+
+    // Check if this exact question already exists for this user
+    const { data: existingQuestion } = await supabase
+      .from('user_generated_questions')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('question_text', questionText)
+      .maybeSingle();
+
+    if (existingQuestion) {
+      console.log('Question already exists, skipping duplicate save');
+      return { success: true, data: existingQuestion };
     }
 
     const { data, error } = await supabase
