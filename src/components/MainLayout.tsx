@@ -19,7 +19,7 @@ import {
   SidebarFooter
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
-import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin, Users, Settings, Star, Target } from 'lucide-react';
+import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin, Users, Settings, Star } from 'lucide-react';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -34,7 +34,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const bottomNavigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Questions', href: '/questions', icon: Brain },
-    { name: 'MCQ Quiz', href: '/mcq-quiz', icon: Target },
     { name: 'Ask Doubts', href: '/doubts', icon: HelpCircle },
     { name: 'Profile', href: '/profile', icon: User },
   ];
@@ -233,7 +232,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </main>
 
           <nav className={`fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t shadow-lg ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
-            <div className="grid grid-cols-5 py-2 px-1">
+            <div className="grid grid-cols-4 py-2 px-1">
               {bottomNavigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 const Icon = item.icon;
