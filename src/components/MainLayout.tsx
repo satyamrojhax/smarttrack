@@ -1,318 +1,254 @@
-import React, { Suspense, lazy } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useTheme } from '@/contexts/ThemeContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { useDeviceCapabilities } from '@/hooks/use-mobile';
-import { usePerformance } from '@/hooks/usePerformance';
-import { Button } from '@/components/ui/button';
-import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarHeader, 
-  SidebarMenu, 
-  SidebarMenuButton, 
-  SidebarMenuItem, 
-  SidebarProvider, 
-  SidebarTrigger,
-  SidebarInset,
-  useSidebar,
-  SidebarFooter
-} from '@/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
-import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin, Users, Settings, Star, Download, Sparkles } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import React, { useState } from 'react';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ModeToggle } from "@/components/ModeToggle"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import {
+  Brain,
+  Settings,
+  BookOpen,
+  ListChecks,
+  LayoutDashboard,
+  TrendingUp,
+  AlarmClock,
+  Note,
+  Award,
+  Import,
+  Brush,
+  LogOut,
+  HelpCircle,
+  Github,
+  Instagram,
+  Linkedin,
+  QuestionMark,
+  LucideIcon
+} from "lucide-react"
 
-// Lazy load components for better performance
-const LoadingSpinner = lazy(() => import('@/components/LoadingSpinner'));
-
-interface MainLayoutProps {
-  children: React.ReactNode;
+interface NavItemProps {
+  icon: LucideIcon;
+  label: string;
+  to: string;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { theme, toggleTheme } = useTheme();
-  const { profile } = useAuth();
+const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, to }) => {
   const location = useLocation();
-  const { isStandalone } = useDeviceCapabilities();
-  const { debounce } = usePerformance();
-
-  const handleDownloadApp = debounce(async () => {
-    try {
-      toast({
-        title: "Downloading App...",
-        description: "Starting download of Axiom Smart Track APK",
-      });
-
-      // Updated APK URL from Supabase storage
-      const apkUrl = 'https://zlmemsesjpwtpxaznikg.supabase.co/storage/v1/object/sign/axiom-smart-track.apk/smarttrack.apk?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV82MmQ1NTBmOS04YjIxLTQ4ZGItYWRjNy1iMDY2OWJjNjY4M2MiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJheGlvbS1zbWFydC10cmFjay5hcGsvc21hcnR0cmFjay5hcGsiLCJpYXQiOjE3NTE3OTAxNTYsImV4cCI6MTc4MzMyNjE1Nn0.M_Y-6arMzf8NGHPd1sC4uoMdAn7z7dcUVtHPPBLxCrY';
-
-      const link = document.createElement('a');
-      link.href = apkUrl;
-      link.download = 'axiom-smart-track.apk';
-      link.setAttribute('type', 'application/vnd.android.package-archive');
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast({
-        title: "Download Started! 📱",
-        description: "APK file is downloading. Install and enjoy the app!",
-      });
-
-      setTimeout(() => {
-        toast({
-          title: "Installation Guide 📋",
-          description: "1. Open downloaded APK\n2. Allow unknown sources\n3. Follow installation steps",
-        });
-      }, 2000);
-
-    } catch (error) {
-      console.error('Download error:', error);
-      toast({
-        title: "Download Failed",
-        description: "An error occurred. Please try again.",
-        variant: "destructive",
-      });
-    }
-  }, 1000);
-
-  const bottomNavigation = [
-    { name: 'Dashboard', href: '/', icon: Home, color: 'text-blue-500' },
-    { name: 'Questions', href: '/questions', icon: Brain, color: 'text-purple-500' },
-    { name: 'Ask Doubts', href: '/doubts', icon: HelpCircle, color: 'text-orange-500' },
-    { name: 'Profile', href: '/profile', icon: User, color: 'text-gray-500' },
-  ];
-
-  const sidebarItems = [
-    { name: 'Dashboard', href: '/', icon: Home, color: 'text-blue-600', gradient: 'from-blue-500 to-blue-600' },
-    { name: 'ToDo Tasks', href: '/todo', icon: CheckSquare, color: 'text-green-600', gradient: 'from-green-500 to-green-600' },
-    { name: 'AI Questions', href: '/questions', icon: Brain, color: 'text-purple-600', gradient: 'from-purple-500 to-purple-600' },
-    { name: 'Prompt Questions', href: '/prompt-questions', icon: Sparkles, color: 'text-pink-600', gradient: 'from-pink-500 to-pink-600' },
-    { name: 'Ask Doubts', href: '/doubts', icon: HelpCircle, color: 'text-orange-600', gradient: 'from-orange-500 to-orange-600' },
-    { name: 'Syllabus', href: '/syllabus', icon: BookOpen, color: 'text-indigo-600', gradient: 'from-indigo-500 to-indigo-600' },
-    { name: 'Predictor', href: '/predictor', icon: TrendingUp, color: 'text-emerald-600', gradient: 'from-emerald-500 to-emerald-600' },
-    { name: 'History', href: '/history', icon: History, color: 'text-amber-600', gradient: 'from-amber-500 to-amber-600' },
-    { name: 'Study Timer', href: '/timer', icon: Timer, color: 'text-red-600', gradient: 'from-red-500 to-red-600' },
-    { name: 'My Notes', href: '/notes', icon: FileText, color: 'text-cyan-600', gradient: 'from-cyan-500 to-cyan-600' },
-    { name: 'Achievements', href: '/badges', icon: Trophy, color: 'text-yellow-600', gradient: 'from-yellow-500 to-yellow-600' },
-    { name: 'Theme', href: '/theme', icon: Palette, color: 'text-pink-600', gradient: 'from-pink-500 to-pink-600' },
-    { name: 'Profile', href: '/profile', icon: User, color: 'text-gray-600', gradient: 'from-gray-500 to-gray-600' },
-  ];
-
-  const AppSidebar = React.memo(() => {
-    const { setOpenMobile, isMobile } = useSidebar();
-
-    const handleSidebarItemClick = () => {
-      if (isMobile) {
-        setOpenMobile(false);
-      }
-    };
-
-    return (
-      <Sidebar className="w-64 border-r bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 shadow-xl">
-        <SidebarHeader className="p-4 border-b bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/20 dark:via-blue-900/20 dark:to-indigo-900/20">
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <div className="p-2 bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500 rounded-xl shadow-lg">
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full animate-pulse shadow-sm"></div>
-            </div>
-            <div>
-              <h2 className="font-bold text-lg text-foreground bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Axiom Smart Track
-              </h2>
-              <p className="text-xs text-muted-foreground font-medium">AI Study Assistant</p>
-            </div>
-          </div>
-        </SidebarHeader>
-        
-        <SidebarContent className="scrollbar-hide bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
-          <div className="p-3">
-            <div className="mb-4 p-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-pink-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800 shadow-sm">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                  <User className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">
-                    Hello, {profile?.name?.split(' ')[0] || 'Student'}! 👋
-                  </p>
-                  <p className="text-xs text-muted-foreground font-medium">Ready to learn something new?</p>
-                </div>
-              </div>
-            </div>
-
-            <SidebarMenu>
-              {sidebarItems.map((item) => {
-                const isActive = location.pathname === item.href;
-                const Icon = item.icon;
-                
-                return (
-                  <SidebarMenuItem key={item.name}>
-                    <SidebarMenuButton asChild isActive={isActive}>
-                      <Link 
-                        to={item.href} 
-                        className={`flex items-center space-x-3 w-full p-3 rounded-xl transition-all duration-300 group hover:shadow-md ${
-                          isActive 
-                            ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg scale-105 border border-white/20` 
-                            : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-700 hover:scale-102'
-                        }`}
-                        onClick={handleSidebarItemClick}
-                      >
-                        <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : item.color} transition-colors duration-300`} />
-                        <span className="text-sm font-medium">{item.name}</span>
-                        {isActive && <div className="ml-auto w-2 h-2 bg-white rounded-full animate-pulse shadow-sm"></div>}
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </div>
-        </SidebarContent>
-        
-        <SidebarFooter className="p-4 border-t space-y-4 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
-          <Separator />
-          
-          <div className="grid grid-cols-2 gap-2 text-center">
-            <div className="p-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
-              <Star className="w-4 h-4 text-green-600 mx-auto mb-1" />
-              <p className="text-xs font-semibold text-green-700 dark:text-green-400">Active</p>
-            </div>
-            <div className="p-2 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <Users className="w-4 h-4 text-blue-600 mx-auto mb-1" />
-              <p className="text-xs font-semibold text-blue-700 dark:text-blue-400">Student</p>
-            </div>
-          </div>
-          
-          <div className="space-y-3 text-center">
-            <div className="flex justify-center space-x-3">
-              {[
-                { icon: Instagram, href: "https://instagram.com/satyamrojhax", color: "text-pink-500" },
-                { icon: Github, href: "https://github.com/satyamrojhax", color: "text-gray-600 dark:text-gray-400" },
-                { icon: Linkedin, href: "https://linkedin.com/in/satyamrojhax", color: "text-blue-600" }
-              ].map(({ icon: Icon, href, color }, index) => (
-                <a 
-                  key={index}
-                  href={href}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="p-2 hover:bg-accent rounded-lg transition-all duration-300 hover:scale-110 hover:shadow-md"
-                >
-                  <Icon className={`w-4 h-4 ${color}`} />
-                </a>
-              ))}
-            </div>
-            
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p className="font-semibold text-orange-600 flex items-center justify-center gap-1">
-                🇮🇳 Made in India
-              </p>
-              <p className="font-medium">Designed & Developed By</p>
-              <a 
-                href="https://satyamrojha.netlify.app/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="font-semibold text-purple-600 hover:text-purple-700 transition-colors cursor-pointer hover:underline"
-              >
-                Satyam Rojha
-              </a>
-              <p className="text-xs opacity-75 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-bold">
-                v3.21.28 ✨
-              </p>
-            </div>
-          </div>
-        </SidebarFooter>
-      </Sidebar>
-    );
-  });
+  const isActive = location.pathname === to;
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-        <AppSidebar />
-        <SidebarInset className="flex-1 w-full">
-          <header className={`sticky top-0 z-50 w-full border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60 shadow-sm ${isStandalone ? 'pt-safe-area-inset-top' : ''}`}>
-            <div className="flex justify-between items-center h-16 px-4 md:px-6">
-              <div className="flex items-center space-x-3">
-                <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg p-2 hover:shadow-md" />
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500 rounded-xl shadow-lg">
-                    <Brain className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="hidden sm:block">
-                    <h1 className="text-lg font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                      Axiom Smart Track
-                    </h1>
-                    <p className="text-xs text-muted-foreground hidden md:block font-medium">AI Study Assistant</p>
-                  </div>
+    <Link to={to} className={`group flex items-center space-x-3 py-2 px-4 rounded-md transition-colors duration-200 hover:bg-secondary ${isActive ? 'bg-secondary font-semibold' : ''}`}>
+      <Icon className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
+      <span className="text-sm font-medium text-foreground group-hover:text-foreground">{label}</span>
+    </Link>
+  );
+};
+
+const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [open, setOpen] = React.useState(false)
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error("Sign out failed:", error);
+    }
+  };
+
+  return (
+    <div className="flex h-screen bg-background antialiased">
+      {/* Mobile Navigation Sheet */}
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          <Button variant="ghost" className="md:hidden h-10 w-10 p-0">
+            <LayoutDashboard className="h-5 w-5" />
+            <span className="sr-only">Open main menu</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-full sm:w-64">
+          <SheetHeader className="space-y-2.5">
+            <SheetTitle>Axiom Smart Track</SheetTitle>
+            <SheetDescription>
+              Your AI-powered study companion
+            </SheetDescription>
+          </SheetHeader>
+          <ScrollArea className="my-4">
+            <div className="py-4">
+              <div className="px-3 py-2">
+                <div className="mb-2 px-6">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={user?.user_metadata?.avatar_url || "https://avatars.dicebear.com/api/open-peeps/:seed.svg"} alt="Avatar" />
+                    <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || '?'}</AvatarFallback>
+                  </Avatar>
+                  <div className="mt-2 text-sm font-semibold">{user?.user_metadata?.name || user?.email}</div>
+                  <div className="text-xs text-muted-foreground">{user?.email}</div>
                 </div>
+                <Separator className="my-2" />
+
+                <NavItem icon={LayoutDashboard} label="Dashboard" to="/" />
+                <NavItem icon={ListChecks} label="To-Do" to="/todo" />
+                <NavItem icon={BookOpen} label="Syllabus" to="/syllabus" />
+                <NavItem icon={Brain} label="Questions" to="/questions" />
+                <NavItem icon={TrendingUp} label="Predictor" to="/predictor" />
+                <NavItem icon={AlarmClock} label="Timer" to="/timer" />
               </div>
-
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-muted-foreground hidden lg:block font-medium">
-                  Welcome, {profile?.name}! 👋
-                </span>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDownloadApp}
-                  className="p-2 hover:bg-accent hover:text-accent-foreground transition-all duration-200 hover:scale-110 rounded-lg hover:shadow-md"
-                  title="Download Mobile App"
-                >
-                  <Download className="w-5 h-5 text-green-600" />
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleTheme}
-                  className="p-2 hover:bg-accent hover:text-accent-foreground transition-all duration-200 hover:scale-110 rounded-lg hover:shadow-md"
-                >
-                  {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="additional">
+                  <AccordionTrigger className="px-3 py-2 hover:bg-secondary">
+                    <HelpCircle className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <span className="text-sm font-medium text-foreground">Additional Tools</span>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="px-3 py-2">
+                      <NavItem icon={Note} label="Notes" to="/notes" />
+                      <NavItem icon={Award} label="Badges" to="/badges" />
+                      <NavItem icon={Import} label="Export" to="/export" />
+                      <NavItem icon={Brush} label="Theme" to="/theme" />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+              <Separator className="my-2" />
+              <div className="mt-auto px-3 py-2">
+                <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
                 </Button>
               </div>
             </div>
-          </header>
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
 
-          <main className={`flex-1 overflow-auto scrollbar-hide pb-20 lg:pb-6 ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
-            <div className="w-full min-h-full">
-              <Suspense fallback={<LoadingSpinner />}>
-                {children}
-              </Suspense>
+      {/* Desktop Navigation */}
+      <aside className="hidden md:block w-64 border-r bg-secondary py-4">
+        <ScrollArea className="h-screen">
+          <div className="py-4">
+            {/* Profile Section */}
+            <div className="mb-8 px-6">
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={user?.user_metadata?.avatar_url || "https://avatars.dicebear.com/api/open-peeps/:seed.svg"} alt="Avatar" />
+                <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || '?'}</AvatarFallback>
+              </Avatar>
+              <div className="mt-2 text-sm font-semibold">{user?.user_metadata?.name || user?.email}</div>
+              <div className="text-xs text-muted-foreground">{user?.email}</div>
             </div>
-          </main>
 
-          <nav className={`fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60 border-t shadow-lg ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
-            <div className="grid grid-cols-4 py-2 px-1">
-              {bottomNavigation.map((item) => {
-                const isActive = location.pathname === item.href;
-                const Icon = item.icon;
-                
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`flex flex-col items-center space-y-1 py-3 px-2 rounded-xl transition-all duration-300 touch-manipulation ${
-                      isActive 
-                        ? `${item.color} bg-gradient-to-t from-gray-100 to-transparent dark:from-gray-800 dark:to-transparent scale-105 shadow-sm` 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50 hover:scale-105'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5 flex-shrink-0" />
-                    <span className="text-xs font-medium truncate">{item.name}</span>
-                    {isActive && <div className="w-1 h-1 bg-current rounded-full animate-pulse"></div>}
-                  </Link>
-                );
-              })}
+            {/* Navigation Items */}
+            <div className="space-y-1">
+              <NavItem icon={LayoutDashboard} label="Dashboard" to="/" />
+              <NavItem icon={ListChecks} label="To-Do" to="/todo" />
+              <NavItem icon={BookOpen} label="Syllabus" to="/syllabus" />
+              <NavItem icon={Brain} label="Questions" to="/questions" />
+              <NavItem icon={TrendingUp} label="Predictor" to="/predictor" />
+              <NavItem icon={AlarmClock} label="Timer" to="/timer" />
             </div>
-          </nav>
-        </SidebarInset>
+
+            {/* Additional Tools Accordion */}
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="additional">
+                <AccordionTrigger className="px-4 py-2 hover:bg-secondary">
+                  <HelpCircle className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">Additional Tools</span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-1 px-4 py-2">
+                    <NavItem icon={Note} label="Notes" to="/notes" />
+                    <NavItem icon={Award} label="Badges" to="/badges" />
+                    <NavItem icon={Import} label="Export" to="/export" />
+                    <NavItem icon={Brush} label="Theme" to="/theme" />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            {/* Sign Out Button */}
+            <div className="mt-auto px-6">
+              <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          </div>
+        </ScrollArea>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-4">
+        {children}
+      </main>
+
+      {/* Footer */}
+      <div className="mt-auto pt-6 pb-4 space-y-4 text-center">
+        <div className="flex flex-col items-center space-y-2">
+          <div className="flex items-center justify-center space-x-4 text-xs text-muted-foreground">
+            <a
+              href="https://instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-full bg-gradient-to-r from-pink-500 to-red-500 text-white hover:shadow-lg transition-all duration-300"
+            >
+              <Instagram className="w-3 h-3" />
+            </a>
+            <a
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-full bg-gray-800 text-white hover:shadow-lg transition-all duration-300"
+            >
+              <Github className="w-3 h-3" />
+            </a>
+            <a
+              href="https://linkedin.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-full bg-blue-600 text-white hover:shadow-lg transition-all duration-300"
+            >
+              <Linkedin className="w-3 h-3" />
+            </a>
+          </div>
+          
+          <div className="space-y-1">
+            <div className="flex items-center justify-center space-x-1">
+              <span className="text-orange-600 font-bold text-xs">🇮🇳</span>
+              <span className="text-orange-600 font-semibold text-xs">Made in India</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Designed & Developed By
+            </div>
+            <a
+              href="https://satyamrojha.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors cursor-pointer"
+            >
+              Satyam Rojha
+            </a>
+            <div className="text-xs text-muted-foreground">
+              v3.21.28
+            </div>
+          </div>
+        </div>
       </div>
-    </SidebarProvider>
+    </div>
   );
 };
 

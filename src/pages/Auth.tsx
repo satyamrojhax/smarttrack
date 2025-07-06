@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Mail, Lock, User, Brain, Download, ArrowRight, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Brain, Download, ArrowRight, CheckCircle, Sparkles } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -135,7 +135,7 @@ const Auth: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const redirectUrl = `${window.location.origin}/verify-email`;
+      const redirectUrl = `${window.location.origin}/email-verification`;
       
       const { error } = await supabase.auth.signUp({
         email: email.trim(),
@@ -165,10 +165,10 @@ const Auth: React.FC = () => {
         }
       } else {
         toast({
-          title: "Welcome to Axiom Smart Track! 🚀",
-          description: "Please check your email to verify your account before signing in.",
+          title: "Account Created! 🚀",
+          description: "Please check your email to verify your account.",
         });
-        setActiveTab('signin');
+        navigate('/email-verifying');
       }
     } catch (error) {
       toast({
@@ -182,65 +182,70 @@ const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-10 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900">
+      {/* Enhanced Header */}
+      <div className="absolute top-0 left-0 right-0 z-10 p-4 sm:p-6">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg">
-              <Brain className="w-6 h-6 text-white" />
+            <div className="p-2 sm:p-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg">
+              <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 Axiom Smart Track
               </h1>
-              <p className="text-xs text-muted-foreground">AI Study Assistant</p>
+              <p className="text-xs text-muted-foreground">🤖 AI Study Assistant</p>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <Button
               onClick={handleDownloadApp}
-              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
+              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 text-sm sm:text-base"
             >
               <Download className="w-4 h-4 mr-2" />
-              Download App
+              <span className="hidden sm:inline">Download App</span>
+              <span className="sm:hidden">Download</span>
             </Button>
-            <div className="text-xs text-muted-foreground font-medium">
+            <div className="text-xs text-muted-foreground font-medium hidden sm:block">
               🇮🇳 Made in India
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex min-h-screen items-center justify-center p-6 pt-24">
+      {/* Main Content */}
+      <div className="flex min-h-screen items-center justify-center p-4 pt-20 sm:pt-24">
         <div className="w-full max-w-md">
-          <Card className="border-0 shadow-2xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
-            <CardHeader className="space-y-4 pb-6">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl shadow-lg mb-4">
-                  <Brain className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  Welcome to Axiom Smart Track
+          {/* Enhanced Background Card */}
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 via-pink-500/20 to-red-500/20 rounded-3xl blur-3xl transform -rotate-6 scale-110"></div>
+          
+          <Card className="border-0 shadow-2xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm relative z-10 rounded-2xl">
+            <CardHeader className="space-y-4 pb-6 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl shadow-lg mb-4 mx-auto">
+                <Sparkles className="w-8 h-8 text-white animate-pulse" />
+              </div>
+              <div>
+                <CardTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                  Welcome to Smart Learning
                 </CardTitle>
-                <CardDescription className="text-gray-600 dark:text-gray-400 mt-2">
+                <CardDescription className="text-gray-600 dark:text-gray-400 mt-2 text-sm sm:text-base">
                   Your AI-powered study companion for CBSE Class 10
                 </CardDescription>
               </div>
             </CardHeader>
 
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-                <TabsList className="grid w-full grid-cols-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+                <TabsList className="grid w-full grid-cols-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl h-12">
                   <TabsTrigger 
                     value="signin" 
-                    className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-purple-600 font-medium"
+                    className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-purple-600 font-medium text-sm sm:text-base h-10"
                   >
                     Sign In
                   </TabsTrigger>
                   <TabsTrigger 
                     value="signup"
-                    className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-purple-600 font-medium"
+                    className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-purple-600 font-medium text-sm sm:text-base h-10"
                   >
                     Sign Up
                   </TabsTrigger>
@@ -258,7 +263,7 @@ const Auth: React.FC = () => {
                           placeholder="Enter your email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className="pl-10 h-12 border-2 focus:border-purple-500 rounded-xl"
+                          className="pl-10 h-12 border-2 focus:border-purple-500 rounded-xl text-sm sm:text-base"
                           required
                         />
                       </div>
@@ -274,7 +279,7 @@ const Auth: React.FC = () => {
                           placeholder="Enter your password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="pl-10 pr-10 h-12 border-2 focus:border-purple-500 rounded-xl"
+                          className="pl-10 pr-10 h-12 border-2 focus:border-purple-500 rounded-xl text-sm sm:text-base"
                           required
                         />
                         <button
@@ -290,7 +295,7 @@ const Auth: React.FC = () => {
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full h-12 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-medium rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
+                      className="w-full h-12 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-medium rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] text-sm sm:text-base"
                     >
                       {isLoading ? (
                         <div className="flex items-center space-x-2">
@@ -319,7 +324,7 @@ const Auth: React.FC = () => {
                           placeholder="Enter your full name"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
-                          className="pl-10 h-12 border-2 focus:border-purple-500 rounded-xl"
+                          className="pl-10 h-12 border-2 focus:border-purple-500 rounded-xl text-sm sm:text-base"
                           required
                         />
                       </div>
@@ -335,7 +340,7 @@ const Auth: React.FC = () => {
                           placeholder="Enter your email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className="pl-10 h-12 border-2 focus:border-purple-500 rounded-xl"
+                          className="pl-10 h-12 border-2 focus:border-purple-500 rounded-xl text-sm sm:text-base"
                           required
                         />
                       </div>
@@ -351,7 +356,7 @@ const Auth: React.FC = () => {
                           placeholder="Create a strong password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="pl-10 pr-10 h-12 border-2 focus:border-purple-500 rounded-xl"
+                          className="pl-10 pr-10 h-12 border-2 focus:border-purple-500 rounded-xl text-sm sm:text-base"
                           required
                         />
                         <button
@@ -368,7 +373,7 @@ const Auth: React.FC = () => {
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full h-12 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-medium rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
+                      className="w-full h-12 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-medium rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] text-sm sm:text-base"
                     >
                       {isLoading ? (
                         <div className="flex items-center space-x-2">
@@ -386,10 +391,23 @@ const Auth: React.FC = () => {
                 </TabsContent>
               </Tabs>
 
-              <div className="mt-6 text-center">
+              {/* Enhanced Footer */}
+              <div className="mt-6 space-y-4">
                 <div className="flex items-center justify-center space-x-2 text-xs text-gray-500">
                   <CheckCircle className="w-4 h-4 text-green-500" />
                   <span>Secure & Privacy Protected</span>
+                </div>
+                
+                {/* Enhanced Download Button */}
+                <div className="pt-2">
+                  <Button
+                    onClick={handleDownloadApp}
+                    variant="outline"
+                    className="w-full bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 border-orange-200 text-orange-700 hover:text-orange-800 h-12 rounded-xl transition-all duration-300 hover:scale-[1.02] text-sm sm:text-base"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Mobile App
+                  </Button>
                 </div>
               </div>
             </CardContent>

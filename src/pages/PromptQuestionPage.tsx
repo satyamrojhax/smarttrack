@@ -26,23 +26,36 @@ const PromptQuestionPage: React.FC = () => {
 
     setIsGenerating(true);
     try {
-      // Simulate AI question generation - replace with actual AI service
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDi1wHRLfS2-g4adHzuVfZRzmI4tRrzH-U`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `Generate a detailed educational question based on this prompt: "${prompt}". 
+
+Please create:
+1. A clear, well-structured question
+2. Multiple choice options (A, B, C, D) if applicable
+3. The correct answer
+4. A brief explanation
+
+Format the response in a clear, educational manner suitable for Class 10 students.`
+            }]
+          }]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate question');
+      }
+
+      const data = await response.json();
+      const generatedText = data.candidates[0].content.parts[0].text;
       
-      const mockQuestion = `Based on your prompt: "${prompt}"
-
-Question: What are the key concepts related to this topic and how would you explain them in a Class 10 context?
-
-A) Concept 1 - Basic understanding
-B) Concept 2 - Intermediate application  
-C) Concept 3 - Advanced analysis
-D) All of the above
-
-Correct Answer: D) All of the above
-
-Explanation: This question encompasses multiple levels of understanding as requested in your prompt, allowing students to demonstrate comprehensive knowledge of the topic.`;
-
-      setGeneratedQuestion(mockQuestion);
+      setGeneratedQuestion(generatedText);
       
       toast({
         title: "Question Generated! ✨",
@@ -72,17 +85,21 @@ Explanation: This question encompasses multiple levels of understanding as reque
 
     setIsSaving(true);
     try {
-      await saveUserQuestionResponse({
+      const result = await saveUserQuestionResponse({
         question_text: generatedQuestion,
         question_type: 'ai_generated',
         difficulty_level: 2,
         explanation: `Generated from prompt: ${prompt}`,
       });
 
-      toast({
-        title: "Saved to History! 📚",
-        description: "Question has been saved to your history page.",
-      });
+      if (result.success) {
+        toast({
+          title: "Saved to History! 📚",
+          description: "Question has been saved to your history page.",
+        });
+      } else {
+        throw new Error(result.error || 'Failed to save');
+      }
     } catch (error) {
       console.error('Error saving question:', error);
       toast({
@@ -188,10 +205,10 @@ Explanation: This question encompasses multiple levels of understanding as reque
             <CardContent className="space-y-4">
               {generatedQuestion ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-muted/50 rounded-lg border">
-                    <pre className="whitespace-pre-wrap text-sm font-mono">
+                  <div className="p-4 bg-muted/50 rounded-lg border max-h-96 overflow-y-auto">
+                    <div className="whitespace-pre-wrap text-sm">
                       {generatedQuestion}
-                    </pre>
+                    </div>
                   </div>
                   
                   <div className="flex gap-2">
