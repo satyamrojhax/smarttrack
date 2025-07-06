@@ -34,7 +34,7 @@ interface QuizSession {
 
 const MCQQuizPage: React.FC = () => {
   const { user } = useAuth();
-  const { subjects, chapters } = useSyllabus();
+  const { subjects } = useSyllabus();
   const { toast } = useToast();
   
   const [selectedSubject, setSelectedSubject] = useState<string>('');
@@ -45,9 +45,10 @@ const MCQQuizPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
 
-  const filteredChapters = chapters.filter(chapter => 
-    !selectedSubject || chapter.subject_id === selectedSubject
-  );
+  // Get chapters for the selected subject
+  const filteredChapters = selectedSubject 
+    ? subjects.find(s => s.id === selectedSubject)?.chapters || []
+    : [];
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -184,25 +185,25 @@ const MCQQuizPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
-      <div className="mb-6 sm:mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+    <div className="container mx-auto p-3 sm:p-4 lg:p-6 max-w-4xl">
+      <div className="mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2">
-              <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
-              Quiz Hub
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
+              <Brain className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-purple-600" />
+              Quizs
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm lg:text-base text-muted-foreground mt-1">
               Test your knowledge with AI-generated questions
             </p>
           </div>
           {quizSession && !quizSession.isCompleted && (
-            <div className="flex items-center gap-4">
-              <Badge variant="outline" className="text-sm sm:text-base">
-                <Clock className="w-4 h-4 mr-1" />
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Badge variant="outline" className="text-xs sm:text-sm">
+                <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                 {formatTime(timer)}
               </Badge>
-              <Badge variant="secondary" className="text-sm sm:text-base">
+              <Badge variant="secondary" className="text-xs sm:text-sm">
                 {quizSession.currentQuestionIndex + 1} / {quizSession.questions.length}
               </Badge>
             </div>
@@ -214,16 +215,16 @@ const MCQQuizPage: React.FC = () => {
       {!quizSession ? (
         // Quiz Setup
         <Card className="w-full">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <Target className="w-5 h-5 text-blue-600" />
+          <CardHeader className="p-3 sm:p-4 lg:p-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg lg:text-xl">
+              <Target className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
               Quiz Settings
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6">
             {/* Subject Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Subject *</label>
+              <label className="text-xs sm:text-sm font-medium text-foreground">Subject *</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {subjects.map((subject) => (
                   <Button
@@ -233,10 +234,10 @@ const MCQQuizPage: React.FC = () => {
                       setSelectedSubject(subject.id);
                       setSelectedChapter('');
                     }}
-                    className="justify-start text-xs sm:text-sm h-auto py-3 px-3"
+                    className="justify-start text-xs sm:text-sm h-auto py-2 sm:py-3 px-2 sm:px-3"
                   >
-                    <span className="text-lg mr-2">{subject.icon}</span>
-                    <span className="truncate">{subject.name}</span>
+                    <span className="text-base sm:text-lg mr-2">{subject.icon}</span>
+                    <span className="truncate text-left">{subject.name}</span>
                   </Button>
                 ))}
               </div>
@@ -245,14 +246,14 @@ const MCQQuizPage: React.FC = () => {
             {/* Chapter Selection */}
             {selectedSubject && filteredChapters.length > 0 && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Chapter (Optional)</label>
+                <label className="text-xs sm:text-sm font-medium text-foreground">Chapter (Optional)</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <Button
                     variant={!selectedChapter ? "default" : "outline"}
                     onClick={() => setSelectedChapter('')}
-                    className="justify-start text-xs sm:text-sm h-auto py-2 px-3"
+                    className="justify-start text-xs sm:text-sm h-auto py-2 px-2 sm:px-3"
                   >
-                    <BookOpen className="w-4 h-4 mr-2" />
+                    <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                     All Chapters
                   </Button>
                   {filteredChapters.map((chapter) => (
@@ -260,9 +261,9 @@ const MCQQuizPage: React.FC = () => {
                       key={chapter.id}
                       variant={selectedChapter === chapter.id ? "default" : "outline"}
                       onClick={() => setSelectedChapter(chapter.id)}
-                      className="justify-start text-xs sm:text-sm h-auto py-2 px-3"
+                      className="justify-start text-xs sm:text-sm h-auto py-2 px-2 sm:px-3"
                     >
-                      <span className="truncate">{chapter.name}</span>
+                      <span className="truncate text-left">{chapter.name}</span>
                     </Button>
                   ))}
                 </div>
@@ -270,9 +271,9 @@ const MCQQuizPage: React.FC = () => {
             )}
 
             {/* Quiz Options */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Difficulty Level</label>
+                <label className="text-xs sm:text-sm font-medium text-foreground">Difficulty Level</label>
                 <div className="flex flex-wrap gap-2">
                   {[1, 2, 3].map((level) => (
                     <Button
@@ -280,7 +281,7 @@ const MCQQuizPage: React.FC = () => {
                       variant={difficulty === level ? "default" : "outline"}
                       onClick={() => setDifficulty(level)}
                       size="sm"
-                      className="text-xs sm:text-sm"
+                      className="text-xs sm:text-sm flex-1 sm:flex-none min-w-0"
                     >
                       {level === 1 ? 'Easy' : level === 2 ? 'Medium' : 'Hard'}
                     </Button>
@@ -289,7 +290,7 @@ const MCQQuizPage: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Number of Questions</label>
+                <label className="text-xs sm:text-sm font-medium text-foreground">Number of Questions</label>
                 <div className="flex flex-wrap gap-2">
                   {[5, 10, 15, 20].map((count) => (
                     <Button
@@ -297,7 +298,7 @@ const MCQQuizPage: React.FC = () => {
                       variant={questionCount === count ? "default" : "outline"}
                       onClick={() => setQuestionCount(count)}
                       size="sm"
-                      className="text-xs sm:text-sm"
+                      className="text-xs sm:text-sm flex-1 sm:flex-none min-w-0"
                     >
                       {count}
                     </Button>
@@ -308,10 +309,10 @@ const MCQQuizPage: React.FC = () => {
 
             <Button 
               onClick={startQuiz} 
-              className="w-full py-3 text-sm sm:text-base font-medium"
+              className="w-full py-2 sm:py-3 text-xs sm:text-sm lg:text-base font-medium"
               disabled={!selectedSubject}
             >
-              <Brain className="w-4 h-4 mr-2" />
+              <Brain className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               Start Quiz
             </Button>
           </CardContent>
@@ -319,43 +320,43 @@ const MCQQuizPage: React.FC = () => {
       ) : quizSession.isCompleted ? (
         // Quiz Results
         <Card className="w-full">
-          <CardHeader className="text-center">
-            <CardTitle className="flex items-center justify-center gap-2 text-xl sm:text-2xl">
-              <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600" />
+          <CardHeader className="text-center p-3 sm:p-4 lg:p-6">
+            <CardTitle className="flex items-center justify-center gap-2 text-lg sm:text-xl lg:text-2xl">
+              <Trophy className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-yellow-600" />
               Quiz Complete!
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-              <div className="p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <p className="text-xl sm:text-2xl font-bold text-green-600">{quizSession.score}</p>
+          <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 text-center">
+              <div className="p-2 sm:p-3 lg:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">{quizSession.score}</p>
                 <p className="text-xs sm:text-sm text-green-700 dark:text-green-400">Correct</p>
               </div>
-              <div className="p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                <p className="text-xl sm:text-2xl font-bold text-red-600">
+              <div className="p-2 sm:p-3 lg:p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">
                   {quizSession.questions.length - quizSession.score}
                 </p>
                 <p className="text-xs sm:text-sm text-red-700 dark:text-red-400">Wrong</p>
               </div>
-              <div className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <p className="text-xl sm:text-2xl font-bold text-blue-600">
+              <div className="p-2 sm:p-3 lg:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">
                   {Math.round((quizSession.score / quizSession.questions.length) * 100)}%
                 </p>
                 <p className="text-xs sm:text-sm text-blue-700 dark:text-blue-400">Score</p>
               </div>
-              <div className="p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                <p className="text-xl sm:text-2xl font-bold text-purple-600">
+              <div className="p-2 sm:p-3 lg:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">
                   {formatTime(quizSession.timeElapsed)}
                 </p>
                 <p className="text-xs sm:text-sm text-purple-700 dark:text-purple-400">Time</p>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button onClick={resetQuiz} className="flex-1 text-sm sm:text-base">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <Button onClick={resetQuiz} className="flex-1 text-xs sm:text-sm lg:text-base py-2 sm:py-3">
                 Take Another Quiz
               </Button>
-              <Button variant="outline" onClick={resetQuiz} className="flex-1 text-sm sm:text-base">
+              <Button variant="outline" onClick={resetQuiz} className="flex-1 text-xs sm:text-sm lg:text-base py-2 sm:py-3">
                 Change Settings
               </Button>
             </div>
@@ -364,9 +365,9 @@ const MCQQuizPage: React.FC = () => {
       ) : (
         // Active Quiz
         <Card className="w-full">
-          <CardHeader>
+          <CardHeader className="p-3 sm:p-4 lg:p-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-              <CardTitle className="text-base sm:text-lg">
+              <CardTitle className="text-sm sm:text-base lg:text-lg">
                 Question {quizSession.currentQuestionIndex + 1} of {quizSession.questions.length}
               </CardTitle>
               <div className="flex items-center gap-2">
@@ -377,32 +378,32 @@ const MCQQuizPage: React.FC = () => {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="p-4 sm:p-6 bg-accent/50 rounded-lg">
-              <p className="text-sm sm:text-base font-medium leading-relaxed">
+          <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6">
+            <div className="p-3 sm:p-4 lg:p-6 bg-accent/50 rounded-lg">
+              <p className="text-xs sm:text-sm lg:text-base font-medium leading-relaxed">
                 {quizSession.questions[quizSession.currentQuestionIndex].question_text}
               </p>
             </div>
 
-            <div className="grid gap-3">
+            <div className="grid gap-2 sm:gap-3">
               {quizSession.questions[quizSession.currentQuestionIndex].options.map((option, index) => (
                 <Button
                   key={index}
                   variant="outline"
                   onClick={() => answerQuestion(index)}
-                  className="justify-start text-left h-auto p-3 sm:p-4 text-xs sm:text-sm hover:bg-accent/70 transition-colors"
+                  className="justify-start text-left h-auto p-3 sm:p-4 text-xs sm:text-sm hover:bg-accent/70 transition-colors w-full"
                 >
-                  <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium flex items-center justify-center mr-3 flex-shrink-0">
+                  <span className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
                     {String.fromCharCode(65 + index)}
                   </span>
-                  <span className="leading-relaxed">{option}</span>
+                  <span className="leading-relaxed break-words flex-1">{option}</span>
                 </Button>
               ))}
             </div>
 
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2">
               <div 
-                className="bg-primary h-2 rounded-full transition-all duration-300"
+                className="bg-primary h-1.5 sm:h-2 rounded-full transition-all duration-300"
                 style={{ width: `${((quizSession.currentQuestionIndex + 1) / quizSession.questions.length) * 100}%` }}
               />
             </div>
