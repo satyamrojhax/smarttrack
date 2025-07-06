@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
@@ -63,14 +62,14 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <ThemeProvider>
+          <ThemeProvider defaultTheme="system" storageKey="axiom-smart-track-theme">
             <TimerProvider>
               <AuthProvider>
                 <BrowserRouter>
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
-                    <Route path="/onboarding" element={<Onboarding onComplete={() => {}} />} />
+                    <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/verify-email" element={<VerifyEmail />} />
                     <Route path="/email-verification" element={<EmailVerification />} />
                     <Route path="/email-verifying" element={<EmailVerifying />} />
