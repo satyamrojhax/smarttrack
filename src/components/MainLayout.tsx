@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -19,7 +18,9 @@ import {
   SidebarFooter
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
-import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin, Users, Settings, Star } from 'lucide-react';
+import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin, Users, Settings, Star, Download } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -30,6 +31,75 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { profile } = useAuth();
   const location = useLocation();
   const { isStandalone } = useDeviceCapabilities();
+
+  const handleDownloadApp = async () => {
+    try {
+      toast({
+        title: "Downloading App...",
+        description: "Starting download of Axiom Smart Track APK",
+      });
+
+      // Get the signed URL for the APK file from Supabase storage
+      const { data, error } = await supabase.storage
+        .from('apkfiles')
+        .createSignedUrl('axiom-smart-track.apk', 3600); // 1 hour expiry
+
+      if (error) {
+        console.error('Error getting signed URL:', error);
+        toast({
+          title: "Download Error",
+          description: "Failed to get download link. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!data?.signedUrl) {
+        toast({
+          title: "Download Error",
+          description: "Download link not available.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create a temporary anchor element to trigger download
+      const link = document.createElement('a');
+      link.href = data.signedUrl;
+      link.download = 'axiom-smart-track.apk';
+      link.setAttribute('type', 'application/vnd.android.package-archive');
+      
+      // Add to DOM temporarily
+      document.body.appendChild(link);
+      
+      // Trigger download
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+
+      toast({
+        title: "Download Started!",
+        description: "APK file is downloading. Check your downloads folder and install the app.",
+      });
+
+      // Show installation instructions
+      setTimeout(() => {
+        toast({
+          title: "Installation Instructions",
+          description: "1. Open the downloaded APK file\n2. Allow installation from unknown sources if prompted\n3. Follow the installation wizard",
+        });
+      }, 2000);
+
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download Failed",
+        description: "An error occurred during download. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const bottomNavigation = [
     { name: 'Dashboard', href: '/', icon: Home },
@@ -213,6 +283,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <span className="text-sm text-muted-foreground hidden lg:block font-medium">
                   Welcome, {profile?.name}! 👋
                 </span>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDownloadApp}
+                  className="p-2 hover:bg-accent hover:text-accent-foreground transition-all duration-200 hover:scale-110 rounded-lg"
+                  title="Download Mobile App"
+                >
+                  <Download className="w-5 h-5 text-green-600" />
+                </Button>
+                
                 <Button
                   variant="ghost"
                   size="sm"
