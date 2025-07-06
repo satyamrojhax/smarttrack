@@ -98,7 +98,11 @@ Format the response in a clear, educational manner suitable for Class 10 student
           description: "Question has been saved to your history page.",
         });
       } else {
-        throw new Error(result.error || 'Failed to save');
+        toast({
+          title: "Save Failed",
+          description: "Failed to save question to history. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('Error saving question:', error);

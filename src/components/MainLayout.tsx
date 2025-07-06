@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Sheet,
@@ -8,7 +9,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ModeToggle } from "@/components/ModeToggle"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -28,7 +28,7 @@ import {
   LayoutDashboard,
   TrendingUp,
   AlarmClock,
-  Note,
+  FileText,
   Award,
   Import,
   Brush,
@@ -37,7 +37,7 @@ import {
   Github,
   Instagram,
   Linkedin,
-  QuestionMark,
+  History,
   LucideIcon
 } from "lucide-react"
 
@@ -60,13 +60,13 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, to }) => {
 };
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = React.useState(false)
 
   const handleSignOut = async () => {
     try {
-      await signOut();
+      await logout();
       navigate('/auth');
     } catch (error) {
       console.error("Sign out failed:", error);
@@ -107,8 +107,10 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <NavItem icon={ListChecks} label="To-Do" to="/todo" />
                 <NavItem icon={BookOpen} label="Syllabus" to="/syllabus" />
                 <NavItem icon={Brain} label="Questions" to="/questions" />
+                <NavItem icon={Brain} label="AI Questions" to="/prompt-questions" />
                 <NavItem icon={TrendingUp} label="Predictor" to="/predictor" />
                 <NavItem icon={AlarmClock} label="Timer" to="/timer" />
+                <NavItem icon={History} label="History" to="/history" />
               </div>
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="additional">
@@ -118,7 +120,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="px-3 py-2">
-                      <NavItem icon={Note} label="Notes" to="/notes" />
+                      <NavItem icon={FileText} label="Notes" to="/notes" />
                       <NavItem icon={Award} label="Badges" to="/badges" />
                       <NavItem icon={Import} label="Export" to="/export" />
                       <NavItem icon={Brush} label="Theme" to="/theme" />
@@ -158,8 +160,10 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <NavItem icon={ListChecks} label="To-Do" to="/todo" />
               <NavItem icon={BookOpen} label="Syllabus" to="/syllabus" />
               <NavItem icon={Brain} label="Questions" to="/questions" />
+              <NavItem icon={Brain} label="AI Questions" to="/prompt-questions" />
               <NavItem icon={TrendingUp} label="Predictor" to="/predictor" />
               <NavItem icon={AlarmClock} label="Timer" to="/timer" />
+              <NavItem icon={History} label="History" to="/history" />
             </div>
 
             {/* Additional Tools Accordion */}
@@ -171,7 +175,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-1 px-4 py-2">
-                    <NavItem icon={Note} label="Notes" to="/notes" />
+                    <NavItem icon={FileText} label="Notes" to="/notes" />
                     <NavItem icon={Award} label="Badges" to="/badges" />
                     <NavItem icon={Import} label="Export" to="/export" />
                     <NavItem icon={Brush} label="Theme" to="/theme" />
