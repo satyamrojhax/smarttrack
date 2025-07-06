@@ -71,6 +71,65 @@ export const saveUserQuestionResponse = async (questionData: QuestionData) => {
   }
 };
 
+// Alias for backward compatibility
+export const saveQuestionResponse = async (
+  questionText: string,
+  userAnswer?: string,
+  correctAnswer?: string,
+  isCorrect?: boolean,
+  timeTaken?: number,
+  questionId?: string
+) => {
+  return saveUserQuestionResponse({
+    question_text: questionText,
+    correct_answer: correctAnswer,
+    explanation: `User answer: ${userAnswer || 'Not provided'}. Correct: ${isCorrect ? 'Yes' : 'No'}. Time taken: ${timeTaken || 0}s`
+  });
+};
+
+// Add the missing saveQuestionToDatabase function
+export const saveQuestionToDatabase = async (
+  questionText: string,
+  questionType: string,
+  difficultyLevel: number,
+  correctAnswer: string,
+  options?: string[],
+  explanation?: string,
+  chapterId?: string
+) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    const { data, error } = await supabase
+      .from('user_generated_questions')
+      .insert({
+        user_id: user.id,
+        question_text: questionText,
+        question_type: questionType,
+        difficulty_level: difficultyLevel,
+        correct_answer: correctAnswer,
+        options: options ? JSON.stringify(options) : null,
+        explanation: explanation,
+        chapter_id: chapterId
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Database error saving question:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error in saveQuestionToDatabase:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
 export const getUserQuestionResponses = async () => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
