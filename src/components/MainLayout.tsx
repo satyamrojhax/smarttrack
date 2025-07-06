@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin, Users, Settings, Star, Download } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 interface MainLayoutProps {
@@ -39,33 +38,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         description: "Starting download of Axiom Smart Track APK",
       });
 
-      // Get the signed URL for the APK file from Supabase storage
-      const { data, error } = await supabase.storage
-        .from('axiom-smart-track.apk')
-        .createSignedUrl('apkfiles.apk', 3600); // 1 hour expiry
-
-      if (error) {
-        console.error('Error getting signed URL:', error);
-        toast({
-          title: "Download Error",
-          description: "Failed to get download link. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (!data?.signedUrl) {
-        toast({
-          title: "Download Error",
-          description: "Download link not available.",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Direct APK URL from Supabase storage
+      const apkUrl = 'https://zlmemsesjpwtpxaznikg.supabase.co/storage/v1/object/sign/axiom-smart-track.apk/apkfiles.apk?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV82MmQ1NTBmOS04YjIxLTQ4ZGItYWRjNy1iMDY2OWJjNjY4M2MiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJheGlvbS1zbWFydC10cmFjay5hcGsvYXBrZmlsZXMuYXBrIiwiaWF0IjoxNzUxNzg5NzQxLCJleHAiOjE3ODMzMjU3NDF9.UYi3skqI2hkG17-88nNWRKFtoWT2uiRZX7UMKvSeHZo';
 
       // Create a temporary anchor element to trigger download
       const link = document.createElement('a');
-      link.href = data.signedUrl;
+      link.href = apkUrl;
       link.download = 'axiom-smart-track.apk';
       link.setAttribute('type', 'application/vnd.android.package-archive');
       
