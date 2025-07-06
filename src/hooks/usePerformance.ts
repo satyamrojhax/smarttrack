@@ -32,7 +32,7 @@ export const usePerformance = () => {
     return async (...args: any[]) => {
       const startTime = performance.now();
       try {
-        const result = await fn(...args);
+        const result = await fn.apply(null, args);
         const endTime = performance.now();
         const duration = endTime - startTime;
         
