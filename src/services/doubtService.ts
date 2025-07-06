@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
@@ -16,7 +15,6 @@ export interface Doubt {
 export interface DoubtResponse {
   id: string;
   doubt_id: string;
-  conversation_id: string;
   user_id: string;
   response_text: string;
   is_ai_response: boolean;
@@ -46,7 +44,7 @@ export const createConversation = async (title: string) => {
     const { data, error } = await supabase
       .from('doubt_conversations')
       .insert({
-        title: title.length > 100 ? title.substring(0, 100) + '...' : title,
+        title,
         user_id: user.id
       })
       .select()
@@ -65,6 +63,52 @@ export const createConversation = async (title: string) => {
     return data;
   } catch (error) {
     console.error('Error creating conversation:', error);
+    throw error;
+  }
+};
+
+export const saveDoubtToDatabase = async (title: string, description: string, subjectId?: string) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "Please log in to save your doubt.",
+        variant: "destructive",
+      });
+      throw new Error('User not authenticated');
+    }
+
+    const { data, error } = await supabase
+      .from('doubts')
+      .insert({
+        title,
+        description,
+        subject_id: subjectId,
+        user_id: user.id,
+        status: 'open'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Database error saving doubt:', error);
+      toast({
+        title: "Error Saving Doubt",
+        description: "Failed to save your doubt. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+
+    toast({
+      title: "Doubt Saved",
+      description: "Your doubt has been saved successfully.",
+    });
+
+    return data;
+  } catch (error) {
+    console.error('Error saving doubt:', error);
     throw error;
   }
 };
@@ -132,12 +176,42 @@ export const getUserDoubts = async () => {
 
     if (error) {
       console.error('Database error fetching doubts:', error);
+      toast({
+        title: "Error Loading Doubts",
+        description: "Failed to load your doubts. Please refresh the page.",
+        variant: "destructive",
+      });
       return [];
     }
 
     return data || [];
   } catch (error) {
     console.error('Error fetching user doubts:', error);
+    return [];
+  }
+};
+
+export const getDoubtHistory = async (doubtId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('doubt_responses')
+      .select('*')
+      .eq('doubt_id', doubtId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Database error fetching doubt history:', error);
+      toast({
+        title: "Error Loading History",
+        description: "Failed to load conversation history. Please try again.",
+        variant: "destructive",
+      });
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching doubt history:', error);
     return [];
   }
 };
