@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useSyllabus } from '@/contexts/SyllabusContext';
@@ -58,15 +59,17 @@ export const QuestionGenerator = () => {
           
           const difficultyNum = question.difficulty === 'easy' ? 1 : question.difficulty === 'medium' ? 2 : 3;
           
-          const questionSaveResult = await saveUserQuestionResponse({
+          const questionData = {
             question_text: question.question,
             question_type: question.type,
             difficulty_level: difficultyNum,
             correct_answer: question.options ? String.fromCharCode(97 + (question.correctAnswer || 0)) : question.answer,
-            options: question.options ? question.options : undefined,
+            options: question.options,
             explanation: question.answer,
             chapter_id: chapterId
-          });
+          };
+
+          const questionSaveResult = await saveUserQuestionResponse(questionData);
 
           if (questionSaveResult) {
             console.log('Question saved successfully:', questionSaveResult.id);
