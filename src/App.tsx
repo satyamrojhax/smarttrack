@@ -29,9 +29,8 @@ const BadgesPage = lazy(() => import("./pages/BadgesPage"));
 const ExportPage = lazy(() => import("./pages/ExportPage"));
 const ThemePage = lazy(() => import("./pages/ThemePage"));
 const ToDoPage = lazy(() => import("./pages/ToDoPage"));
-const EmailVerification = lazy(() => import("./pages/EmailVerification"));
-const EmailVerifying = lazy(() => import("./pages/EmailVerifying"));
-const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
+const MCQQuizPage = lazy(() => import("./pages/MCQQuizPage"));
+// Email verification removed for streamlined experience
 
 // Enhanced QueryClient
 const queryClient = new QueryClient({
@@ -159,9 +158,6 @@ const AppContent = () => {
         <Suspense fallback={<AppLoadingSpinner />}>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/email-verification" element={<EmailVerification />} />
-            <Route path="/email-verifying" element={<EmailVerifying />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="*" element={<Auth />} />
           </Routes>
         </Suspense>
@@ -181,6 +177,7 @@ const AppContent = () => {
                 <Route path="/todo" element={<ToDoPage />} />
                 <Route path="/syllabus" element={<SyllabusPage />} />
                 <Route path="/questions" element={<QuestionsPage />} />
+                <Route path="/mcq-quiz" element={<MCQQuizPage />} />
                 <Route path="/doubts" element={<DoubtsPage />} />
                 <Route path="/predictor" element={<PredictorPage />} />
                 <Route path="/history" element={<HistoryPage />} />

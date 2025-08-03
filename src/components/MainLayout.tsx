@@ -91,6 +91,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'Dashboard', href: '/', icon: Home, color: 'text-blue-600' },
     { name: 'ToDo Tasks', href: '/todo', icon: CheckSquare, color: 'text-green-600' },
     { name: 'AI Questions', href: '/questions', icon: Brain, color: 'text-purple-600' },
+    { name: 'MCQ Quiz', href: '/mcq-quiz', icon: Target, color: 'text-blue-600' },
     { name: 'Ask Doubts', href: '/doubts', icon: HelpCircle, color: 'text-orange-600' },
     { name: 'Syllabus', href: '/syllabus', icon: BookOpen, color: 'text-indigo-600' },
     { name: 'Predictor', href: '/predictor', icon: TrendingUp, color: 'text-emerald-600' },
@@ -180,17 +181,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <SidebarFooter className="p-4 border-t space-y-4 bg-white dark:bg-gray-900">
           <Separator />
           
-          {/* Stats Section */}
-          <div className="grid grid-cols-2 gap-2 text-center">
-            <div className="p-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg">
-              <Star className="w-4 h-4 text-green-600 mx-auto mb-1" />
-              <p className="text-xs font-semibold text-green-700 dark:text-green-400">Active</p>
-            </div>
-            <div className="p-2 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg">
-              <Users className="w-4 h-4 text-blue-600 mx-auto mb-1" />
-              <p className="text-xs font-semibold text-blue-700 dark:text-blue-400">Student</p>
-            </div>
-          </div>
+          {/* Streamlined Footer - Cards Removed */}
           
           <div className="space-y-3 text-center">
             <div className="flex justify-center space-x-3">
@@ -227,7 +218,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <p>Designed & Developed By</p>
               <p className="font-medium">Satyam Rojha</p>
               <p className="text-xs opacity-75 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-semibold">
-                v3.21.28
+                v20.23.290.20
               </p>
             </div>
           </div>
@@ -263,15 +254,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   Welcome, {profile?.name}! 👋
                 </span>
                 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDownloadApp}
-                  className="p-2 hover:bg-accent hover:text-accent-foreground transition-all duration-200 hover:scale-110 rounded-lg"
-                  title="Download Mobile App"
-                >
-                  <Download className="w-5 h-5 text-green-600" />
-                </Button>
+                {/* Download button removed for cleaner UI */}
                 
                 <Button
                   variant="ghost"
