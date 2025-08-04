@@ -19,7 +19,7 @@ import {
   SidebarFooter
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
-import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin, Users, Settings, Star, Download } from 'lucide-react';
+import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin, Users, Settings, Star, Download, Target } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface MainLayoutProps {
