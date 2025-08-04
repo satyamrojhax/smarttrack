@@ -4,8 +4,10 @@ import { DoubtAssistant } from '@/components/DoubtAssistant';
 
 const DoubtsPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <DoubtAssistant />
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
+      <div className="flex-1 overflow-hidden">
+        <DoubtAssistant />
+      </div>
     </div>
   );
 };

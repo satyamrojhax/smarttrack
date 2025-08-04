@@ -331,14 +331,6 @@ export const QuestionGenerator = () => {
 
   return (
     <div className="min-h-screen w-full p-2 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
-      <div className="text-center space-y-2 animate-fade-in">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold flex items-center justify-center space-x-2">
-          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-primary" />
-          <span>Smart Question Generator</span>
-        </h2>
-        <p className="text-muted-foreground text-sm sm:text-base md:text-lg px-2">Generate personalized CBSE practice questions with AI-powered solutions</p>
-        
-      </div>
 
       <QuestionForm
         formData={formData}
