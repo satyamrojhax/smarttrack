@@ -338,16 +338,6 @@ export const QuestionGenerator = () => {
         </h2>
         <p className="text-muted-foreground text-sm sm:text-base md:text-lg px-2">Generate personalized CBSE practice questions with AI-powered solutions</p>
         
-        <div className="pt-2">
-          <Button 
-            variant="outline" 
-            className="bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0 hover:opacity-90 text-sm sm:text-base"
-            onClick={() => window.location.href = '/doubts'}
-          >
-            <Brain className="w-4 h-4 mr-2" />
-            Ask Doubt - ChatGPT Style
-          </Button>
-        </div>
       </div>
 
       <QuestionForm

@@ -50,7 +50,7 @@ const PWADownload: React.FC = () => {
       
       toast({
         title: "App Ready to Install! 📱",
-        description: "Click the Download App button to install Axiom Smart Track",
+        description: "Click the Download App button to install Smart Track",
       });
     };
 
@@ -63,7 +63,7 @@ const PWADownload: React.FC = () => {
       
       toast({
         title: "Successfully Installed! 🎉",
-        description: "Axiom Smart Track is now installed on your device",
+        description: "Smart Track is now installed on your device",
       });
     };
 
@@ -94,7 +94,7 @@ const PWADownload: React.FC = () => {
       if (outcome === 'accepted') {
         toast({
           title: "Installing App... ⚡",
-          description: "Axiom Smart Track is being installed",
+          description: "Smart Track is being installed",
         });
       } else {
         setIsInstalling(false);
@@ -152,7 +152,7 @@ const PWADownload: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Smartphone className="w-5 h-5 text-purple-500" />
-              Install Axiom Smart Track
+              Install Smart Track
             </DialogTitle>
             <DialogDescription>
               Get the full app experience with offline access and faster performance.
@@ -165,7 +165,7 @@ const PWADownload: React.FC = () => {
                 <Download className="w-10 h-10 text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-lg">Axiom Smart Track</h3>
+                <h3 className="font-bold text-lg">Smart Track</h3>
                 <p className="text-sm text-muted-foreground">AI Study Assistant for CBSE Class 10</p>
               </div>
             </div>

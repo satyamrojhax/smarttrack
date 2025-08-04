@@ -83,7 +83,7 @@ const ExitPopup: React.FC = () => {
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <LogOut className="w-5 h-5 text-red-500" />
-            Exit Axiom Smart Track?
+            Exit Smart Track?
           </AlertDialogTitle>
           <AlertDialogDescription>
             Are you sure you want to leave? Your progress will be saved automatically.

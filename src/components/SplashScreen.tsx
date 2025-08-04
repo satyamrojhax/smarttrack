@@ -63,7 +63,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
 
         {/* App Title */}
         <h1 className="text-3xl md:text-5xl font-black text-white mb-2 animate-fade-in">
-          Axiom Smart Track
+          Smart Track
         </h1>
         <p className="text-lg md:text-xl text-white/80 mb-8 font-medium animate-fade-in delay-200">
           AI Study Assistant

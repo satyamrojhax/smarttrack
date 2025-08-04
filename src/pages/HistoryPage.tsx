@@ -52,7 +52,7 @@ const HistoryPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'chats' | 'questions' | 'doubts'>('chats');
+  const [activeTab, setActiveTab] = useState<'chats' | 'questions'>('chats');
   const { user } = useAuth();
 
   useEffect(() => {
@@ -289,8 +289,7 @@ const HistoryPage: React.FC = () => {
       <div className="flex flex-wrap gap-2 justify-center mb-6">
         {[
           { key: 'chats', label: 'Chat History', icon: MessageCircle, count: conversations.length },
-          { key: 'questions', label: 'Questions', icon: FileText, count: generatedQuestions.length },
-          { key: 'doubts', label: 'Doubts', icon: HelpCircle, count: doubts.length }
+          { key: 'questions', label: 'Questions', icon: FileText, count: generatedQuestions.length }
         ].map(({ key, label, icon: Icon, count }) => (
           <Button
             key={key}
@@ -505,56 +504,6 @@ const HistoryPage: React.FC = () => {
           </Card>
         )}
 
-        {activeTab === 'doubts' && (
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <HelpCircle className="w-5 h-5 text-orange-500" />
-                Doubt History
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {filteredDoubts.length === 0 ? (
-                <div className="text-center py-8">
-                  <HelpCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Doubts Found</h3>
-                  <p className="text-muted-foreground">
-                    {searchTerm ? 'No doubts match your search' : 'Start asking questions to see your doubt history here!'}
-                  </p>
-                </div>
-              ) : (
-                <ScrollArea className="h-[500px]">
-                  <div className="space-y-4">
-                    {filteredDoubts.map((doubt, index) => (
-                      <div key={doubt.id}>
-                        <div className="flex items-start justify-between p-4 rounded-xl border bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 shadow-sm hover:shadow-md transition-all duration-200">
-                          <div className="flex-1 space-y-2">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <Badge variant="outline" className="text-xs bg-blue-50 dark:bg-blue-900/20">
-                                {doubt.subject}
-                              </Badge>
-                              <Badge className={`text-xs ${getStatusColor(doubt.status)}`}>
-                                {doubt.status.replace('_', ' ').toUpperCase()}
-                              </Badge>
-                            </div>
-                            <p className="text-sm font-medium leading-relaxed">
-                              {doubt.question}
-                            </p>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Clock className="w-3 h-3" />
-                              {formatDate(doubt.created_at)}
-                            </div>
-                          </div>
-                        </div>
-                        {index < filteredDoubts.length - 1 && <Separator className="my-4" />}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              )}
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from "@/hooks/use-toast";
 import { loginUser, signupUser } from '@/services/authService';
 import { LoginData, SignupData } from '@/types/auth';
-import { Mail, KeyRound, User, Eye, EyeOff, GraduationCap } from 'lucide-react';
+import { Mail, KeyRound, User, Eye, EyeOff, Brain } from 'lucide-react';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -118,9 +118,9 @@ const Auth = () => {
       if (result.success) {
         toast({
           title: "Account Created! 🎉",
-          description: "Please check your email to verify your account",
+          description: "Welcome to Smart Track! Redirecting to dashboard...",
         });
-        navigate('/email-verification');
+        navigate('/');
       } else {
         toast({
           title: "Sign Up Failed",
@@ -145,10 +145,10 @@ const Auth = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-            <GraduationCap className="w-8 h-8 text-white" />
+            <Brain className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Smart Study Tracker
+            Smart Track
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-2">
             Your intelligent companion for Class 10th CBSE success
@@ -281,7 +281,7 @@ const Auth = () => {
                 ) : (
                   <>
                     {isLogin ? 'Sign In to Dashboard' : 'Create Account'}
-                    <GraduationCap className="ml-2 w-4 h-4" />
+                    <Brain className="ml-2 w-4 h-4" />
                   </>
                 )}
               </Button>

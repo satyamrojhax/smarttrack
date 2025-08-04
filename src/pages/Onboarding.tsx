@@ -13,7 +13,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const slides = [
     {
       icon: <BookOpen className="w-20 h-20 text-purple-600" />,
-      title: "Welcome to Axiom Smart Track",
+      title: "Welcome to Smart Track",
       subtitle: "Your AI-powered study companion for Class 10 CBSE",
       description: "Track your syllabus progress, get personalized study plans, and excel in your board exams!"
     },

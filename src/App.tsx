@@ -25,7 +25,7 @@ const DoubtsPage = lazy(() => import("./pages/DoubtsPage"));
 const HistoryPage = lazy(() => import("./pages/HistoryPage"));
 const TimerPage = lazy(() => import("./pages/TimerPage"));
 const NotesPage = lazy(() => import("./pages/NotesPage"));
-const BadgesPage = lazy(() => import("./pages/BadgesPage"));
+
 const ExportPage = lazy(() => import("./pages/ExportPage"));
 const ThemePage = lazy(() => import("./pages/ThemePage"));
 const ToDoPage = lazy(() => import("./pages/ToDoPage"));
@@ -183,7 +183,7 @@ const AppContent = () => {
                 <Route path="/history" element={<HistoryPage />} />
                 <Route path="/timer" element={<TimerPage />} />
                 <Route path="/notes" element={<NotesPage />} />
-                <Route path="/badges" element={<BadgesPage />} />
+                
                 <Route path="/export" element={<ExportPage />} />
                 <Route path="/theme" element={<ThemePage />} />
                 <Route path="/profile" element={<Profile />} />

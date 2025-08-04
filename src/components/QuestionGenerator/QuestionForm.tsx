@@ -115,17 +115,21 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
         <div className="space-y-2">
           <label className="text-sm font-medium">Question Types</label>
           <div className="flex flex-wrap gap-2">
-            {['MCQ', 'Short Answer', 'Long Answer', 'Application Based'].map((type) => (
+            {['MCQ', 'Short Answer', 'Long Answer', 'Application Based', 'CFQs', 'CBQs'].map((type) => (
               <Badge
                 key={type}
                 variant={formData.questionTypes.includes(type) ? "default" : "outline"}
                 className="cursor-pointer px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm smooth-transition hover:scale-105"
                 onClick={() => handleQuestionTypeToggle(type)}
+                title={type === 'CFQs' ? 'Competency Focused Questions' : type === 'CBQs' ? 'Case Based Questions' : ''}
               >
                 {type}
               </Badge>
             ))}
           </div>
+          <p className="text-xs text-muted-foreground">
+            CFQs = Competency Focused Questions, CBQs = Case Based Questions
+          </p>
         </div>
 
         <Button 

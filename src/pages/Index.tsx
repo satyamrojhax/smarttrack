@@ -1,18 +1,20 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useSyllabus } from '@/contexts/SyllabusContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Brain, BookOpen, Target, Users, Sparkles, ArrowRight, TrendingUp, Award, Star, History } from 'lucide-react';
+import { Brain, BookOpen, Target, Users, Sparkles, ArrowRight, TrendingUp, Award, Star, History, Clock, FileQuestion, Calendar, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Index = () => {
   const { subjects, getOverallProgress } = useSyllabus();
   const { profile } = useAuth();
   const overallProgress = getOverallProgress();
+  const [todayStudyHours, setTodayStudyHours] = useState(0);
+  const [totalQuestionsGenerated, setTotalQuestionsGenerated] = useState(0);
 
   const totalChapters = subjects.reduce((total, subject) => total + subject.chapters.length, 0);
   const completedChapters = subjects.reduce(
@@ -27,6 +29,57 @@ const Index = () => {
         .map(chapter => ({ ...chapter, subject: subject.name, icon: subject.icon }))
     )
     .slice(-3);
+
+  // Simulate data loading
+  useEffect(() => {
+    const savedStudyTime = localStorage.getItem('todayStudyTime') || '0';
+    const savedQuestions = localStorage.getItem('totalQuestionsGenerated') || '0';
+    setTodayStudyHours(parseFloat(savedStudyTime));
+    setTotalQuestionsGenerated(parseInt(savedQuestions));
+  }, []);
+
+  const dashboardCards = [
+    {
+      title: 'Questions Generated',
+      value: totalQuestionsGenerated,
+      icon: FileQuestion,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-100',
+      darkBgColor: 'dark:bg-purple-900/20'
+    },
+    {
+      title: 'Study Hours Today',
+      value: `${todayStudyHours.toFixed(1)}h`,
+      icon: Clock,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100',
+      darkBgColor: 'dark:bg-blue-900/20'
+    },
+    {
+      title: 'Syllabus Progress',
+      value: `${overallProgress}%`,
+      icon: BookOpen,
+      color: 'text-green-600',
+      bgColor: 'bg-green-100',
+      darkBgColor: 'dark:bg-green-900/20'
+    },
+    {
+      title: 'Chapters Done',
+      value: `${completedChapters}/${totalChapters}`,
+      icon: Award,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100',
+      darkBgColor: 'dark:bg-orange-900/20'
+    },
+    {
+      title: 'Active Subjects',
+      value: subjects.length,
+      icon: Brain,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-100',
+      darkBgColor: 'dark:bg-indigo-900/20'
+    }
+  ];
 
   const features = [
     {
@@ -56,38 +109,57 @@ const Index = () => {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto p-4 lg:ml-64 space-y-8 scroll-smooth">
+    <div className="max-w-7xl mx-auto p-4 space-y-8 scroll-smooth">
       {/* Hero Section */}
-      <div className="text-center space-y-6 py-8 animate-fade-in">
+      <div className="text-center space-y-6 py-6 animate-fade-in">
         <div className="inline-flex items-center space-x-2 bg-primary/10 px-4 py-2 rounded-full text-sm">
           <Sparkles className="w-4 h-4 text-primary" />
           <span className="text-primary font-medium">Welcome back, {profile?.name}!</span>
         </div>
         
-        <h1 className="text-4xl md:text-6xl font-bold gradient-text leading-tight">
-          Your AI Study
+        <h1 className="text-3xl md:text-5xl font-bold gradient-text leading-tight">
+          Your Smart Study
           <br />
-          <span className="text-primary">Companion</span>
+          <span className="text-primary">Dashboard</span>
         </h1>
         
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Master Class 10 CBSE with intelligent question generation, progress tracking, and personalized learning insights
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Track your progress, generate practice questions, and ace your board exams
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link to="/questions">
-            <Button size="lg" className="px-8 py-6 text-lg smooth-transition hover:scale-105">
+            <Button size="lg" className="px-8 py-4 text-lg smooth-transition hover:scale-105">
               <Brain className="w-5 h-5 mr-2" />
               Generate Questions
             </Button>
           </Link>
-          <Link to="/syllabus">
-            <Button variant="outline" size="lg" className="px-8 py-6 text-lg smooth-transition hover:scale-105">
-              <BookOpen className="w-5 h-5 mr-2" />
-              Track Progress
+          <Link to="/mcq-quiz">
+            <Button variant="outline" size="lg" className="px-8 py-4 text-lg smooth-transition hover:scale-105">
+              <Target className="w-5 h-5 mr-2" />
+              Take Quiz
             </Button>
           </Link>
         </div>
+      </div>
+
+      {/* Dashboard Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {dashboardCards.map((card, index) => (
+          <Card key={index} className="glass-card smooth-transition hover:shadow-lg hover:scale-105">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-2">{card.title}</p>
+                  <p className="text-2xl font-bold">{card.value}</p>
+                </div>
+                <div className={`p-3 rounded-lg ${card.bgColor} ${card.darkBgColor}`}>
+                  <card.icon className={`w-6 h-6 ${card.color}`} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Progress Overview */}

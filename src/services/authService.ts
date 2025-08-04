@@ -27,14 +27,11 @@ export const loginUser = async (userData: LoginData) => {
 
 export const signupUser = async (userData: SignupData) => {
   try {
-    // Use the current domain for verification redirect
-    const redirectUrl = `${window.location.origin}/verify-email`;
-    
+    // Remove email verification redirect to go directly to dashboard
     const { data, error } = await supabase.auth.signUp({
       email: userData.email,
       password: userData.password,
       options: {
-        emailRedirectTo: redirectUrl,
         data: {
           name: userData.name,
           class: 'class-10', // Default to class 10

@@ -80,7 +80,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted }) => {
             <Brain className="w-6 h-6 text-white" />
           </div>
           <div>
-            <span className="text-white font-bold text-lg md:text-xl">Axiom Smart Track</span>
+            <span className="text-white font-bold text-lg md:text-xl">Smart Track</span>
             <p className="text-white/70 text-xs hidden sm:block">AI Study Assistant</p>
           </div>
         </div>
@@ -149,7 +149,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted }) => {
 
         {/* Benefits List */}
         <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 md:p-8 border border-white/10 max-w-4xl mx-auto">
-          <h3 className="text-xl md:text-2xl font-bold text-white mb-6 text-center">Why Choose Axiom Smart Track?</h3>
+          <h3 className="text-xl md:text-2xl font-bold text-white mb-6 text-center">Why Choose Smart Track?</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {benefits.map((benefit, index) => (
               <div key={index} className="flex items-center space-x-3">

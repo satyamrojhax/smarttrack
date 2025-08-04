@@ -21,6 +21,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin, Users, Settings, Star, Download, Target } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import CountdownTimer from './CountdownTimer';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -36,7 +37,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     try {
       toast({
         title: "Downloading App...",
-        description: "Starting download of Axiom Smart Track APK",
+        description: "Starting download of Smart Track APK",
       });
 
       // Updated APK URL from Supabase storage
@@ -81,9 +82,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   };
 
   const bottomNavigation = [
-    { name: 'Dashboard', href: '/', icon: Home },
+    { name: 'Home', href: '/', icon: Home },
     { name: 'Questions', href: '/questions', icon: Brain },
-    { name: 'Ask Doubts', href: '/doubts', icon: HelpCircle },
+    { name: 'Quiz', href: '/mcq-quiz', icon: Target },
     { name: 'Profile', href: '/profile', icon: User },
   ];
 
@@ -98,7 +99,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'History', href: '/history', icon: History, color: 'text-amber-600' },
     { name: 'Study Timer', href: '/timer', icon: Timer, color: 'text-red-600' },
     { name: 'My Notes', href: '/notes', icon: FileText, color: 'text-cyan-600' },
-    { name: 'Achievements', href: '/badges', icon: Trophy, color: 'text-yellow-600' },
+    
     { name: 'Theme', href: '/theme', icon: Palette, color: 'text-pink-600' },
     { name: 'Profile', href: '/profile', icon: User, color: 'text-gray-600' },
   ];
@@ -125,7 +126,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </div>
             <div>
               <h2 className="font-bold text-lg text-foreground bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                Axiom Smart Track
+                Smart Track
               </h2>
               <p className="text-xs text-muted-foreground">AI Study Assistant</p>
             </div>
@@ -242,19 +243,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   </div>
                   <div className="hidden sm:block">
                     <h1 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                      Axiom Smart Track
+                      Smart Track
                     </h1>
                     <p className="text-xs text-muted-foreground hidden md:block">AI Study Assistant</p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-muted-foreground hidden lg:block font-medium">
+              <div className="flex items-center space-x-2 sm:space-x-4">
+                <CountdownTimer />
+                
+                <span className="text-sm text-muted-foreground hidden xl:block font-medium">
                   Welcome, {profile?.name}! 👋
                 </span>
-                
-                {/* Download button removed for cleaner UI */}
                 
                 <Button
                   variant="ghost"
@@ -274,8 +275,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </div>
           </main>
 
-          <nav className={`fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t shadow-lg ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
-            <div className="grid grid-cols-4 py-2 px-1">
+           <nav className={`fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t shadow-lg ${isStandalone ? 'pb-safe-area-inset-bottom' : ''}`}>
+            <div className="grid grid-cols-4 py-1 px-1">
               {bottomNavigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 const Icon = item.icon;
@@ -284,13 +285,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`flex flex-col items-center space-y-1 py-3 px-2 rounded-xl transition-all duration-200 touch-manipulation ${
+                    className={`flex flex-col items-center space-y-1 py-2 px-1 rounded-lg transition-all duration-200 touch-manipulation ${
                       isActive 
                         ? 'text-primary bg-primary/10 scale-105 shadow-sm' 
                         : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                     }`}
                   >
-                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    <Icon className="w-4 h-4 flex-shrink-0" />
                     <span className="text-xs font-medium truncate">{item.name}</span>
                     {isActive && <div className="w-1 h-1 bg-primary rounded-full animate-pulse"></div>}
                   </Link>
