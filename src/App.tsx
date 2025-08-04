@@ -200,17 +200,17 @@ const AppContent = () => {
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+      <BrowserRouter>
+        <TooltipProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <Toaster />
+              <Sonner />
               <AppContent />
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
-      </ThemeProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </TooltipProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   </ErrorBoundary>
 );
