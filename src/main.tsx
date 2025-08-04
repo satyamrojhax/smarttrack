@@ -24,31 +24,22 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Performance optimization: Use requestIdleCallback for non-critical tasks
-const initializeApp = () => {
-  const root = createRoot(document.getElementById("root")!);
-  root.render(<App />);
-  
-  // Log performance metrics
-  const endTime = performance.now();
-  console.log(`App initialization took ${(endTime - startTime).toFixed(2)}ms`);
-  
-  // Track page visibility for better UX
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      console.log('App moved to background');
-    } else {
-      console.log('App returned to foreground');
-    }
-  });
-};
+// Initialize app immediately
+const root = createRoot(document.getElementById("root")!);
+root.render(<App />);
 
-// Use requestIdleCallback if available, fallback to setTimeout
-if ('requestIdleCallback' in window) {
-  requestIdleCallback(initializeApp);
-} else {
-  setTimeout(initializeApp, 0);
-}
+// Log performance metrics
+const endTime = performance.now();
+console.log(`App initialization took ${(endTime - startTime).toFixed(2)}ms`);
+
+// Track page visibility for better UX
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    console.log('App moved to background');
+  } else {
+    console.log('App returned to foreground');
+  }
+});
 
 // Add smooth scrolling behavior globally
 document.documentElement.style.scrollBehavior = 'smooth';
