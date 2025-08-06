@@ -43,8 +43,8 @@ function App() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <ErrorBoundary>
-        <SyllabusProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <SyllabusProvider>
             <TimerProvider>
               <ThemeProvider>
                 <BrowserRouter>
@@ -78,8 +78,8 @@ function App() {
                 </BrowserRouter>
               </ThemeProvider>
             </TimerProvider>
-          </AuthProvider>
-        </SyllabusProvider>
+          </SyllabusProvider>
+        </AuthProvider>
       </ErrorBoundary>
     </div>
   );
