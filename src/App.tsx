@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
@@ -5,7 +6,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { SyllabusProvider } from '@/contexts/SyllabusContext';
 import { TimerProvider } from '@/contexts/TimerContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import MainLayout from '@/components/MainLayout';
 import Landing from '@/pages/Landing';
 import Auth from '@/pages/Auth';
@@ -29,6 +30,16 @@ import EmailVerifying from '@/pages/EmailVerifying';
 import CommunityPage from './pages/CommunityPage';
 
 function App() {
+  const handleGetStarted = () => {
+    // Navigate to auth page or dashboard
+    window.location.href = '/auth';
+  };
+
+  const handleOnboardingComplete = () => {
+    // Navigate to dashboard after onboarding
+    window.location.href = '/';
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <ErrorBoundary>
@@ -38,9 +49,9 @@ function App() {
               <ThemeProvider>
                 <BrowserRouter>
                   <Routes>
-                    <Route path="/landing" element={<Landing />} />
+                    <Route path="/landing" element={<Landing onGetStarted={handleGetStarted} />} />
                     <Route path="/auth" element={<Auth />} />
-                    <Route path="/onboarding" element={<Onboarding />} />
+                    <Route path="/onboarding" element={<Onboarding onComplete={handleOnboardingComplete} />} />
                     <Route path="/verify-email" element={<VerifyEmail />} />
                     <Route path="/email-verification" element={<EmailVerification />} />
                     <Route path="/email-verifying" element={<EmailVerifying />} />

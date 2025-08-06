@@ -39,7 +39,7 @@ export const sendCommunityMessage = async (message: string) => {
   }
 };
 
-export const getCommunityMessages = async (limit: number = 50) => {
+export const getCommunityMessages = async (limit: number = 50): Promise<CommunityMessage[]> => {
   try {
     const { data, error } = await supabase
       .from('community_messages')
@@ -58,7 +58,7 @@ export const getCommunityMessages = async (limit: number = 50) => {
     }
     
     console.log('Messages fetched successfully:', data?.length || 0);
-    return data || [];
+    return (data || []) as CommunityMessage[];
   } catch (error) {
     console.error('Error in getCommunityMessages:', error);
     return [];

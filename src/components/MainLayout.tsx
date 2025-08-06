@@ -1,187 +1,163 @@
+
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, BookOpen, Brain, MessageCircle, History, Settings, User, Moon, Sun } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Switch } from "@/components/ui/switch";
-import { useTheme } from "@/components/theme-provider";
-import { Button } from "@/components/ui/button";
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { ThemeProvider } from 'next-themes';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { 
+  Home, 
+  FileQuestion, 
+  BookOpen, 
+  Timer, 
+  StickyNote, 
+  TrendingUp, 
+  History, 
+  Download, 
+  User, 
+  Palette,
+  CheckSquare,
+  Users,
+  Target
+} from 'lucide-react';
 
-interface NavItemProps {
-  icon: React.ComponentType<any>;
-  label: string;
-  path: string;
-  key: string;
-}
-
-interface MainLayoutProps {
-  children: React.ReactNode;
-}
-
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const location = useLocation();
+const MainLayout = ({ children }: { children: React.ReactNode }) => {
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, logout } = useAuth();
-  const { setTheme, theme } = useTheme();
+  const location = useLocation();
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setIsMenuOpen(false);
-  }, [location.pathname]);
+    setMounted(true);
+  }, []);
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
-  };
+  useEffect(() => {
+    if (!user && mounted) {
+      navigate('/landing');
+    }
+  }, [user, navigate, mounted]);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/auth');
-  };
+  if (!mounted) {
+    return null;
+  }
 
-  const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
-  };
+  if (!user) {
+    return null;
+  }
 
-  const navItems = [
-    { icon: Home, label: 'Home', path: '/', key: 'home' },
-    { icon: BookOpen, label: 'Questions', path: '/questions', key: 'questions' },
-    { icon: Brain, label: 'Quiz', path: '/quiz', key: 'quiz' },
-    { icon: MessageCircle, label: 'Community', path: '/community', key: 'community' },
-    { icon: History, label: 'History', path: '/history', key: 'history' },
+  const navigationItems = [
+    { icon: Home, label: 'Home', path: '/', color: 'text-blue-600' },
+    { icon: FileQuestion, label: 'Questions', path: '/questions', color: 'text-purple-600' },
+    { icon: Target, label: 'Quiz', path: '/quiz', color: 'text-green-600' },
+    { icon: Users, label: 'Community', path: '/community', color: 'text-orange-600' },
+    { icon: BookOpen, label: 'Syllabus', path: '/syllabus', color: 'text-emerald-600' },
   ];
 
+  const secondaryItems = [
+    { icon: Timer, label: 'Timer', path: '/timer' },
+    { icon: StickyNote, label: 'Notes', path: '/notes' },
+    { icon: TrendingUp, label: 'Predictor', path: '/predictor' },
+    { icon: History, label: 'History', path: '/history' },
+    { icon: Download, label: 'Export', path: '/export' },
+    { icon: User, label: 'Profile', path: '/profile' },
+    { icon: Palette, label: 'Theme', path: '/theme' },
+    { icon: CheckSquare, label: 'To-Do', path: '/todo' },
+  ];
+
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 w-full bg-background border-t z-50 md:hidden">
-        <div className="flex justify-around items-center py-2">
-          {navItems.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => handleNavigation(item.path)}
-              className={`flex flex-col items-center justify-center space-y-1 text-sm ${location.pathname === item.path ? 'text-primary' : 'text-muted-foreground'
-                }`}
-            >
-              <item.icon className="w-5 h-5" />
-              <span>{item.label}</span>
-            </button>
-          ))}
+    <ThemeProvider attribute="class" defaultTheme={theme} enableSystem>
+      <div className="flex h-screen bg-background">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-50">
+          <div className="flex flex-col flex-grow pt-5 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
+            <div className="flex items-center flex-shrink-0 px-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">ST</span>
+                </div>
+                <span className="text-xl font-bold text-gray-900 dark:text-white">Smart Track</span>
+              </div>
+            </div>
+            
+            <div className="mt-8 flex-grow flex flex-col">
+              <nav className="flex-1 px-2 pb-4 space-y-1">
+                {navigationItems.map((item) => (
+                  <Button
+                    key={item.path}
+                    variant={isActive(item.path) ? "secondary" : "ghost"}
+                    className={cn(
+                      "w-full justify-start h-11 px-4",
+                      isActive(item.path) && "bg-primary/10 text-primary border-r-2 border-primary"
+                    )}
+                    onClick={() => navigate(item.path)}
+                  >
+                    <item.icon className={cn("mr-3 h-5 w-5", isActive(item.path) ? "text-primary" : item.color)} />
+                    <span className="font-medium">{item.label}</span>
+                  </Button>
+                ))}
+                
+                <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    More
+                  </p>
+                  <div className="mt-2 space-y-1">
+                    {secondaryItems.map((item) => (
+                      <Button
+                        key={item.path}
+                        variant={isActive(item.path) ? "secondary" : "ghost"}
+                        size="sm"
+                        className={cn(
+                          "w-full justify-start h-9 px-4 text-sm",
+                          isActive(item.path) && "bg-primary/10 text-primary"
+                        )}
+                        onClick={() => navigate(item.path)}
+                      >
+                        <item.icon className="mr-3 h-4 w-4" />
+                        {item.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </nav>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="md:pl-64 flex flex-col flex-1 min-h-screen">
+          <main className="flex-1 pb-16 md:pb-0">
+            {children}
+            <Outlet />
+          </main>
+        </div>
+
+        {/* Mobile Bottom Navigation */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 z-40">
+          <div className="flex justify-around items-center py-2 px-4">
+            {navigationItems.slice(0, 5).map((item) => (
+              <Button
+                key={item.path}
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "flex-col h-14 w-14 p-1",
+                  isActive(item.path) && "text-primary"
+                )}
+                onClick={() => navigate(item.path)}
+              >
+                <item.icon className={cn("h-5 w-5 mb-1", isActive(item.path) ? "text-primary" : item.color)} />
+                <span className="text-xs font-medium truncate">{item.label}</span>
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
-
-      {/* Sidebar (Hidden on Mobile) */}
-      <aside className="w-64 bg-background border-r hidden md:flex flex-col">
-        <div className="p-4">
-          <h1 className="text-2xl font-bold">LearnVerse</h1>
-        </div>
-        <nav className="flex-1 px-2 py-4">
-          {navItems.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => handleNavigation(item.path)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md w-full hover:bg-secondary ${location.pathname === item.path ? 'bg-secondary text-primary' : 'text-muted-foreground'
-                }`}
-            >
-              <item.icon className="w-4 h-4" />
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="flex items-center justify-between p-4 border-b">
-          <div className="md:hidden">
-            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <MenuIcon className="h-4 w-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-64">
-                <div className="p-4">
-                  <h1 className="text-2xl font-bold">LearnVerse</h1>
-                </div>
-                <nav className="flex-1 px-2 py-4">
-                  {navItems.map((item) => (
-                    <button
-                      key={item.key}
-                      onClick={() => handleNavigation(item.path)}
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-md w-full hover:bg-secondary ${location.pathname === item.path ? 'bg-secondary text-primary' : 'text-muted-foreground'
-                        }`}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      <span>{item.label}</span>
-                    </button>
-                  ))}
-                </nav>
-              </SheetContent>
-            </Sheet>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Switch
-              id="theme"
-              checked={theme === 'dark'}
-              onCheckedChange={toggleTheme}
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.user_metadata?.avatar_url as string} alt={user?.user_metadata?.full_name as string} />
-                    <AvatarFallback>{(user?.user_metadata?.full_name as string)?.substring(0, 2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-
-        {/* Page Content */}
-        <div className="flex-1 p-4">{children}</div>
-      </main>
-    </div>
+    </ThemeProvider>
   );
 };
-
-function MenuIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="4" x2="20" y1="12" y2="12" />
-      <line x1="4" x2="20" y1="6" y2="6" />
-      <line x1="4" x2="20" y1="18" y2="18" />
-    </svg>
-  )
-}
 
 export default MainLayout;
