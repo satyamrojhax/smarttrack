@@ -11,30 +11,52 @@ export const formatAIResponse = (text: string): string => {
 };
 
 export const parseQuestions = (formattedText: string, questionTypes: string[], difficulty: string, subjectName: string, chapterName: string): GeneratedQuestion[] => {
-  const questionBlocks = formattedText.split(/Question\s*\d+:/i).filter(q => q.trim());
+  // Split by question markers (more flexible)
+  const questionBlocks = formattedText.split(/(?:Question\s*\d+[:\.]|Q\d+[:\.]|\d+[\.\)])/i).filter(q => q.trim());
+  
+  console.log('Parsing questions from text:', formattedText.substring(0, 200));
+  console.log('Found question blocks:', questionBlocks.length);
   
   return questionBlocks.map((block, index) => {
     let options: string[] | undefined;
     let correctAnswer: number | undefined;
     let questionText = block.trim();
     
-    // Check if it's an MCQ
-    const optionMatches = block.match(/[a-d]\)\s*([^\n]+)/gi);
-    const correctAnswerMatch = block.match(/Correct Answer:\s*([a-d])/i);
+    console.log(`Processing question ${index + 1}:`, questionText.substring(0, 100));
     
-    if (optionMatches && optionMatches.length === 4 && correctAnswerMatch) {
-      options = optionMatches.map(opt => opt.replace(/[a-d]\)\s*/, '').trim());
+    // More flexible option matching for MCQs
+    const optionRegex = /(?:[a-d][\)\.]|[A-D][\)\.]|\([a-d]\)|\([A-D]\))\s*([^\n\r]+)/gi;
+    const optionMatches = [...questionText.matchAll(optionRegex)];
+    
+    // More flexible correct answer matching
+    const correctAnswerRegex = /(?:correct\s*answer|answer|solution)[:=\s]*[(\[]?([a-d]|[A-D])[)\]]?/gi;
+    const correctAnswerMatch = correctAnswerRegex.exec(questionText);
+    
+    console.log(`Found ${optionMatches.length} options for question ${index + 1}`);
+    
+    if (optionMatches.length >= 2 && correctAnswerMatch) {
+      options = optionMatches.map(match => match[1].trim());
       const correctLetter = correctAnswerMatch[1].toLowerCase();
       correctAnswer = correctLetter.charCodeAt(0) - 97; // Convert a-d to 0-3
       
-      // Remove options and correct answer from question text
+      console.log(`MCQ detected - Options: ${options.length}, Correct: ${correctLetter} (${correctAnswer})`);
+      
+      // Clean question text by removing options and answer
       questionText = questionText
-        .replace(/[a-d]\)\s*[^\n]+/gi, '')
-        .replace(/Correct Answer:\s*[a-d]/i, '')
+        .replace(optionRegex, '')
+        .replace(correctAnswerRegex, '')
+        .replace(/\n\s*\n/g, '\n')
         .trim();
     }
     
-    return {
+    // If no options found but MCQ was requested, create simple options
+    if (!options && questionTypes.includes('MCQ')) {
+      console.log(`Creating default options for question ${index + 1}`);
+      options = ['Option A', 'Option B', 'Option C', 'Option D'];
+      correctAnswer = 0;
+    }
+    
+    const question: GeneratedQuestion = {
       id: `${Date.now()}-${index}`,
       question: questionText,
       type: questionTypes[index % questionTypes.length],
@@ -45,6 +67,15 @@ export const parseQuestions = (formattedText: string, questionTypes: string[], d
       options,
       correctAnswer
     };
+    
+    console.log(`Final question ${index + 1}:`, {
+      hasOptions: !!question.options,
+      optionsCount: question.options?.length,
+      correctAnswer: question.correctAnswer,
+      type: question.type
+    });
+    
+    return question;
   });
 };
 
@@ -69,34 +100,65 @@ export const generateQuestionsPrompt = (
   questionTypes: string[],
   difficulty: string
 ): string => {
+  const mcqInstructions = questionTypes.includes('MCQ') ? `
+
+FOR MCQ QUESTIONS - MANDATORY FORMAT:
+- Provide EXACTLY 4 options labeled as:
+  a) [first option]
+  b) [second option] 
+  c) [third option]
+  d) [fourth option]
+- Then on a new line write: "Correct Answer: [letter]"
+- Make sure options are clear and distinct
+- Only ONE option should be correct
+
+` : '';
+
+  const cfqInstructions = questionTypes.includes('CFQs') ? `
+
+FOR COMPETENCY FOCUSED QUESTIONS (CFQs):
+- Focus on application of concepts and problem-solving skills
+- Include scenario-based questions that test analytical thinking
+- Emphasize understanding over memorization
+
+` : '';
+
+  const cbqInstructions = questionTypes.includes('CBQs') ? `
+
+FOR CASE BASED QUESTIONS (CBQs):  
+- Present a real-world scenario or case study
+- Ask questions based on the given case
+- Test practical application of theoretical knowledge
+
+` : '';
+
   return `Create ${questionCount} high-quality practice questions for Class 10 CBSE ${subjectName}, chapter "${chapterName}".
 
 Requirements:
 - Question types: ${questionTypes.join(', ')}
 - Difficulty: ${difficulty} level
 - Make them exam-oriented and based on latest CBSE pattern
-- DO NOT include any context or introduction as the first question
+- Each question should be numbered clearly as "Question 1:", "Question 2:", etc.
 
-For MCQ questions, provide exactly 4 options labeled as:
-a) [option 1]
-b) [option 2] 
-c) [option 3]
-d) [option 4]
-
-Then clearly state: "Correct Answer: [letter]"
+${mcqInstructions}${cfqInstructions}${cbqInstructions}
 
 For other question types, write clear, direct questions that test understanding.
 
-Format each question as:
-Question 1: [question text]
-[If MCQ, include options and correct answer]
+IMPORTANT FORMATTING:
+- Start each question with "Question [number]:" 
+- For MCQs, always include 4 options and correct answer
+- Keep questions focused and exam-relevant
+- Use clear, simple language
 
-Question 2: [question text]
-[If MCQ, include options and correct answer]
+Example format for MCQ:
+Question 1: What is the formula for area of a circle?
+a) πr²
+b) 2πr  
+c) πd
+d) πr
+Correct Answer: a
 
-And so on...
-
-Write in a friendly, encouraging tone like a helpful tutor. Focus on clarity and exam relevance.`;
+Write in a helpful, encouraging tone. Focus on clarity and exam relevance.`;
 };
 
 export const generateSolutionPrompt = (question: GeneratedQuestion): string => {

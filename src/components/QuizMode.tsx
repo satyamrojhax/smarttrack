@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -159,7 +158,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
               </p>
               
               <div className="p-4 sm:p-6 md:p-8 rounded-2xl bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800">
-                <p className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-center leading-relaxed break-words">
+                <p className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-center leading-relaxed break-words hyphens-auto">
                   {getPerformanceMessage(percentage)}
                 </p>
               </div>
@@ -200,11 +199,11 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
             </div>
 
             <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-              <Button onClick={restartQuiz} className="flex-1 h-12 sm:h-14 text-base sm:text-lg" size="lg">
-                <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
+              <Button onClick={restartQuiz} className="flex-1 h-12 sm:h-14 text-sm sm:text-base md:text-lg" size="lg">
+                <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-2" />
                 Try Again
               </Button>
-              <Button variant="outline" onClick={onExit} className="flex-1 h-12 sm:h-14 text-base sm:text-lg" size="lg">
+              <Button variant="outline" onClick={onExit} className="flex-1 h-12 sm:h-14 text-sm sm:text-base md:text-lg" size="lg">
                 Back to Questions
               </Button>
             </div>
@@ -245,7 +244,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
         <CardContent className="space-y-6 sm:space-y-8 p-3 sm:p-4 md:p-6">
           <div className="space-y-6 sm:space-y-8">
             <div className="p-4 sm:p-6 md:p-8 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl border border-blue-200 dark:border-blue-800 shadow-lg">
-              <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold leading-relaxed text-center break-words overflow-wrap-anywhere">
+              <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold leading-relaxed text-center break-words word-break hyphens-auto">
                 {currentQuestion.question}
               </h3>
             </div>
@@ -281,7 +280,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
                       <span className="font-bold text-xs sm:text-sm md:text-base flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 rounded-full bg-primary/10 flex items-center justify-center">
                         {String.fromCharCode(65 + index)}
                       </span>
-                      <span className="flex-1 text-left break-words leading-relaxed overflow-wrap-anywhere word-break hyphens-auto">
+                      <span className="flex-1 text-left break-words leading-relaxed word-break hyphens-auto">
                         {option}
                       </span>
                       {showResult && index === currentQuestion.correctAnswer && (
@@ -321,7 +320,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
                 </div>
                 <div className="space-y-3">
                   <p className="font-medium text-primary text-sm sm:text-base md:text-lg">Here's why:</p>
-                  <p className="leading-relaxed text-muted-foreground text-sm sm:text-base md:text-lg break-words overflow-wrap-anywhere hyphens-auto">
+                  <p className="leading-relaxed text-muted-foreground text-sm sm:text-base md:text-lg break-words word-break hyphens-auto">
                     {currentQuestion.explanation}
                   </p>
                 </div>
@@ -330,7 +329,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
           </div>
 
           <div className="flex flex-col sm:flex-row justify-between items-center pt-6 gap-4">
-            <Button variant="outline" onClick={onExit} size="lg" className="w-full sm:w-auto order-2 sm:order-1 h-12 sm:h-14 text-base sm:text-lg">
+            <Button variant="outline" onClick={onExit} size="lg" className="w-full sm:w-auto order-2 sm:order-1 h-12 sm:h-14 text-sm sm:text-base md:text-lg">
               Exit Quiz
             </Button>
             
@@ -339,7 +338,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
                 onClick={handleSubmitAnswer}
                 disabled={selectedAnswer === null}
                 size="lg"
-                className="px-6 sm:px-8 md:px-10 w-full sm:w-auto order-1 sm:order-2 h-12 sm:h-14 text-base sm:text-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+                className="px-6 sm:px-8 md:px-10 w-full sm:w-auto order-1 sm:order-2 h-12 sm:h-14 text-sm sm:text-base md:text-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
               >
                 {selectedAnswer === null ? "Select an Answer" : "Submit Answer"}
               </Button>
@@ -347,7 +346,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({ questions, onExit }) => {
               <Button 
                 onClick={handleNextQuestion}
                 size="lg"
-                className="px-6 sm:px-8 md:px-10 w-full sm:w-auto order-1 sm:order-2 h-12 sm:h-14 text-base sm:text-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                className="px-6 sm:px-8 md:px-10 w-full sm:w-auto order-1 sm:order-2 h-12 sm:h-14 text-sm sm:text-base md:text-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
               >
                 {currentQuestionIndex === questions.length - 1 ? "Finish Quiz" : "Next Question"}
               </Button>
