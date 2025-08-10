@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthContextProps, Profile, LoginData, SignupData, ProfileUpdateData } from '@/types/auth';
@@ -18,7 +18,7 @@ const AuthContext = createContext<AuthContextProps>({
   isLoading: true,
 });
 
-const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
