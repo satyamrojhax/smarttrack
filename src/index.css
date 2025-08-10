@@ -113,14 +113,9 @@ div:has(> a[href*="gpt-engineer"]) {
   .slide-in {
     animation: slideIn 0.3s ease-out;
   }
-}
-  
+
   .smooth-transition {
     @apply transition-all duration-300 ease-in-out;
-  }
-  
-  .gradient-text {
-    @apply bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent;
   }
   
   .scrollbar-hide {
@@ -140,10 +135,6 @@ div:has(> a[href*="gpt-engineer"]) {
   
   .animate-fade-in {
     animation: fadeIn 0.5s ease-in-out;
-  }
-  
-  .hover-scale {
-    @apply transition-transform duration-200 hover:scale-105;
   }
   
   .scale-102 {
