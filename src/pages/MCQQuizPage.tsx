@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import DomainMigrationPopup from '@/components/DomainMigrationPopup';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -47,6 +48,7 @@ interface QuizSettings {
 const MCQQuizPage: React.FC = () => {
   const { subjects } = useSyllabus();
   const { toast } = useToast();
+  const [showPopup, setShowPopup] = useState(false);
   
   const [currentTab, setCurrentTab] = useState('setup');
   const [quizSettings, setQuizSettings] = useState<QuizSettings>({
@@ -68,6 +70,15 @@ const MCQQuizPage: React.FC = () => {
 
   const selectedSubject = subjects.find(s => s.id === quizSettings.subject);
   const availableChapters = selectedSubject?.chapters || [];
+
+  // Show popup after 3 seconds on page load (non-closable)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowPopup(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // Timer effect
   useEffect(() => {
@@ -249,7 +260,13 @@ Make questions challenging and educational. Include variety in question types.`;
   const results = showResults ? calculateResults() : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 p-4">
+    <>
+      <DomainMigrationPopup
+        isOpen={showPopup}
+        showCloseButton={false}
+        variant="quiz"
+      />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 p-4">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
@@ -568,6 +585,7 @@ Make questions challenging and educational. Include variety in question types.`;
         </Tabs>
       </div>
     </div>
+    </>
   );
 };
 

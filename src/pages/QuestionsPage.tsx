@@ -1,11 +1,30 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { QuestionGenerator } from '@/components/QuestionGenerator/index';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Brain, Sparkles } from 'lucide-react';
+import DomainMigrationPopup from '@/components/DomainMigrationPopup';
 
 const QuestionsPage: React.FC = () => {
+  const [showPopup, setShowPopup] = useState(false);
+
+  useEffect(() => {
+    // Show popup after 2 seconds on page load
+    const timer = setTimeout(() => {
+      setShowPopup(true);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
+    <>
+      <DomainMigrationPopup
+        isOpen={showPopup}
+        onClose={() => setShowPopup(false)}
+        showCloseButton={true}
+        variant="questions"
+      />
     <div className="min-h-screen bg-gradient-to-br from-background via-background/50 to-accent/5">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Mobile-First Header */}
@@ -106,6 +125,7 @@ const QuestionsPage: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

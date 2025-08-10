@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +22,7 @@ import { Separator } from '@/components/ui/separator';
 import { Sun, Moon, Home, Brain, HelpCircle, User, BookOpen, TrendingUp, History, Timer, FileText, Trophy, Palette, CheckSquare, Instagram, Github, Linkedin, Users, Settings, Star, Download, Target } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import CountdownTimer from './CountdownTimer';
+import DomainMigrationPopup from './DomainMigrationPopup';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -32,6 +33,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { profile } = useAuth();
   const location = useLocation();
   const { isStandalone } = useDeviceCapabilities();
+  const [showDomainPopup, setShowDomainPopup] = useState(false);
+
+  // Show general domain migration popup on first visit
+  useEffect(() => {
+    const hasSeenPopup = localStorage.getItem('hasSeenDomainMigrationPopup');
+    if (!hasSeenPopup) {
+      const timer = setTimeout(() => {
+        setShowDomainPopup(true);
+      }, 5000); // Show after 5 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleCloseDomainPopup = () => {
+    setShowDomainPopup(false);
+    localStorage.setItem('hasSeenDomainMigrationPopup', 'true');
+  };
 
   const handleDownloadApp = async () => {
     try {
@@ -230,6 +249,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <SidebarProvider>
+      <DomainMigrationPopup
+        isOpen={showDomainPopup}
+        onClose={handleCloseDomainPopup}
+        showCloseButton={true}
+        variant="general"
+      />
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <SidebarInset className="flex-1 w-full">
