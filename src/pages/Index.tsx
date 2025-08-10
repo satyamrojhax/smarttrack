@@ -144,17 +144,17 @@ const Index = () => {
       </div>
 
       {/* Dashboard Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {dashboardCards.map((card, index) => (
           <Card key={index} className="glass-card smooth-transition hover:shadow-lg hover:scale-105">
-            <CardContent className="p-3 md:p-4">
-              <div className="flex flex-col space-y-2">
-                <div className={`p-2 rounded-lg ${card.bgColor} ${card.darkBgColor} self-start`}>
-                  <card.icon className={`w-4 h-4 md:w-5 md:h-5 ${card.color}`} />
-                </div>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs md:text-sm font-medium text-muted-foreground">{card.title}</p>
-                  <p className="text-lg md:text-xl font-bold">{card.value}</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-2">{card.title}</p>
+                  <p className="text-2xl font-bold">{card.value}</p>
+                </div>
+                <div className={`p-3 rounded-lg ${card.bgColor} ${card.darkBgColor}`}>
+                  <card.icon className={`w-6 h-6 ${card.color}`} />
                 </div>
               </div>
             </CardContent>
