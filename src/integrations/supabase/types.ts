@@ -41,7 +41,7 @@ export type Database = {
             foreignKeyName: "chapters_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
-            referencedRelation: "subjects"
+            referencedRelation: "subjects_old"
             referencedColumns: ["id"]
           },
         ]
@@ -182,7 +182,7 @@ export type Database = {
             foreignKeyName: "doubts_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
-            referencedRelation: "subjects"
+            referencedRelation: "subjects_old"
             referencedColumns: ["id"]
           },
         ]
@@ -245,7 +245,7 @@ export type Database = {
             foreignKeyName: "mcq_questions_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
-            referencedRelation: "subjects"
+            referencedRelation: "subjects_old"
             referencedColumns: ["id"]
           },
         ]
@@ -359,7 +359,7 @@ export type Database = {
             foreignKeyName: "study_sessions_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
-            referencedRelation: "subjects"
+            referencedRelation: "subjects_old"
             referencedColumns: ["id"]
           },
         ]
@@ -401,6 +401,27 @@ export type Database = {
         Relationships: []
       }
       subjects: {
+        Row: {
+          code: string | null
+          created_at: string | null
+          id: number
+          name: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string | null
+          id?: never
+          name: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string | null
+          id?: never
+          name?: string
+        }
+        Relationships: []
+      }
+      subjects_old: {
         Row: {
           board: Database["public"]["Enums"]["board_type"]
           class: Database["public"]["Enums"]["class_level"]
@@ -545,7 +566,7 @@ export type Database = {
             foreignKeyName: "user_generated_questions_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
-            referencedRelation: "subjects"
+            referencedRelation: "subjects_old"
             referencedColumns: ["id"]
           },
         ]
@@ -599,7 +620,7 @@ export type Database = {
             foreignKeyName: "user_notes_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
-            referencedRelation: "subjects"
+            referencedRelation: "subjects_old"
             referencedColumns: ["id"]
           },
         ]
