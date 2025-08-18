@@ -52,7 +52,7 @@ export const SyllabusProvider: React.FC<{ children: ReactNode }> = ({ children }
     try {
       // Fetch subjects for user's class and board
       const { data: subjectsData, error: subjectsError } = await supabase
-        .from('subjects_old')
+        .from('subjects')
         .select('*')
         .eq('class', profile.class as 'class-9' | 'class-10' | 'class-11' | 'class-12')
         .eq('board', profile.board as 'cbse' | 'icse' | 'state')
@@ -91,13 +91,13 @@ export const SyllabusProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       // Combine data
       const subjectsWithChapters = subjectsData.map(subject => ({
-        id: subject.id.toString(), // Convert to string to match interface
+        id: subject.id,
         name: subject.name,
         icon: subject.icon,
         color: subject.color,
         subject_type: subject.subject_type,
         chapters: chaptersData
-          .filter(chapter => chapter.subject_id === subject.id.toString())
+          .filter(chapter => chapter.subject_id === subject.id)
           .map(chapter => {
             const progress = progressData.find(p => p.chapter_id === chapter.id);
             return {

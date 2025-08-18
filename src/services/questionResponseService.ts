@@ -103,7 +103,7 @@ export const getUserQuestionResponses = async () => {
       .from('user_generated_questions')
       .select(`
         *,
-        subjects_old(name),
+        subjects(name),
         chapters(name)
       `)
       .eq('user_id', user.id)
@@ -115,12 +115,7 @@ export const getUserQuestionResponses = async () => {
     }
     
     console.log('Question responses fetched successfully:', data);
-    // Transform the data to match expected interface
-    const transformedData = (data || []).map(item => ({
-      ...item,
-      subjects: (item as any).subjects_old
-    }));
-    return transformedData;
+    return data || [];
   } catch (error) {
     console.error('Error in getUserQuestionResponses:', error);
     return [];

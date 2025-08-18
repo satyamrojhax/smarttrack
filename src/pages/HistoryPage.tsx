@@ -82,7 +82,7 @@ const HistoryPage: React.FC = () => {
           description, 
           status, 
           created_at,
-          subjects_old(name)
+          subjects(name)
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -92,7 +92,7 @@ const HistoryPage: React.FC = () => {
       } else {
         const transformedDoubts = (data || []).map(doubt => ({
           id: doubt.id,
-          subject: (doubt as any).subjects_old?.name || 'Unknown Subject',
+          subject: doubt.subjects?.name || 'Unknown Subject',
           question: doubt.title,
           status: doubt.status || 'open',
           created_at: doubt.created_at
@@ -156,7 +156,7 @@ const HistoryPage: React.FC = () => {
           difficulty_level,
           correct_answer,
           created_at,
-          subjects_old(name),
+          subjects(name),
           chapters(name)
         `)
         .eq('user_id', user.id)
@@ -166,11 +166,7 @@ const HistoryPage: React.FC = () => {
       if (error) {
         console.error('Error fetching generated questions:', error);
       } else {
-        const transformedQuestions = (data || []).map(q => ({
-          ...q,
-          subjects: (q as any).subjects_old
-        }));
-        setGeneratedQuestions(transformedQuestions);
+        setGeneratedQuestions(data || []);
       }
     } catch (error) {
       console.error('Error fetching generated questions:', error);
