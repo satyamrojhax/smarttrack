@@ -681,6 +681,10 @@ export type Database = {
         | "english-first-flight"
         | "english-footprints"
         | "hindi"
+        | "core"
+        | "elective"
+        | "information-technology"
+        | "grammar"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -818,6 +822,10 @@ export const Constants = {
         "english-first-flight",
         "english-footprints",
         "hindi",
+        "core",
+        "elective",
+        "information-technology",
+        "grammar",
       ],
     },
   },
