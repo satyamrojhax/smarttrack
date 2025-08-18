@@ -50,12 +50,10 @@ export const SyllabusProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     setLoading(true);
     try {
-      // Fetch subjects for user's class and board
+      // Fetch all subjects (remove class and board filtering to show new subjects)
       const { data: subjectsData, error: subjectsError } = await supabase
         .from('subjects')
         .select('*')
-        .eq('class', profile.class as 'class-9' | 'class-10' | 'class-11' | 'class-12')
-        .eq('board', profile.board as 'cbse' | 'icse' | 'state')
         .order('name');
 
       if (subjectsError) {
